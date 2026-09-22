@@ -89,7 +89,9 @@ Phần lớn các dự án e-commerce mẫu chỉ dừng lại ở các thao tá
 
 ## 🏗️ Architecture
 
-Hệ thống được thiết kế theo kiến trúc **Spring Boot Monolith phân tầng (Layered Architecture)**, kết hợp reverse proxy và các dịch vụ lưu trữ phân tán:
+Hệ thống dùng **Spring Boot monolith chia module nghiệp vụ**, mỗi module tổ chức theo `controller → service → repository`, kèm `mapper`, `dto`, `entity` và các package hỗ trợ khi cần. Không dùng Hexagonal/Clean, port/adapter hoặc các lớp use case trung gian. Các module gồm `identity`, `customer`, `catalog`, `ordering`, `payment`, `inventory`, `procurement`, `promotion`, `notification`, `assistant`; phần dùng chung nằm trong `shared`.
+
+Xem cấu trúc, trách nhiệm và quy tắc phát triển tại [tài liệu kiến trúc backend](backend/docs/architecture/README.md).
 
 ```mermaid
 flowchart TD
@@ -171,13 +173,9 @@ flowchart TD
 
 ## 📚 Documentation
 
-Hệ thống tài liệu thiết kế chi tiết được tổ chức trong thư mục [`/docs`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs):
-
-- [`00-tong-quan-du-an.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/00-tong-quan-du-an.md): Tổng quan dự án, vai trò các thành phần và lộ trình đọc code.
-- [`02-kien-truc-backend.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/02-kien-truc-backend.md): Thiết kế phân tầng, DTO mapping, locking và transaction rules.
-- [`03-luong-nghiep-vu.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/03-luong-nghiep-vu.md): Chi tiết 5 luồng nghiệp vụ chính (Auth, Catalog, Cart, Order, Payment).
-- [`04-co-so-du-lieu-va-module.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/04-co-so-du-lieu-va-module.md): Sơ đồ ERD, thiết kế bảng dữ liệu và danh sách Flyway migrations.
-- [`08-ke_hoach_production.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/08-ke_hoach_production.md): Kế hoạch hardening bảo mật, vận hành và danh mục audit trước khi deploy.
+- [Kiến trúc backend](backend/docs/architecture/README.md): module, phân tầng, transaction, cache và kiểm thử.
+- [Hướng dẫn phát triển backend](backend/AGENT.md): quy tắc tổ chức code và bảo toàn hành vi.
+- [Database migrations](backend/src/main/resources/db/migration): schema và lịch sử thay đổi dữ liệu.
 
 ---
 
@@ -216,7 +214,8 @@ npm run dev
 Ladux/
 ├── backend/                  # Spring Boot REST API monolith (Java 21)
 ├── frontend/                 # React 18 SPA (Storefront & Admin)
-├── docs/                     # Tài liệu thiết kế kiến trúc, nghiệp vụ & database
+├── backend/docs/architecture/ # Tài liệu kiến trúc module và quy tắc phát triển
+├── database/                 # Sơ đồ cơ sở dữ liệu
 ├── uploads/                  # Thư mục lưu trữ media & hình ảnh sản phẩm
 └── README.md                 # Project landing documentation
 ```

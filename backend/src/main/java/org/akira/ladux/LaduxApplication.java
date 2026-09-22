@@ -1,11 +1,10 @@
 package org.akira.ladux;
 
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 // Diem khoi dong backend Ladux — he thong thuong mai dien tu cong nghe.
 // Kien truc modular monolith: Controller -> Service -> Repository -> PostgreSQL.
