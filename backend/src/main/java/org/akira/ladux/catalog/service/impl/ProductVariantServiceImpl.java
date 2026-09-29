@@ -28,6 +28,18 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     private final CartItemRepository cartItemRepository;
     private final OrderItemRepository orderItemRepository;
 
+    @Override
+    @Transactional(readOnly = true)
+    public ProductVariantResponse getProductVariantById(Integer variantId) {
+        if (variantId == null || variantId < 1) {
+            throw new IllegalArgumentException("variantId phải là số nguyên dương");
+        }
+        return productVariantRepository.findById(variantId)
+                .map(ProductVariantMapper::fromEntity)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy ProductVariant với id: " + variantId));
+    }
+
     // Dành cho Admin
     @Override
     @Transactional

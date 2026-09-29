@@ -154,8 +154,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
      * tiep tuc refresh/logout duoc; lan rotate ke tiep se tu dong luu dung hash.
      */
     private Optional<RefreshToken> findStoredToken(String rawToken) {
-        Optional<RefreshToken> hashed = repo.findByToken(hashToken(rawToken));
-        return hashed.isPresent() ? hashed : repo.findByToken(rawToken);
+        Optional<RefreshToken> hashed = repo.findByTokenHash(hashToken(rawToken));
+        return hashed.isPresent() ? hashed : repo.findByTokenHash(rawToken);
     }
 
     private String hashToken(String rawToken) {

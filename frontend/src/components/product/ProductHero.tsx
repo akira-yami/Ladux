@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, ShieldCheck, Zap, CreditCard, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShieldCheck, Truck, Shirt, Percent } from "lucide-react";
 
 export interface ProductHeroProps {
     onShopNowClick?: () => void;
@@ -84,22 +84,22 @@ export default function ProductHero({ onShopNowClick }: ProductHeroProps) {
         {
             icon: ShieldCheck,
             title: "Chính Hãng New Seal 100%",
-            desc: "Bảo hành 12 - 24 tháng chính hãng",
+            desc: "Bảo hành 12 – 24 tháng",
         },
         {
-            icon: Zap,
+            icon: Truck,
             title: "Giao Hàng Hỏa Tốc",
-            desc: "Nội thành nhận ngay trong 2h",
+            desc: "Nội thành nhận ngay trong 2H",
         },
         {
-            icon: CreditCard,
+            icon: Shirt,
+            title: "Đổi Trả 7 Ngày",
+            desc: "Thoải mái mua sắm",
+        },
+        {
+            icon: Percent,
             title: "Trả Góp 0% Lãi Suất",
-            desc: "Thủ tục duyệt nhanh trong 5 phút",
-        },
-        {
-            icon: RefreshCw,
-            title: "1 Đổi 1 Trong 30 Ngày",
-            desc: "Lỗi NSX đổi mới lập tức",
+            desc: "Hỗ trợ qua thẻ tín dụng",
         },
     ];
 
@@ -187,29 +187,54 @@ export default function ProductHero({ onShopNowClick }: ProductHeroProps) {
                     </div>
                 </div>
 
-                {/* ── Sub-Hero Feature Assurance Cards ── */}
-                <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-2">
-                    {benefits.map((item, idx) => {
-                        const Icon = item.icon;
-                        return (
-                            <div
-                                key={idx}
-                                className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-950/80 p-4 backdrop-blur-xl transition-all duration-300 hover:border-[#00FF55]/40 hover:bg-neutral-900/90 hover:shadow-[0_10px_25px_rgba(0,255,85,0.08)] flex items-center gap-3.5"
-                            >
-                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#00FF55]/30 bg-[#00FF55]/10 text-[#00FF55] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#00FF55] group-hover:text-black">
-                                    <Icon className="h-5 w-5 stroke-[2.2]" />
+                {/* ── Sub-Hero Feature Assurance Bar ── */}
+                <div className="max-w-6xl mx-auto rounded-xl sm:rounded-2xl border border-white/[0.08] bg-[#080c0e]/95 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl overflow-hidden">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                        {benefits.map((item, idx) => {
+                            const Icon = item.icon;
+                            return (
+                                <div
+                                    key={idx}
+                                    className="group relative flex items-center gap-3 sm:gap-3.5 px-4 sm:px-5 lg:px-5 xl:px-6 py-3.5 sm:py-4 transition-colors duration-200 hover:bg-white/[0.02]"
+                                >
+                                    {/* Icon Box: Squarish rounded box matching the screenshot */}
+                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#02491b] border border-[#03ef66]/20 text-[#03ef66] shadow-[0_0_15px_rgba(3,239,102,0.12)] transition-transform duration-200 group-hover:scale-105 group-hover:border-[#03ef66]/40">
+                                        <Icon className="h-5 w-5 stroke-[2.2]" />
+                                    </div>
+
+                                    {/* Text Content */}
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug truncate group-hover:text-white transition-colors">
+                                            {item.title}
+                                        </h4>
+                                        <p className="text-[11px] sm:text-xs text-neutral-400 font-normal leading-snug truncate mt-0.5">
+                                            {item.desc}
+                                        </p>
+                                    </div>
+
+                                    {/* Vertical divider on desktop */}
+                                    {idx < benefits.length - 1 && (
+                                        <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 h-8 w-[1px] bg-white/[0.08]" />
+                                    )}
+
+                                    {/* Vertical divider on tablet (column 1 right separator) */}
+                                    {idx % 2 === 0 && (
+                                        <div className="hidden sm:block lg:hidden absolute right-0 top-1/2 -translate-y-1/2 h-8 w-[1px] bg-white/[0.08]" />
+                                    )}
+
+                                    {/* Horizontal divider on tablet (between row 1 and row 2) */}
+                                    {idx < 2 && (
+                                        <div className="hidden sm:block lg:hidden absolute bottom-0 left-4 right-4 h-[1px] bg-white/[0.06]" />
+                                    )}
+
+                                    {/* Horizontal divider on mobile (between rows) */}
+                                    {idx < benefits.length - 1 && (
+                                        <div className="block sm:hidden absolute bottom-0 left-4 right-4 h-[1px] bg-white/[0.06]" />
+                                    )}
                                 </div>
-                                <div className="min-w-0">
-                                    <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-[#00FF55] transition-colors truncate">
-                                        {item.title}
-                                    </h4>
-                                    <p className="text-[10px] sm:text-xs text-neutral-400 truncate mt-0.5 font-mono">
-                                        {item.desc}
-                                    </p>
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </section>

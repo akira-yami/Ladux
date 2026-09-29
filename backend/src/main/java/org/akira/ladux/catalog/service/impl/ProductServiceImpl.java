@@ -195,7 +195,7 @@ public class ProductServiceImpl implements ProductService {
                     .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay category voi id = " + request.categoryId()));
             product.setCategory(category);
         }
-        if (request.name() != null || !request.name().isBlank()) {
+        if (request.name() != null && !request.name().isBlank()) {
             product.setName(request.name());
             product.setSlug(SlugUtils.toSlug(request.name()));
         }

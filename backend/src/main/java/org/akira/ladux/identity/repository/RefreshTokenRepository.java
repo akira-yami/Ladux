@@ -11,7 +11,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     // Fetch san user + roles de sinh access token sau khi transaction ket thuc khong bi lazy loi.
     @EntityGraph(attributePaths = {"user", "user.roles"})
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<RefreshToken> findByToken(String token);
+    Optional<RefreshToken> findByTokenHash(String tokenHash);
 
     @Modifying
     @Query("update RefreshToken r set r.revoked = true where r.user.id = :userId and r.revoked = false")

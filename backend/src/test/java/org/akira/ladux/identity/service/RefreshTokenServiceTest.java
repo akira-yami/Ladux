@@ -65,7 +65,7 @@ class RefreshTokenServiceTest {
                 .revoked(false)
                 .build();
 
-        when(repository.findByToken(anyString())).thenAnswer(invocation ->
+        when(repository.findByTokenHash(anyString())).thenAnswer(invocation ->
                 legacyRaw.equals(invocation.getArgument(0)) ? Optional.of(current) : Optional.empty()
         );
         when(repository.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
