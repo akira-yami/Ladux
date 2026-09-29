@@ -2,7 +2,6 @@ package org.akira.ladux.identity.controller;
 
 import java.util.Map;
 import java.util.Set;
-import org.akira.ladux.identity.controller.admin.AdminAuthController;
 import org.akira.ladux.identity.dto.request.LoginRequest;
 import org.akira.ladux.identity.dto.request.MfaVerifyRequest;
 import org.akira.ladux.identity.entity.Role;
@@ -70,10 +69,10 @@ class AuthControllerStatelessTest {
         when(loginService.verifyPassword(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq(true),
                 org.mockito.ArgumentMatchers.any())).thenReturn(new LocalLoginService.PasswordLoginResult(user, "challenge-1"));
 
-        AdminAuthController controller = adminController(loginService, mock(MfaVerificationService.class), successService,
+        AuthController controller = adminController(loginService, mock(MfaVerificationService.class), successService,
                 mock(RefreshTokenCookieService.class));
 
-        ResponseEntity<Map<String, Object>> response = controller.login(
+        ResponseEntity<Map<String, Object>> response = controller.adminLogin(
                 new LoginRequest("admin", "password"), new MockHttpServletRequest()
         );
 
@@ -97,8 +96,8 @@ class AuthControllerStatelessTest {
         when(cookieService.createAdminRefreshCookie("admin-refresh"))
                 .thenReturn(refreshCookie("ADMIN_REFRESH_TOKEN", "admin-refresh", "/api/v1/admin/auth"));
 
-        AdminAuthController controller = adminController(mock(LocalLoginService.class), verificationService, successService, cookieService);
-        ResponseEntity<Map<String, Object>> response = controller.verifyMfa(
+        AuthController controller = adminController(mock(LocalLoginService.class), verificationService, successService, cookieService);
+        ResponseEntity<Map<String, Object>> response = controller.verifyAdminMfa(
                 new MfaVerifyRequest("challenge", "123456"), new MockHttpServletRequest()
         );
 
@@ -106,13 +105,13 @@ class AuthControllerStatelessTest {
         assertFalse(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE).contains("AUTH_TOKEN="));
     }
 
-    private AdminAuthController adminController(
+    private AuthController adminController(
             LocalLoginService loginService,
             MfaVerificationService verificationService,
             LoginSuccessService successService,
             RefreshTokenCookieService cookieService
     ) {
-        return new AdminAuthController(
+        return new AuthController(
                 mock(UserService.class), loginService, verificationService, successService, mock(JwtService.class), cookieService,
                 mock(RefreshTokenService.class)
         );
