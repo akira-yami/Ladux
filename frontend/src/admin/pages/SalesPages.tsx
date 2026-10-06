@@ -136,7 +136,9 @@ function OrderStatusDialog({ order, open, onOpenChange }: { order: OrderResponse
   const transitions = order ? orderTransitions[order.status] : [];
   const isDelivered = order?.status === "DELIVERED";
   const mutation = useMutation({
-    mutationFn: () => adminApi.orders.updateStatus(order!.id, { status: target as OrderStatus }),
+    mutationFn: () => target === "REFUNDED"
+      ? adminApi.payments.refund(order!.id, { reason: "Admin xác nhận hoàn tiền" })
+      : adminApi.orders.updateStatus(order!.id, { status: target as OrderStatus }),
     onSuccess: () => { toast.success("Đã cập nhật trạng thái đơn hàng"); queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }); queryClient.invalidateQueries({ queryKey: adminQueryKeys.dashboard }); onOpenChange(false); },
     onError: (mutationError) => setError(getApiErrorMessage(mutationError)),
   });

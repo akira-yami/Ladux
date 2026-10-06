@@ -18,9 +18,7 @@ public class RefreshTokenSecurityServiceImpl implements RefreshTokenSecurityServ
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleReuse(String familyId, Integer userId) {
         if (familyId != null && !familyId.isBlank()) {
-            refreshTokenRepository.findAll().stream()
-                    .filter(token -> familyId.equals(token.getFamilyId()))
-                    .forEach(token -> token.setRevoked(true));
+            refreshTokenRepository.revokeFamily(familyId);
         }
         userRepository.incrementTokenVersion(userId);
     }
