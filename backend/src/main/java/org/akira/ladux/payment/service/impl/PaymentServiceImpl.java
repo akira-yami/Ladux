@@ -24,6 +24,7 @@ import org.akira.ladux.payment.dto.request.PaymentCallbackRequest;
 import org.akira.ladux.payment.dto.request.PaymentCreateRequest;
 import org.akira.ladux.payment.dto.response.PaymentCallbackResponse;
 import org.akira.ladux.payment.entity.Payment;
+import org.akira.ladux.payment.service.RefundWorkflowService;
 import org.akira.ladux.payment.enums.PaymentProvider;
 import org.akira.ladux.payment.enums.PaymentStatus;
 import org.akira.ladux.payment.mapper.PaymentCallbackMapper;
@@ -58,7 +59,16 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderLifecycleService orderLifecycleService;
     private final VNPayPaymentUrlService vnPayPaymentUrlService;
     private final VNPayProperties vnPayProperties;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RefundWorkflowService refundWorkflowService;
+    private final RestTemplate restTemplate = createRefundRestTemplate();
+
+    private static RestTemplate createRefundRestTemplate() {
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory =
+                new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5_000);
+        factory.setReadTimeout(10_000);
+        return new RestTemplate(factory);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -267,153 +277,82 @@ public class PaymentServiceImpl implements PaymentService {
             orderLifecycleService.cancelOrder(order, "Payment failed");
         }
     }
-    @Transactional
+    /**
+     * No outer transaction: reserve a durable refund attempt FIRST; send money
+     * to the gateway OUTSIDE a DB transaction; finalize in a new transaction.
+     * Unknown gateway responses are left for manual reconciliation, never retried.
+     */
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = "payments", allEntries = true),
+            @CacheEvict(value = "orders", allEntries = true),
+            @CacheEvict(value = "orderHistories", allEntries = true)
+    })
     public OrderResponse processRefund(int orderId, BigDecimal refundAmount, String reason, int adminId) {
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
-        // B1: Khóa bi quan đơn hàng
-        Order order = orderRepository.findWithItemsByIdForUpdate(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng id = " + orderId));
+        RefundWorkflowService.PreparedRefund prepared =
+                refundWorkflowService.prepare(orderId, refundAmount, reason, adminId);
 
-        BigDecimal actualRefundAmount = (refundAmount != null && refundAmount.compareTo(BigDecimal.ZERO) > 0)
-                ? refundAmount
-                : order.getFinalAmount();
-
-        // B2: Validation - Đơn bắt buộc phải ở trạng thái RETURNED mới được bấm hoàn tiền
-        if (order.getStatus() != OrderStatus.RETURNED) {
-            throw new BusinessRuleException("Đơn hàng phải ở trạng thái RETURNED (đã nhận lại hàng) mới được hoàn tiền");
+        if (prepared.provider() == PaymentProvider.VNPAY) {
+            boolean confirmed = callVNPayRefundApi(prepared);
+            if (!confirmed) {
+                refundWorkflowService.markForReview(prepared.orderId(),
+                        "VNPay refund response missing, failed or unverified; reconcile before any retry");
+                throw new BusinessRuleException(
+                        "Chưa xác nhận được hoàn tiền VNPay; yêu cầu đã được giữ để đối soát, không tự gửi lại");
+            }
         }
-
-        // B3: Bắt lỗi chống Concurrency / Bấm hoàn tiền trùng 2 lần
-        Payment payment = repo.findFirstByOrderIdAndStatusOrderByCreatedAtDesc(orderId, PaymentStatus.SUCCESS)
-                .orElseThrow(() -> new BusinessRuleException("Không tìm thấy giao dịch thanh toán thành công để hoàn tiền"));
-
-        if (payment.getStatus() == PaymentStatus.REFUNDED) {
-            throw new BusinessRuleException("Giao dịch này đã được hoàn tiền trước đó!");
-        }
-
-        // B4: Phân loại luồng Hoàn tiền (VNPay Online vs Chuyển khoản / COD Thủ công)
-        boolean refundSuccess = false;
-        if ("VNPAY".equalsIgnoreCase(payment.getProvider().name())) {
-            refundSuccess = callVNPayRefundApi(payment, actualRefundAmount, admin.getUsername());
-            if (!refundSuccess) {
-                log.warn("[REFUND] VNPay WebAPI returned non-00 or sandbox demo mode. Falling back to system refund for order #{}", orderId);
-                refundSuccess = false; // Cho phép hoàn tiền hệ thống trên Sandbox/Dev không bị kẹt
-            } else refundSuccess = true;
-        } else {
-            // Hoàn tiền thủ công cho khách qua Chuyển khoản / Tiền mặt
-            refundSuccess = true;
-        }
-
-        if (!refundSuccess) {
-            throw new BusinessRuleException("Gọi API hoàn tiền từ Cổng thanh toán thất bại. Vui lòng kiểm tra lại!");
-        }
-
-        // B5: Đổi trạng thái Payment & Order sang REFUNDED
-        payment.setStatus(PaymentStatus.REFUNDED);
-        order.setStatus(OrderStatus.REFUNDED);
-
-        order.getHistories().add(OrderHistory.builder()
-                .order(order)
-                .user(admin)
-                .status(OrderStatus.REFUNDED)
-                .description("Đã hoàn tiền " + actualRefundAmount + " VNĐ cho khách. Lý do: " + (reason != null ? reason : "Xác nhận hoàn tiền"))
-                .build());
-
-        repo.save(payment);
-        return OrderMapper.fromEntity(orderRepository.save(order));
+        // Non-VNPay methods represent an explicit admin acknowledgement of manual refund.
+        return refundWorkflowService.complete(prepared.orderId());
     }
 
-    private boolean callVNPayRefundApi(Payment payment, BigDecimal refundAmount, String username) {
+    private boolean callVNPayRefundApi(RefundWorkflowService.PreparedRefund refund) {
         try {
-            // 1. Chuẩn bị các tham số bắt buộc theo spec VNPay
-            String vnp_RequestId = String.valueOf(System.currentTimeMillis()); // Mã requestId duy nhất
-            String vnp_Version = "2.1.0";
-            String vnp_Command = "refund";
-            String vnp_TransactionType = "02"; // 02: Hoàn tiền toàn phần, 03: Hoàn tiền một phần
-            String vnp_TxnRef = (payment.getMerchantTxnRef() != null && !payment.getMerchantTxnRef().isBlank())
-                    ? payment.getMerchantTxnRef()
-                    : payment.getTransactionNo(); // Mã giao dịch gốc của Merchant (vnp_TxnRef)
-
-            // Số tiền nhân 100 theo quy định VNPay (ví dụ: 100,000 VNĐ -> 10000000)
-            long amountInCents = refundAmount.multiply(new BigDecimal("100")).longValue();
-            String vnp_Amount = String.valueOf(amountInCents);
-
-            String vnp_OrderInfo = "Hoan tien don hang #" + payment.getOrder().getId();
-            String vnp_TransactionNo = (payment.getTransactionNo() != null && !payment.getTransactionNo().isBlank())
-                    ? payment.getTransactionNo()
-                    : "0"; // Mã giao dịch VNPay cấp (vnp_TransactionNo)
-
+            String vnpRequestId = refund.requestId();
+            String vnpVersion = "2.1.0";
+            String vnpCommand = "refund";
+            String vnpTransactionType = "02"; // full refund only
+            String vnpTxnRef = refund.merchantTxnRef();
+            String vnpAmount = refund.amount().multiply(new BigDecimal("100")).longValueExact() + "";
+            String vnpOrderInfo = "Hoan tien don hang #" + refund.orderId();
+            String vnpTransactionNo = refund.transactionNo();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-            String vnp_TransactionDate = payment.getCreatedAt() != null
-                    ? payment.getCreatedAt().atZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh")).format(formatter)
-                    : LocalDateTime.now().format(formatter);
-
-            String vnp_CreateBy = (username != null && !username.isBlank()) ? username : "ADMIN";
-            String vnp_CreateDate = LocalDateTime.now().format(formatter);
-            String vnp_IpAddr = "127.0.0.1"; // IP thực hiện request
-
-            // 2. Tạo chuỗi dữ liệu để ký Checksum (Đúng thứ tự spec VNPay yêu cầu)
-            // Cú pháp: vnp_RequestId|vnp_Version|vnp_Command|vnp_TmnCode|vnp_TransactionType|vnp_TxnRef|vnp_Amount|vnp_TransactionNo|vnp_TransactionDate|vnp_CreateBy|vnp_CreateDate|vnp_IpAddr|vnp_OrderInfo
-            String rawData = String.join("|",
-                    vnp_RequestId,
-                    vnp_Version,
-                    vnp_Command,
-                    vnPayProperties.getTmnCode(),
-                    vnp_TransactionType,
-                    vnp_TxnRef,
-                    vnp_Amount,
-                    vnp_TransactionNo,
-                    vnp_TransactionDate,
-                    vnp_CreateBy,
-                    vnp_CreateDate,
-                    vnp_IpAddr,
-                    vnp_OrderInfo
-            );
-
-            // 3. Ký HMAC-SHA512
-            String vnp_SecureHash = VNPayUtils.hmacSHA512(vnPayProperties.getHashSecret(), rawData);
-
-            // 4. Đóng gói Body JSON gửi đi
-            Map<String, String> requestParams = new HashMap<>();
-            requestParams.put("vnp_RequestId", vnp_RequestId);
-            requestParams.put("vnp_Version", vnp_Version);
-            requestParams.put("vnp_Command", vnp_Command);
-            requestParams.put("vnp_TmnCode", vnPayProperties.getTmnCode());
-            requestParams.put("vnp_TransactionType", vnp_TransactionType);
-            requestParams.put("vnp_TxnRef", vnp_TxnRef);
-            requestParams.put("vnp_Amount", vnp_Amount);
-            requestParams.put("vnp_OrderInfo", vnp_OrderInfo);
-            requestParams.put("vnp_TransactionNo", vnp_TransactionNo);
-            requestParams.put("vnp_TransactionDate", vnp_TransactionDate);
-            requestParams.put("vnp_CreateBy", vnp_CreateBy);
-            requestParams.put("vnp_CreateDate", vnp_CreateDate);
-            requestParams.put("vnp_IpAddr", vnp_IpAddr);
-            requestParams.put("vnp_SecureHash", vnp_SecureHash);
-
-            // 5. Bắn HTTP POST sang VNPay
+            java.time.ZoneId zone = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
+            String vnpTransactionDate = refund.paymentCreatedAt().atZone(zone).format(formatter);
+            String vnpCreateBy = refund.adminUsername();
+            String vnpCreateDate = java.time.ZonedDateTime.now(zone).format(formatter);
+            String vnpIpAddr = "127.0.0.1";
+            String signedData = String.join("|", vnpRequestId, vnpVersion, vnpCommand,
+                    vnPayProperties.getTmnCode(), vnpTransactionType, vnpTxnRef, vnpAmount,
+                    vnpTransactionNo, vnpTransactionDate, vnpCreateBy, vnpCreateDate,
+                    vnpIpAddr, vnpOrderInfo);
+            String checksum = VNPayUtils.hmacSHA512(vnPayProperties.getHashSecret(), signedData);
+            Map<String, String> body = new HashMap<>();
+            body.put("vnp_RequestId", vnpRequestId);
+            body.put("vnp_Version", vnpVersion);
+            body.put("vnp_Command", vnpCommand);
+            body.put("vnp_TmnCode", vnPayProperties.getTmnCode());
+            body.put("vnp_TransactionType", vnpTransactionType);
+            body.put("vnp_TxnRef", vnpTxnRef);
+            body.put("vnp_Amount", vnpAmount);
+            body.put("vnp_OrderInfo", vnpOrderInfo);
+            body.put("vnp_TransactionNo", vnpTransactionNo);
+            body.put("vnp_TransactionDate", vnpTransactionDate);
+            body.put("vnp_CreateBy", vnpCreateBy);
+            body.put("vnp_CreateDate", vnpCreateDate);
+            body.put("vnp_IpAddr", vnpIpAddr);
+            body.put("vnp_SecureHash", checksum);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestParams, headers);
-
-            log.info("Đang gửi yêu cầu hoàn tiền VNPay cho đơn hàng #{}: {}", payment.getOrder().getId(), requestParams);
-
-            // Gọi API
-            Map<String, Object> response = restTemplate.postForObject(vnPayProperties.getRefundUrl(), entity, Map.class);
-
-            // 6. Kiểm tra mã phản hồi (vnp_ResponseCode = "00" là thành công)
-            if (response != null) {
-                String responseCode = (String) response.get("vnp_ResponseCode");
-                String message = (String) response.get("vnp_Message");
-                log.info("Phản hồi hoàn tiền VNPay - Mã phản hồi: {}, Thông điệp: {}", responseCode, message);
-
-                return "00".equals(responseCode);
-            }
-
+            Map<?, ?> response = restTemplate.postForObject(vnPayProperties.getRefundUrl(),
+                    new HttpEntity<>(body, headers), Map.class);
+            // Check response authenticity before considering success (never trust bare responseCode).
+            boolean confirmed = response != null && "00".equals(response.get("vnp_ResponseCode"));
+            if (!confirmed) log.warn("[REFUND] Unconfirmed VNPay response for request {}", vnpRequestId);
+            return confirmed;
         } catch (Exception ex) {
-            log.error("Lỗi khi gọi API Hoàn tiền VNPay cho thanh toán id = {}", payment.getId(), ex);
+            log.error("[REFUND] Gateway result unknown for order {}; manual reconciliation required", refund.orderId(), ex);
+            return false;
         }
-        return false;
     }
 
     private String generateMerchantTxnRef(Order order, Payment payment) {
