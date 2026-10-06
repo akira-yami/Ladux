@@ -48,13 +48,25 @@
 .storefront-ui .store-card {
   box-shadow: var(--store-shadow);
   transition:
-    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 360ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 280ms ease;
 }
 .storefront-ui .store-card:hover {
   box-shadow: 0 8px 20px -14px rgb(14 116 144 / 0.14), 0 16px 34px -22px rgb(14 116 144 / 0.2);
 }
+.storefront-ui .store-card-hover {
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 360ms cubic-bezier(0.22, 1, 0.36, 1), border-color 280ms ease;
+}
+.storefront-ui .store-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: #bae6fd;
+}
+.storefront-ui .store-card__image { transition: transform 500ms ease-out; }
+.storefront-ui .store-card-hover:hover .store-card__image { transform: scale(1.02); }
+.storefront-ui .store-category-icon { transition: background-color 280ms ease; }
+.storefront-ui .store-card-hover:hover .store-category-icon { background-color: #e0f2fe; }
+.storefront-ui .store-brand-card { transition: border-color 280ms ease, background-color 280ms ease; }
+.storefront-ui .store-brand-card:hover { border-color: #bae6fd; background-color: #f0f9ff; }
 .storefront-ui .custom-scrollbar,
 .storefront-ui .store-scrollbar,
 .storefront-ui .chat-scrollbar,

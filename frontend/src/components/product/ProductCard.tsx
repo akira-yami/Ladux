@@ -16,10 +16,10 @@ export default function ProductCard({ laptop, isWishlisted, onToggleWishlist, on
     const specs = [{ icon: Cpu, value: laptop.cpu }, { icon: Cpu, value: laptop.ram }, { icon: HardDrive, value: laptop.rom }, { icon: Monitor, value: laptop.display }];
 
     return (
-        <article className="store-card group flex h-full flex-col rounded-3xl border border-sky-100/80 bg-white p-3.5 transition hover:-translate-y-0.5 hover:border-sky-200 sm:p-4">
+        <article className="store-card store-card-hover flex h-full flex-col rounded-3xl border border-sky-100/80 bg-white p-3.5 sm:p-4">
             <div className="relative overflow-hidden rounded-2xl bg-slate-50">
                 <button type="button" onClick={() => onSelectProduct(laptop)} aria-label={`Xem ${laptop.name}`} className="flex aspect-[4/3] w-full cursor-pointer items-center justify-center p-4">
-                    {laptop.images?.[0] ? <img src={laptop.images[0]} alt={laptop.name} loading="lazy" className="h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.02]" /> : <span className="flex flex-col items-center gap-2 text-slate-400"><ImageOff className="h-8 w-8" /><span className="text-xs">Chưa có ảnh</span></span>}
+                    {laptop.images?.[0] ? <img src={laptop.images[0]} alt={laptop.name} loading="lazy" className="store-card__image h-full w-full object-contain" /> : <span className="flex flex-col items-center gap-2 text-slate-400"><ImageOff className="h-8 w-8" /><span className="text-xs">Chưa có ảnh</span></span>}
                 </button>
                 {discounted && <span className="absolute left-2.5 top-2.5 rounded-full border border-sky-100 bg-white/95 px-2.5 py-1 text-[10px] font-semibold text-sky-700">Giá tốt</span>}
                 <button type="button" onClick={() => onToggleWishlist(laptop.id)} aria-label={isWishlisted ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'} aria-pressed={isWishlisted} className={`absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full border bg-white/95 transition ${isWishlisted ? 'border-sky-200 text-sky-600' : 'border-slate-100 text-slate-400 hover:text-sky-600'}`}>

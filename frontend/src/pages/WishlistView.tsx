@@ -66,7 +66,7 @@ export default function WishlistView({
                     {mappedWishlistProducts.map((laptop) => (
                         <div
                             key={laptop.id}
-                            className="store-card group relative overflow-hidden rounded-2xl border border-sky-100 bg-sky-50 transition-all duration-500 hover:-translate-y-0.5 hover:border-sky-200 flex flex-col justify-between"
+                            className="store-card store-card-hover relative overflow-hidden rounded-2xl border border-sky-100 bg-sky-50 flex flex-col justify-between"
                         >
                             <div>
                                 <div className="relative aspect-[4/3] bg-white overflow-hidden">
@@ -81,7 +81,7 @@ export default function WishlistView({
                                     <img
                                         src={laptop.images[0]}
                                         alt={laptop.name}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        className="store-card__image w-full h-full object-cover"
                                     />
                                 </div>
                                 <div className="p-5">
