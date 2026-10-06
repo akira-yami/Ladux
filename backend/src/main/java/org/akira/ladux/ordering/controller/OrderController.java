@@ -45,8 +45,10 @@ public class OrderController {
     }
 
     @DeleteMapping("/api/v1/orders/{orderId}")
-    public ResponseEntity<Void> cancelOrder(@PathVariable Integer orderId) {
-        service.cancelOrder(orderId);
+    public ResponseEntity<Void> cancelOrder(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Integer orderId) {
+        service.cancelOrder(principal.getId(), orderId);
         return ResponseEntity.noContent().build();
     }
 

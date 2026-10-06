@@ -27,7 +27,7 @@ public interface OrderService {
 
     void expirePendingOrders();
 
-    void cancelOrder(Integer orderId);
+    void cancelOrder(int userId, Integer orderId);
 
     OrderResponse requestReturn(int userId, int orderId, String reason);
 }

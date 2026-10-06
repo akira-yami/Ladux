@@ -2,29 +2,20 @@ package org.akira.ladux.shared.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-public class ClientIpUtils {
+/**
+ * Never read client-controlled forwarding headers here. In production Spring's
+ * ForwardedHeaderFilter may wrap the request, but only Caddy may supply those
+ * headers on the internal Docker network. Local requests use socket remoteAddr.
+ */
+public final class ClientIpUtils {
+
+    private ClientIpUtils() {}
 
     public static String getClientIp(HttpServletRequest request) {
         if (request == null) {
             return "127.0.0.1";
         }
-
-        String[] headers = {
-                "X-Forwarded-For",
-                "Proxy-Client-IP",
-                "WL-Proxy-Client-IP",
-                "HTTP_CLIENT_IP",
-                "HTTP_X_FORWARDED_FOR"
-        };
-
-        for (String header : headers) {
-            String ip = request.getHeader(header);
-            if (ip != null && !ip.isBlank() && !"unknown".equalsIgnoreCase(ip)) {
-                return ip.split(",")[0].trim();
-            }
-        }
-
         String remoteAddr = request.getRemoteAddr();
-        return (remoteAddr != null && !remoteAddr.isBlank()) ? remoteAddr : "127.0.0.1";
+        return (remoteAddr == null || remoteAddr.isBlank()) ? "127.0.0.1" : remoteAddr;
     }
 }
