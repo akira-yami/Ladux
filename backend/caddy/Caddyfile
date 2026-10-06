@@ -14,5 +14,15 @@
 	}
 
 	# Caddy tự gửi các header X-Forwarded-* cần thiết cho Spring Boot.
-	reverse_proxy app:8080
+	reverse_proxy app:8080 {
+		# This deployment uses Caddy as the ONLY public edge proxy.
+		# Overwrite untrusted client-supplied forwarding headers before Spring reads them.
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Real-IP {remote_host}
+		header_up -Forwarded
+		header_up -Proxy-Client-IP
+		header_up -WL-Proxy-Client-IP
+		header_up -HTTP_CLIENT_IP
+		header_up -HTTP_X_FORWARDED_FOR
+	}
 }

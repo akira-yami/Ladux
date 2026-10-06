@@ -24,6 +24,7 @@ import org.akira.ladux.ordering.repository.OrderRepository;
 import org.akira.ladux.payment.enums.PaymentProvider;
 import org.akira.ladux.promotion.repository.CouponRepository;
 import org.akira.ladux.shared.exception.BusinessRuleException;
+import org.akira.ladux.shared.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -165,6 +166,29 @@ class OrderServiceTest extends AbstractIntegrationTest {
         assertEquals(10, stockOf(productVariant.getId()), "Huy don -> hoan kho ve 10");
         assertEquals(usedBefore, couponRepository.findByCode("GIAM10").getUsedCount(), "Huy don -> hoan luot coupon");
         assertEquals(OrderStatus.CANCELLED, orderRepository.findById(order.getId()).orElseThrow().getStatus());
+    }
+
+    @Test
+    void cancelOrder_requiresOwner_andDoesNotChangeAnotherUsersStock() {
+        ProductVariant variant = newVariant(7, "1200.00");
+        setCartSingleItem(USER_ID, variant, 2);
+        orderService.createOrder(USER_ID, orderRequest(null, PaymentProvider.COD));
+        em.flush();
+        em.clear();
+
+        int orderId = newestOrderOf(USER_ID).getId();
+        assertEquals(5, stockOf(variant.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> orderService.cancelOrder(3, orderId));
+        em.flush();
+        em.clear();
+        assertEquals(OrderStatus.PENDING, orderRepository.findById(orderId).orElseThrow().getStatus());
+        assertEquals(5, stockOf(variant.getId()));
+
+        orderService.cancelOrder(USER_ID, orderId);
+        em.flush();
+        em.clear();
+        assertEquals(OrderStatus.CANCELLED, orderRepository.findById(orderId).orElseThrow().getStatus());
+        assertEquals(7, stockOf(variant.getId()));
     }
 
     @Test

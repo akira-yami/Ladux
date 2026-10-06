@@ -305,8 +305,17 @@ public class OrderServiceImpl implements OrderService {
     }
     @Override
     @Transactional
-    public void cancelOrder(Integer orderId) {
-        Order order = repo.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
+    @Caching(evict = {
+            @CacheEvict(value = "orders", allEntries = true),
+            @CacheEvict(value = "orderHistories", allEntries = true),
+            @CacheEvict(value = "products", allEntries = true),
+            @CacheEvict(value = "coupons", allEntries = true),
+            @CacheEvict(value = "payments", allEntries = true)
+    })
+    public void cancelOrder(int userId, Integer orderId) {
+        // Ownership and row lock must be checked atomically to prevent IDOR and cancel/payment races.
+        Order order = repo.findOwnedWithItemsForUpdate(userId, orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BusinessRuleException("Chỉ có thể hủy đơn hàng đang ở trạng thái PENDING");
         }
