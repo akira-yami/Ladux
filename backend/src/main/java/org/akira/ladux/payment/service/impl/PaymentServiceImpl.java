@@ -345,9 +345,37 @@ public class PaymentServiceImpl implements PaymentService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             Map<?, ?> response = restTemplate.postForObject(vnPayProperties.getRefundUrl(),
                     new HttpEntity<>(body, headers), Map.class);
-            // Check response authenticity before considering success (never trust bare responseCode).
-            boolean confirmed = response != null && "00".equals(response.get("vnp_ResponseCode"));
-            if (!confirmed) log.warn("[REFUND] Unconfirmed VNPay response for request {}", vnpRequestId);
+            // VNPay refund WebAPI 2.1.0: response checksum signs these fields in fixed order.
+            // Fail closed on missing signature, mismatched payment identity or ambiguous status.
+            String[] responseFields = {
+                    "vnp_ResponseId", "vnp_Command", "vnp_ResponseCode", "vnp_Message",
+                    "vnp_TmnCode", "vnp_TxnRef", "vnp_Amount", "vnp_BankCode",
+                    "vnp_PayDate", "vnp_TransactionNo", "vnp_TransactionType",
+                    "vnp_TransactionStatus", "vnp_OrderInfo"
+            };
+            if (response == null || !(response.get("vnp_SecureHash") instanceof String signature)) {
+                return false;
+            }
+            StringBuilder signedResponse = new StringBuilder();
+            for (String field : responseFields) {
+                if (!signedResponse.isEmpty()) signedResponse.append('|');
+                signedResponse.append(response.get(field) == null ? "" : response.get(field));
+            }
+            String expectedSignature = VNPayUtils.hmacSHA512(
+                    vnPayProperties.getHashSecret(), signedResponse.toString());
+            boolean signatureValid = java.security.MessageDigest.isEqual(
+                    expectedSignature.getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+                    signature.toLowerCase(java.util.Locale.ROOT).getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+            boolean confirmed = signatureValid
+                    && "00".equals(response.get("vnp_ResponseCode"))
+                    && "00".equals(response.get("vnp_TransactionStatus"))
+                    && "refund".equals(response.get("vnp_Command"))
+                    && vnPayProperties.getTmnCode().equals(response.get("vnp_TmnCode"))
+                    && vnpTxnRef.equals(response.get("vnp_TxnRef"))
+                    && vnpAmount.equals(String.valueOf(response.get("vnp_Amount")))
+                    && vnpTransactionType.equals(response.get("vnp_TransactionType"))
+                    && vnpTransactionNo.equals(String.valueOf(response.get("vnp_TransactionNo")));
+            if (!confirmed) log.warn("[REFUND] Unverified VNPay response for request {}", vnpRequestId);
             return confirmed;
         } catch (Exception ex) {
             log.error("[REFUND] Gateway result unknown for order {}; manual reconciliation required", refund.orderId(), ex);

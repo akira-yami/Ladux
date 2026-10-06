@@ -21,6 +21,7 @@ import org.akira.ladux.ordering.mapper.OrderMapper;
 import org.akira.ladux.ordering.repository.OrderRepository;
 import org.akira.ladux.ordering.service.OrderLifecycleService;
 import org.akira.ladux.ordering.service.OrderStateMachine;
+import org.akira.ladux.payment.service.PaymentService;
 import org.akira.ladux.shared.exception.BusinessRuleException;
 import org.akira.ladux.shared.exception.ResourceNotFoundException;
 import org.springframework.cache.annotation.CacheEvict;
@@ -43,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderStateMachineImpl implements OrderStateMachine {
     private final OrderRepository orderRepository;
     private final OrderLifecycleService orderLifecycleService;
+    private final PaymentService paymentService;
     private final ApplicationEventPublisher eventPublisher;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
@@ -91,7 +93,7 @@ public class OrderStateMachineImpl implements OrderStateMachine {
         }
 
         if (target == OrderStatus.REFUNDED) {
-            throw new BusinessRuleException("Hoàn tiền phải dùng endpoint /api/v1/admin/payments/order/{orderId}/refund để bảo đảm idempotency");
+            return paymentService.processRefund(orderId, order.getFinalAmount(), "Xác nhận hoàn tiền qua giao diện quản trị", admin.getId());
         }
         // Tao ma trackingNumber khi chuyen sang SHIPPED (tu dong neu khong duoc truyen hoac rong).
         if (target == OrderStatus.SHIPPED) {
