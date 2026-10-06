@@ -19,7 +19,8 @@ class EndpointRateLimitFilterTest {
         DistributedRateLimitService rateLimitService = mock(DistributedRateLimitService.class);
         EndpointRateLimitFilter filter = filter(rateLimitService);
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/auth/login");
-        request.addHeader("X-Forwarded-For", "203.0.113.9");
+        request.setRemoteAddr("203.0.113.9");
+        request.addHeader("X-Forwarded-For", "1.1.1.1"); // spoofed by client; must be ignored
 
         filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
 
@@ -53,7 +54,8 @@ class EndpointRateLimitFilterTest {
         DistributedRateLimitService rateLimitService = mock(DistributedRateLimitService.class);
         EndpointRateLimitFilter filter = filter(rateLimitService);
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/admin/auth/mfa/verify");
-        request.addHeader("X-Forwarded-For", "203.0.113.11");
+        request.setRemoteAddr("203.0.113.11");
+        request.addHeader("X-Forwarded-For", "1.1.1.1"); // spoofed by client; must be ignored
 
         filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
 
