@@ -12,10 +12,11 @@
 - External HTTP call runs outside database transaction. Order/payment are marked REFUNDED in a separate transaction only on verified gateway success. Non-VNPay refund is an explicit operator acknowledgement of an **already performed** manual transfer; avoid using this to trigger actual bank transfer.
 - Admin Order Status UI calls the dedicated refund endpoint. Status-machine PATCH endpoint explicitly rejects REFUNDED.
 
-## Flyway warning — edited V23
+## Flyway warning — edited V23 and V38
 - The pre-existing V23 inserted dev-only supplier rows referencing dev-only products. It prevented initialization of a production database without test data.
 - The corrected V23 is conditional and safely skips demo product associations on an empty DB, keeping dev/test seeded databases operational.
-- **V23 content changed**. Databases that previously applied the historical V23 will encounter a checksum mismatch. Back up the DB, compare installed migration checksums to source, validate changes, then perform an explicitly reviewed `flyway repair` **only on those databases**. Never set automatic repair in production.
+- **V23 and V38 content changed**. Databases that previously applied the historical V23 will encounter a checksum mismatch. Back up the DB, compare installed migration checksums to source, validate changes, then perform an explicitly reviewed `flyway repair` **only on those databases**. Never set automatic repair in production.
+- V38 now runs the legacy demo variant/description inserts only when all 12 known sample products exist with their expected (id, slug) pairs. A fresh production DB contains none, so demo inserts are skipped instead of violating FK constraints.
 - Verify the full migration chain on both a truly empty DB using the prod profile and a copy of an existing environment.
 
 ## Release gate
