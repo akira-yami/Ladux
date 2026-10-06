@@ -67,44 +67,6 @@ export default function ProductDetailView({
     ].filter((item) => item.value && item.value.toString().trim());
 
     const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
-    const [isZooming, setIsZooming] = useState<boolean>(false);
-    const [zoomPos, setZoomPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-    const [lensPos, setLensPos] = useState<{ left: number; top: number; width: number; height: number }>({
-        left: 0,
-        top: 0,
-        width: 0,
-        height: 0,
-    });
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const width = rect.width;
-        const height = rect.height;
-
-        const lensW = width * 0.3;
-        const lensH = height * 0.3;
-
-        let lensLeft = x - lensW / 2;
-        let lensTop = y - lensH / 2;
-
-        if (lensLeft < 0) lensLeft = 0;
-        if (lensLeft > width - lensW) lensLeft = width - lensW;
-        if (lensTop < 0) lensTop = 0;
-        if (lensTop > height - lensH) lensTop = height - lensH;
-
-        const pctX = width > lensW ? (lensLeft / (width - lensW)) * 100 : 0;
-        const pctY = height > lensH ? (lensTop / (height - lensH)) * 100 : 0;
-
-        setZoomPos({ x: pctX, y: pctY });
-        setLensPos({ left: lensLeft, top: lensTop, width: lensW, height: lensH });
-        setIsZooming(true);
-    };
-
-    const handleMouseLeave = () => {
-        setIsZooming(false);
-    };
 
     const currentImage = selectedProduct.images[activeImageIndex] || selectedProduct.images[0];
 
@@ -112,21 +74,20 @@ export default function ProductDetailView({
         setSelectedVariantId(selectedProduct.defaultVariantId ?? availableVariants[0]?.id ?? null);
         setProductQuantity(1);
         setActiveImageIndex(0);
-        setIsZooming(false);
     }, [selectedProduct.id]);
 
     return (
         <main className="container mx-auto px-6 py-12">
-            <div className="flex items-center gap-2 text-xs font-mono text-neutral-500 mb-8 flex-wrap">
-                <Link to={ROUTES.home} className="hover:text-[#00FF41] hover:underline transition-colors">
+            <div className="flex items-center gap-2 text-xs font-sans text-slate-500 mb-8 flex-wrap">
+                <Link to={ROUTES.home} className="hover:text-sky-700 hover:underline transition-colors">
                     Trang chủ
                 </Link>
                 <ChevronRight className="w-3 h-3" />
-                <Link to={ROUTES.products} className="hover:text-[#00FF41] hover:underline transition-colors">
+                <Link to={ROUTES.products} className="hover:text-sky-700 hover:underline transition-colors">
                     Sản phẩm
                 </Link>
                 <ChevronRight className="w-3 h-3" />
-                <span className="text-white font-semibold truncate max-w-[300px] sm:max-w-none">
+                <span className="text-slate-800 font-semibold truncate max-w-[300px] sm:max-w-none">
                     {selectedProduct.name}
                 </span>
             </div>
@@ -137,55 +98,26 @@ export default function ProductDetailView({
                     <div className="relative select-none">
                         {/* Main Image Container */}
                         <div
-                            onMouseMove={handleMouseMove}
-                            onMouseLeave={handleMouseLeave}
-                            onMouseEnter={() => setIsZooming(true)}
-                            className="aspect-[4/3] bg-neutral-900 rounded-xl overflow-hidden border border-neutral-800 relative cursor-crosshair group"
+                            className="aspect-[4/3] bg-white rounded-xl overflow-hidden border border-slate-200 relative"
                         >
                             {currentImage ? (
                                 <img
                                     src={currentImage}
                                     alt={selectedProduct.name}
-                                    className="w-full h-full object-cover transition-transform duration-500"
+                                    className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-neutral-600">
+                                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
                                     <ImageOff className="h-10 w-10" />
                                     <span className="text-xs">Sản phẩm chưa có ảnh</span>
                                 </div>
                             )}
 
-                            <span className="absolute top-4 left-4 bg-black/60 border border-[#00FF41]/40 text-[#00FF41] text-[10px] font-mono font-bold px-3 py-1 rounded-full backdrop-blur-md z-10 pointer-events-none">
+                            <span className="absolute top-4 left-4 bg-white border border-sky-700/40 text-sky-700 text-[10px] font-sans font-bold px-3 py-1 rounded-full backdrop-blur-md z-10 pointer-events-none">
                                 CHÍNH HÃNG NGUYÊN SEAL
                             </span>
 
-                            {/* Target Lens Box (Green Rectangle) */}
-                            {isZooming && currentImage && (
-                                <div
-                                    style={{
-                                        left: `${lensPos.left}px`,
-                                        top: `${lensPos.top}px`,
-                                        width: `${lensPos.width}px`,
-                                        height: `${lensPos.height}px`,
-                                    }}
-                                    className="absolute pointer-events-none border-2 border-[#00FF41] bg-[#00FF41]/10 shadow-[0_0_15px_rgba(0,255,65,0.4)] z-20"
-                                />
-                            )}
                         </div>
-
-                        {/* Large Magnifier Zoom Preview Window */}
-                        {isZooming && currentImage && (
-                            <div className="absolute left-[calc(100%+1.5rem)] -top-[96px] z-50 w-[440px] sm:w-[500px] xl:w-[560px] h-[440px] sm:h-[500px] xl:h-[560px] rounded-2xl border-2 border-[#00FF41] bg-neutral-950 overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_30px_rgba(0,255,65,0.25)] pointer-events-none hidden lg:block">
-                                <div
-                                    className="w-full h-full bg-no-repeat bg-neutral-950"
-                                    style={{
-                                        backgroundImage: `url(${currentImage})`,
-                                        backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-                                        backgroundSize: '320% 320%',
-                                    }}
-                                />
-                            </div>
-                        )}
 
                         {/* Thumbnails Gallery */}
                         {selectedProduct.images && selectedProduct.images.length > 1 && (
@@ -196,8 +128,8 @@ export default function ProductDetailView({
                                         onClick={() => setActiveImageIndex(idx)}
                                         className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
                                             activeImageIndex === idx
-                                                ? "border-[#00FF41] shadow-[0_0_10px_rgba(0,255,65,0.3)] scale-105"
-                                                : "border-neutral-800 opacity-60 hover:opacity-100 hover:border-neutral-600"
+                                                ? "border-sky-700 shadow-sm scale-105"
+                                                : "border-slate-200 opacity-60 hover:opacity-100 hover:border-neutral-600"
                                         }`}
                                     >
                                         <img src={imgUrl} alt={`${selectedProduct.name} ${idx + 1}`} className="w-full h-full object-cover" />
@@ -209,29 +141,29 @@ export default function ProductDetailView({
 
                     {/* Specifications Overview Cards */}
                     <div className="space-y-3">
-                        <h3 className="font-bold text-xs uppercase tracking-widest text-neutral-400">
+                        <h3 className="font-bold text-xs normal-case tracking-normal text-slate-500">
                             Thông số kỹ thuật chi tiết
                         </h3>
-                        <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                        <div className="grid grid-cols-2 gap-3 text-xs font-sans">
                             {technicalSpecs.slice(0, 3).map((spec) => (
-                                <div key={spec.label} className="p-3.5 bg-neutral-950 border border-neutral-900 rounded-xl space-y-1">
-                                    <span className="text-neutral-500 block text-[10px] uppercase">{spec.label}</span>
-                                    <span className="font-semibold text-neutral-200 block truncate">
+                                <div key={spec.label} className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1">
+                                    <span className="text-slate-500 block text-[10px] normal-case">{spec.label}</span>
+                                    <span className="font-semibold text-slate-600 block truncate">
                                         {spec.value}
                                     </span>
                                 </div>
                             ))}
                             {technicalSpecs.length === 0 && (
-                                <div className="p-3.5 bg-neutral-950 border border-neutral-900 rounded-xl space-y-1">
-                                    <span className="text-neutral-500 block text-[10px] uppercase">Thông số</span>
-                                    <span className="font-semibold text-neutral-200 block truncate">
+                                <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1">
+                                    <span className="text-slate-500 block text-[10px] normal-case">Thông số</span>
+                                    <span className="font-semibold text-slate-600 block truncate">
                                         Chưa cập nhật
                                     </span>
                                 </div>
                             )}
-                            <div className="p-3.5 bg-neutral-950 border border-neutral-900 rounded-xl space-y-1">
-                                <span className="text-neutral-500 block text-[10px] uppercase">Tình trạng kho</span>
-                                <span className={`font-semibold block ${selectedVariant?.stockQuantity ? "text-emerald-500" : "text-red-400"}`}>
+                            <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1">
+                                <span className="text-slate-500 block text-[10px] normal-case">Tình trạng kho</span>
+                                <span className={`font-semibold block ${selectedVariant?.stockQuantity ? "text-emerald-500" : "text-red-600"}`}>
                                     {selectedVariant?.stockQuantity
                                         ? `Sẵn hàng (${selectedVariant.stockQuantity} máy)`
                                         : "Tạm hết hàng"}
@@ -246,10 +178,10 @@ export default function ProductDetailView({
                     <div>
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <span className="inline-block px-3 py-1 bg-neutral-900 border border-emerald-500/30 text-emerald-500 text-xs font-mono font-bold rounded-md mb-3">
+                                <span className="inline-block px-3 py-1 bg-white border border-emerald-500/30 text-emerald-500 text-xs font-sans font-bold rounded-md mb-3">
                                     {selectedProduct.brand} • {selectedProduct.category}
                                 </span>
-                                <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                                <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800 leading-tight">
                                     {selectedProduct.name}
                                 </h1>
                             </div>
@@ -260,18 +192,18 @@ export default function ProductDetailView({
                                 className={`p-3 rounded-xl border transition ${
                                     isWishlisted
                                         ? "bg-red-500/10 border-red-500 text-red-500"
-                                        : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-red-400"
+                                        : "bg-white border-slate-200 text-slate-500 hover:text-red-600"
                                 }`}
                                 title={isWishlisted ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
                             >
                                 <Heart className={`w-5 h-5 ${isWishlisted ? "fill-current" : ""}`} />
                             </button>
                         </div>
-                        <div className="mt-3 flex items-center gap-3 text-xs text-neutral-400">
+                        <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
                             {selectedProduct.reviewCount > 0 ? (
                                 <>
-                                    <div className="flex items-center gap-1 text-amber-400 font-bold">
-                                        <Star className="w-4 h-4 fill-amber-400" /> {selectedProduct.rating.toFixed(1)}
+                                    <div className="flex items-center gap-1 text-amber-600 font-bold">
+                                        <Star className="w-4 h-4 fill-amber-600" /> {selectedProduct.rating.toFixed(1)}
                                     </div>
                                     <span>•</span>
                                     <span>{selectedProduct.reviewCount} đánh giá từ khách hàng</span>
@@ -283,39 +215,39 @@ export default function ProductDetailView({
                     </div>
 
                     {/* Giá thật của biến thể đang chọn */}
-                    <div className="p-6 bg-neutral-950 rounded-2xl border border-neutral-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="p-6 bg-white rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <span className="text-xs font-mono text-neutral-500 uppercase block mb-1">
+                            <span className="text-xs font-sans text-slate-500 normal-case block mb-1">
                                 Giá chính thức (Đã có VAT)
                             </span>
                             <div className="flex items-baseline gap-3">
-                                <span className="text-3xl font-black font-mono text-[#00FF41]">
+                                <span className="text-3xl font-semibold font-sans text-sky-700">
                                     {selectedVariant
                                         ? formatVND(selectedVariant.discountPrice || selectedVariant.price)
                                         : "Chưa có giá"}
                                 </span>
                                 {selectedVariant?.discountPrice
                                     && Number(selectedVariant.discountPrice) < Number(selectedVariant.price) && (
-                                    <span className="text-sm font-mono text-neutral-500 line-through">
+                                    <span className="text-sm font-sans text-slate-500 line-through">
                                         {formatVND(selectedVariant.price)}
                                     </span>
                                 )}
                             </div>
                         </div>
-                        <span className="self-start sm:self-center text-[10px] font-bold uppercase tracking-widest text-[#00FF41] bg-[#00FF41]/10 border border-[#00FF41]/30 px-3 py-1.5 rounded-full">
+                        <span className="self-start sm:self-center text-[10px] font-bold normal-case tracking-normal text-sky-700 bg-sky-50 border border-sky-700/30 px-3 py-1.5 rounded-full">
                             Phí giao hàng hiển thị tại bước thanh toán
                         </span>
                     </div>
 
                     {/* Các biến thể thật từ backend */}
-                    <div className="space-y-6 border-t border-neutral-900 pt-6">
+                    <div className="space-y-6 border-t border-slate-200 pt-6">
                         <div>
                             <div className="flex justify-between items-center mb-3">
-                                <label className="text-xs font-bold uppercase tracking-wider text-neutral-300">
+                                <label className="text-xs font-bold normal-case tracking-normal text-slate-600">
                                     Chọn cấu hình:
                                 </label>
                                 {selectedVariant && (
-                                    <span className="text-xs font-mono text-[#00FF41] font-bold">
+                                    <span className="text-xs font-sans text-sky-700 font-bold">
                                         SKU: {selectedVariant.sku}
                                     </span>
                                 )}
@@ -331,23 +263,23 @@ export default function ProductDetailView({
                                         }}
                                         className={`flex items-center justify-between gap-3 py-3 px-4 rounded-xl text-left text-xs border transition-all ${
                                             selectedVariant?.id === variant.id
-                                                ? "border-[#00FF41] bg-[#00FF41]/10 text-[#00FF41] shadow-[0_0_15px_rgba(0,255,65,0.15)]"
-                                                : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-700 hover:text-white"
+                                                ? "border-sky-700 bg-sky-50 text-sky-700 shadow-sm"
+                                                : "border-slate-200 bg-white text-slate-500 hover:border-slate-200 hover:text-slate-800"
                                         }`}
                                     >
                                             <span>
-                                                <span className="block font-bold text-white">
+                                                <span className="block font-bold text-slate-800">
                                                     {[
                                                         variant.ram,
                                                         variant.rom,
                                                         variant.color?.name?.trim()?.toLowerCase() === "default" ? "" : variant.color?.name,
                                                     ].filter(Boolean).join(" · ") || variant.sku || "Cấu hình mặc định"}
                                                 </span>
-                                                <span className="mt-1 block font-mono text-[10px]">
+                                                <span className="mt-1 block font-sans text-[10px]">
                                                     Còn {variant.stockQuantity} máy
                                             </span>
                                         </span>
-                                        <span className="font-mono font-bold">
+                                        <span className="font-sans font-bold">
                                             {formatVND(variant.discountPrice || variant.price)}
                                         </span>
                                     </button>
@@ -365,20 +297,20 @@ export default function ProductDetailView({
                     <div className="pt-4 space-y-4">
                         <div className="flex items-center gap-4">
                             {/* Quantity Stepper */}
-                            <div className="flex items-center border border-neutral-800 bg-neutral-950 rounded-xl p-1">
+                            <div className="flex items-center border border-slate-200 bg-white rounded-xl p-1">
                                 <button
                                     onClick={() => setProductQuantity((q) => Math.max(1, q - 1))}
-                                    className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white font-bold transition"
+                                    className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-800 font-bold transition"
                                 >
                                     -
                                 </button>
-                                <span className="w-12 text-center font-mono font-bold text-sm text-white">
+                                <span className="w-12 text-center font-sans font-bold text-sm text-slate-800">
                                     {productQuantity}
                                 </span>
                                 <button
                                     onClick={() => setProductQuantity((q) => Math.min(selectedVariant?.stockQuantity ?? 1, q + 1))}
                                     disabled={!selectedVariant || productQuantity >= selectedVariant.stockQuantity}
-                                    className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white font-bold transition"
+                                    className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-800 font-bold transition"
                                 >
                                     +
                                 </button>
@@ -392,7 +324,7 @@ export default function ProductDetailView({
                                     }
                                 }}
                                 disabled={!selectedVariant || selectedVariant.stockQuantity <= 0}
-                                className="flex-1 bg-[#00FF41] text-black py-3.5 px-6 rounded-xl font-extrabold text-sm uppercase tracking-wider hover:bg-[#00cc34] transition shadow-lg shadow-[#00FF41]/20 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex-1 bg-sky-600 text-white py-3.5 px-6 rounded-xl font-semibold text-sm normal-case tracking-normal hover:bg-sky-600 transition shadow-lg shadow-sky-700/20 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <ShoppingBag className="w-4 h-4" />
                                 <span>Thêm Vào Giỏ Hàng</span>
@@ -406,7 +338,7 @@ export default function ProductDetailView({
                                 if (added) navigate(ROUTES.checkout);
                             }}
                             disabled={!selectedVariant || selectedVariant.stockQuantity <= 0}
-                            className="w-full bg-white text-black py-3.5 rounded-xl font-extrabold text-sm uppercase tracking-wider hover:bg-neutral-200 transition disabled:cursor-not-allowed disabled:opacity-50"
+                            className="w-full bg-sky-600 text-white py-3.5 rounded-xl font-semibold text-sm normal-case tracking-normal hover:bg-sky-700 transition disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Mua Ngay: {selectedVariantLabel}
                         </button>
@@ -414,28 +346,28 @@ export default function ProductDetailView({
                 </div>
             </div>
 
-            <section className="mt-12 max-w-4xl rounded-2xl border border-neutral-900 bg-neutral-950 p-6">
-                <h2 className="mb-3 text-sm font-black uppercase tracking-wider text-white">Mô tả sản phẩm</h2>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-400">
+            <section className="mt-12 max-w-4xl rounded-2xl border border-slate-200 bg-white p-6">
+                <h2 className="mb-3 text-sm font-semibold normal-case tracking-normal text-slate-800">Mô tả sản phẩm</h2>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-500">
                     {selectedProduct.description || "Thông tin mô tả đang được cập nhật."}
                 </p>
             </section>
 
             {/* Reviews */}
-            <section className="mt-16 pt-12 border-t border-neutral-900 max-w-4xl">
-                <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
-                    <MessageSquare className="w-6 h-6 text-[#00FF41]" />
+            <section className="mt-16 pt-12 border-t border-slate-200 max-w-4xl">
+                <h2 className="text-2xl font-semibold mb-8 flex items-center gap-3">
+                    <MessageSquare className="w-6 h-6 text-sky-700" />
                     <span>ĐÁNH GIÁ TỪ NGƯỜI DÙNG ({selectedProduct.reviews.length})</span>
                 </h2>
 
                 <form
                     onSubmit={handleAddReview}
-                    className="mb-10 p-6 bg-neutral-950 border border-neutral-900 rounded-xl space-y-4"
+                    className="mb-10 p-6 bg-white border border-slate-200 rounded-xl space-y-4"
                 >
-                    <h3 className="text-sm font-bold text-white uppercase">Viết Đánh Giá Của Bạn</h3>
+                    <h3 className="text-sm font-bold text-slate-800 normal-case">Viết Đánh Giá Của Bạn</h3>
 
                     <div className="flex items-center gap-2">
-                        <span className="text-xs text-neutral-400">Đánh giá số sao:</span>
+                        <span className="text-xs text-slate-500">Đánh giá số sao:</span>
                         {[1, 2, 3, 4, 5].map((star) => (
                             <button
                                 key={star}
@@ -445,7 +377,7 @@ export default function ProductDetailView({
                             >
                                 <Star
                                     className={`w-5 h-5 ${
-                                        star <= newRating ? "fill-amber-400 text-amber-400" : "text-neutral-700"
+                                        star <= newRating ? "fill-amber-600 text-amber-600" : "text-slate-600"
                                     }`}
                                 />
                             </button>
@@ -458,12 +390,12 @@ export default function ProductDetailView({
                         placeholder="Chia sẻ trải nghiệm sử dụng mẫu Laptop này..."
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-[#00FF41]"
+                        className="w-full p-3 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-sky-700"
                     ></textarea>
 
                     <button
                         type="submit"
-                        className="bg-[#00FF41] text-black px-6 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-[#00cc34]"
+                        className="bg-sky-600 text-white px-6 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-sky-600"
                     >
                         <Send className="w-3.5 h-3.5" /> Gửi Đánh Giá
                     </button>
@@ -473,7 +405,7 @@ export default function ProductDetailView({
                     {selectedProduct.reviews.map((rev) => (
                         <div
                             key={rev.id}
-                            className="p-6 bg-neutral-950 border border-neutral-900 rounded-xl space-y-3"
+                            className="p-6 bg-white border border-slate-200 rounded-xl space-y-3"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -484,26 +416,26 @@ export default function ProductDetailView({
                                             className="w-8 h-8 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-800 text-xs font-bold text-[#00FF41]">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-sky-700">
                                             {rev.reviewerName.trim().charAt(0).toUpperCase() || "?"}
                                         </div>
                                     )}
                                     <div>
-                                        <span className="font-bold text-xs text-white block">
+                                        <span className="font-bold text-xs text-slate-800 block">
                                             {rev.reviewerName}
                                         </span>
-                                        <span className="text-[10px] text-neutral-500 font-mono">
+                                        <span className="text-[10px] text-slate-500 font-sans">
                                             {rev.createdAt}
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1 text-amber-400">
+                                <div className="flex items-center gap-1 text-amber-600">
                                     {[...Array(rev.rating)].map((_, i) => (
-                                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+                                        <Star key={i} className="w-3.5 h-3.5 fill-amber-600" />
                                     ))}
                                 </div>
                             </div>
-                            <p className="text-xs text-neutral-300 leading-relaxed">{rev.comment}</p>
+                            <p className="text-xs text-slate-600 leading-relaxed">{rev.comment}</p>
                         </div>
                     ))}
                 </div>

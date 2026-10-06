@@ -50,11 +50,11 @@ export default function ContactView({ showToast }: ContactViewProps) {
     return (
         <main className="container mx-auto px-6 py-16 max-w-4xl space-y-12">
             <div className="text-center space-y-4">
-                <span className="text-xs font-mono text-[#00FF41] uppercase tracking-widest">
+                <span className="text-xs font-sans text-sky-700 normal-case tracking-normal">
                     CONTACT US
                 </span>
-                <h1 className="text-4xl font-black">LIÊN HỆ VỚI LADUX</h1>
-                <p className="text-neutral-400 text-sm">
+                <h1 className="text-4xl font-semibold">LIÊN HỆ VỚI LADUX</h1>
+                <p className="text-slate-500 text-sm">
                     Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7 về các giải pháp Laptop cao cấp.
                 </p>
             </div>
@@ -62,56 +62,56 @@ export default function ContactView({ showToast }: ContactViewProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <form
                     onSubmit={handleSubmit}
-                    className="p-6 bg-neutral-950 border border-neutral-900 rounded-2xl space-y-4 shadow-xl"
+                    className="p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-xl"
                 >
-                    <h3 className="font-bold text-sm text-white uppercase mb-4 flex items-center gap-2">
-                        <Send className="w-4 h-4 text-[#00FF41]" />
+                    <h3 className="font-bold text-sm text-slate-800 normal-case mb-4 flex items-center gap-2">
+                        <Send className="w-4 h-4 text-sky-700" />
                         <span>Gửi Tin Nhắn Cho Chúng Tôi</span>
                     </h3>
                     <div>
-                        <label className="block text-neutral-400 text-xs mb-1">Họ & Tên</label>
+                        <label className="block text-slate-500 text-xs mb-1">Họ & Tên</label>
                         <input
                             required
                             value={fullName}
                             onChange={(event) => setFullName(event.target.value)}
                             placeholder="Nhập họ tên của bạn..."
-                            className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#00FF41] transition font-medium"
+                            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-sky-700 transition font-medium"
                         />
                     </div>
                     <div>
-                        <label className="block text-neutral-400 text-xs mb-1">Email / Số Điện Thoại</label>
+                        <label className="block text-slate-500 text-xs mb-1">Email / Số Điện Thoại</label>
                         <input
                             required
                             value={contact}
                             onChange={(event) => setContact(event.target.value)}
                             placeholder="Nhập email hoặc số điện thoại..."
-                            className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-[#00FF41] transition font-medium"
+                            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-sans focus:outline-none focus:border-sky-700 transition font-medium"
                         />
                     </div>
                     <div>
-                        <label className="block text-neutral-400 text-xs mb-1">Nội Dung</label>
+                        <label className="block text-slate-500 text-xs mb-1">Nội Dung</label>
                         <textarea
                             rows={4}
                             required
                             value={message}
                             onChange={(event) => setMessage(event.target.value)}
                             placeholder="Cần hỗ trợ về dòng sản phẩm nào?..."
-                            className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#00FF41] transition font-medium resize-none"
+                            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-sky-700 transition font-medium resize-none"
                         ></textarea>
                     </div>
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full bg-[#00FF41] hover:bg-[#00cc34] text-black py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#00FF41]/20"
+                        className="w-full bg-sky-600 hover:bg-sky-600 text-white py-3 rounded-xl text-xs font-semibold normal-case tracking-normal flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-sky-700/20"
                     >
                         {isSubmitting ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin text-black" />
+                                <Loader2 className="w-4 h-4 animate-spin text-white" />
                                 <span>Đang gửi yêu cầu...</span>
                             </>
                         ) : (
                             <>
-                                <Send className="w-4 h-4 text-black stroke-[2.5]" />
+                                <Send className="w-4 h-4 text-white stroke-[2.5]" />
                                 <span>Gửi Yêu Cầu</span>
                             </>
                         )}
@@ -119,25 +119,25 @@ export default function ContactView({ showToast }: ContactViewProps) {
                 </form>
 
                 <div className="space-y-6 text-xs">
-                    <div className="flex items-start gap-4 p-4 bg-neutral-950 border border-neutral-900 rounded-xl">
-                        <MapPin className="w-5 h-5 text-[#00FF41] shrink-0" />
+                    <div className="flex items-start gap-4 p-4 bg-white border border-slate-200 rounded-xl">
+                        <MapPin className="w-5 h-5 text-sky-700 shrink-0" />
                         <div>
-                            <h4 className="font-bold text-white mb-1">Showroom Chính</h4>
-                            <p className="text-neutral-400">{STOREFRONT_CONTACT.address || "Chưa cập nhật"}</p>
+                            <h4 className="font-bold text-slate-800 mb-1">Showroom Chính</h4>
+                            <p className="text-slate-500">{STOREFRONT_CONTACT.address || "Chưa cập nhật"}</p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-4 p-4 bg-neutral-950 border border-neutral-900 rounded-xl">
-                        <Phone className="w-5 h-5 text-[#00FF41] shrink-0" />
+                    <div className="flex items-start gap-4 p-4 bg-white border border-slate-200 rounded-xl">
+                        <Phone className="w-5 h-5 text-sky-700 shrink-0" />
                         <div>
-                            <h4 className="font-bold text-white mb-1">Hotline Hỗ Trợ Khách Hàng</h4>
-                            <p className="text-neutral-400 font-mono">{STOREFRONT_CONTACT.phone || "Chưa cập nhật"}</p>
+                            <h4 className="font-bold text-slate-800 mb-1">Hotline Hỗ Trợ Khách Hàng</h4>
+                            <p className="text-slate-500 font-sans">{STOREFRONT_CONTACT.phone || "Chưa cập nhật"}</p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-4 p-4 bg-neutral-950 border border-neutral-900 rounded-xl">
-                        <Mail className="w-5 h-5 text-[#00FF41] shrink-0" />
+                    <div className="flex items-start gap-4 p-4 bg-white border border-slate-200 rounded-xl">
+                        <Mail className="w-5 h-5 text-sky-700 shrink-0" />
                         <div>
-                            <h4 className="font-bold text-white mb-1">Email Liên Hệ</h4>
-                            <p className="text-neutral-400 font-mono">
+                            <h4 className="font-bold text-slate-800 mb-1">Email Liên Hệ</h4>
+                            <p className="text-slate-500 font-sans">
                                 {STOREFRONT_CONTACT.email || "Chưa cập nhật"}
                             </p>
                         </div>

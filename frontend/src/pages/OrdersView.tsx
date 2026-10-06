@@ -41,20 +41,20 @@ function getStepIndex(status: string): number {
 
 function StatusBadge({ status }: { status: string }) {
     const map: Record<string, { label: string; cls: string }> = {
-        PENDING:          { label: "Đã đặt hàng",  cls: "bg-amber-500/20 text-amber-400 border-amber-500/30" },
-        CONFIRMED:        { label: "Đã xác nhận",  cls: "bg-sky-500/20 text-sky-400 border-sky-500/30" },
-        PAID:             { label: "Đã xác nhận",  cls: "bg-sky-500/20 text-sky-400 border-sky-500/30" },
-        PROCESSING:       { label: "Đang xử lý",   cls: "bg-violet-500/20 text-violet-400 border-violet-500/30" },
-        SHIPPED:          { label: "Đang giao",     cls: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
-        DELIVERED:        { label: "Đã giao hàng", cls: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
-        CANCELLED:        { label: "Đã hủy",        cls: "bg-red-500/20 text-red-400 border-red-500/30" },
-        RETURN_REQUESTED: { label: "Yêu cầu hoàn", cls: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
-        RETURNED:         { label: "Đã hoàn",       cls: "bg-orange-400/20 text-orange-300 border-orange-400/30" },
-        REFUNDED:         { label: "Đã hoàn tiền",  cls: "bg-teal-500/20 text-teal-400 border-teal-500/30" },
+        PENDING:          { label: "Đã đặt hàng",  cls: "bg-amber-500/20 text-amber-600 border-amber-500/30" },
+        CONFIRMED:        { label: "Đã xác nhận",  cls: "bg-sky-500/20 text-sky-600 border-sky-500/30" },
+        PAID:             { label: "Đã xác nhận",  cls: "bg-sky-500/20 text-sky-600 border-sky-500/30" },
+        PROCESSING:       { label: "Đang xử lý",   cls: "bg-sky-500/20 text-sky-600 border-sky-500/30" },
+        SHIPPED:          { label: "Đang giao",     cls: "bg-blue-500/20 text-blue-600 border-blue-500/30" },
+        DELIVERED:        { label: "Đã giao hàng", cls: "bg-emerald-500/20 text-emerald-600 border-emerald-500/30" },
+        CANCELLED:        { label: "Đã hủy",        cls: "bg-red-500/20 text-red-600 border-red-500/30" },
+        RETURN_REQUESTED: { label: "Yêu cầu hoàn", cls: "bg-orange-500/20 text-orange-600 border-orange-500/30" },
+        RETURNED:         { label: "Đã hoàn",       cls: "bg-orange-400/20 text-orange-600 border-orange-400/30" },
+        REFUNDED:         { label: "Đã hoàn tiền",  cls: "bg-teal-500/20 text-teal-600 border-teal-500/30" },
     };
-    const cfg = map[status] ?? { label: status, cls: "bg-neutral-800 text-neutral-400 border-neutral-700" };
+    const cfg = map[status] ?? { label: status, cls: "bg-slate-100 text-slate-500 border-slate-200" };
     return (
-        <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border ${cfg.cls}`}>
+        <span className={`px-2 py-0.5 rounded text-[9px] font-sans font-bold normal-case border ${cfg.cls}`}>
             {cfg.label}
         </span>
     );
@@ -62,17 +62,17 @@ function StatusBadge({ status }: { status: string }) {
 
 function HistoryStatusIcon({ status }: { status: string }) {
     switch (status) {
-        case "PENDING":   return <Clock className="w-3.5 h-3.5 text-amber-400" />;
+        case "PENDING":   return <Clock className="w-3.5 h-3.5 text-amber-600" />;
         case "CONFIRMED":
         case "PAID":
-        case "PROCESSING": return <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />;
-        case "SHIPPED":   return <Truck className="w-3.5 h-3.5 text-blue-400" />;
-        case "DELIVERED": return <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF41]" />;
-        case "CANCELLED": return <XCircle className="w-3.5 h-3.5 text-red-400" />;
+        case "PROCESSING": return <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />;
+        case "SHIPPED":   return <Truck className="w-3.5 h-3.5 text-blue-600" />;
+        case "DELIVERED": return <CheckCircle2 className="w-3.5 h-3.5 text-sky-700" />;
+        case "CANCELLED": return <XCircle className="w-3.5 h-3.5 text-red-600" />;
         case "RETURN_REQUESTED":
         case "RETURNED":
-        case "REFUNDED":  return <RotateCcw className="w-3.5 h-3.5 text-orange-400" />;
-        default:          return <Package className="w-3.5 h-3.5 text-neutral-400" />;
+        case "REFUNDED":  return <RotateCcw className="w-3.5 h-3.5 text-orange-600" />;
+        default:          return <Package className="w-3.5 h-3.5 text-slate-500" />;
     }
 }
 
@@ -228,32 +228,32 @@ export default function OrdersView({
     return (
         <main className="container mx-auto px-4 sm:px-6 py-10 max-w-6xl">
             {/* ── Page Header ── */}
-            <div className="flex items-start justify-between border-b border-neutral-900 pb-6 mb-8 gap-4">
+            <div className="flex items-start justify-between border-b border-slate-200 pb-6 mb-8 gap-4">
                 <div>
-                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#00FF41]">
+                    <span className="text-[10px] font-sans normal-case tracking-normal text-sky-700">
                         LADUX CUSTOMER PORTAL
                     </span>
-                    <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
+                    <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800 tracking-tight mt-1">
                         QUẢN LÝ &amp; THEO DÕI ĐƠN HÀNG
                     </h1>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                     {/* Live refresh indicator */}
-                    <div className="hidden sm:flex items-center gap-2 text-[10px] text-neutral-500 font-mono">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00FF41] animate-pulse" />
+                    <div className="hidden sm:flex items-center gap-2 text-[10px] text-slate-500 font-sans">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-600 " />
                         <span>Cập nhật lúc {lastRefresh.toLocaleTimeString("vi-VN")}</span>
                     </div>
                     <button
                         onClick={manualRefresh}
                         disabled={isLoading}
-                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:text-[#00FF41] border border-neutral-800 hover:border-[#00FF41]/40 px-3 py-2 rounded-lg transition disabled:opacity-50"
+                        className="flex items-center gap-1.5 text-[10px] font-bold normal-case tracking-normal text-slate-500 hover:text-sky-700 border border-slate-200 hover:border-sky-700/40 px-3 py-2 rounded-lg transition disabled:opacity-50"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
                         <span className="hidden sm:inline">Làm mới</span>
                     </button>
                     <button
                         onClick={() => navigate(ROUTES.account)}
-                        className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:text-[#00FF41] transition"
+                        className="text-[10px] font-bold normal-case tracking-normal text-slate-500 hover:text-sky-700 transition"
                     >
                         ← Về tài khoản
                     </button>
@@ -261,26 +261,26 @@ export default function OrdersView({
             </div>
 
             {error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded-xl text-xs font-mono text-center mb-6">
+                <div className="bg-red-500/20 border border-red-500 text-red-600 p-4 rounded-xl text-xs font-sans text-center mb-6">
                     [Lỗi hệ thống]: {error}
                 </div>
             )}
 
             {isLoading && displayOrders.length === 0 ? (
-                <div className="text-center py-24 bg-neutral-950 rounded-2xl border border-neutral-900">
-                    <div className="inline-block w-8 h-8 border-2 border-[#00FF41] border-t-transparent rounded-full animate-spin mb-4" />
-                    <p className="text-neutral-400 text-xs font-mono">Đang tải lịch sử đơn hàng từ hệ thống...</p>
+                <div className="text-center py-24 bg-white rounded-2xl border border-slate-200">
+                    <div className="inline-block w-8 h-8 border-2 border-sky-700 border-t-transparent rounded-full animate-spin mb-4" />
+                    <p className="text-slate-500 text-xs font-sans">Đang tải lịch sử đơn hàng từ hệ thống...</p>
                 </div>
             ) : displayOrders.length === 0 ? (
-                <div className="text-center py-20 bg-neutral-950 rounded-2xl border border-neutral-900 space-y-4">
-                    <ShoppingBag className="w-14 h-14 text-neutral-700 mx-auto" />
-                    <h2 className="text-lg font-bold text-white">Bạn chưa có đơn hàng nào!</h2>
-                    <p className="text-xs text-neutral-400 max-w-sm mx-auto leading-relaxed">
+                <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 space-y-4">
+                    <ShoppingBag className="w-14 h-14 text-slate-600 mx-auto" />
+                    <h2 className="text-lg font-bold text-slate-800">Bạn chưa có đơn hàng nào!</h2>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
                         Hãy khám phá danh mục Laptop chính hãng tại Ladux và thực hiện đơn hàng đầu tiên.
                     </p>
                     <button
                         onClick={() => navigate(ROUTES.products)}
-                        className="inline-flex bg-[#00FF41] text-black px-6 py-3 rounded-xl text-xs font-extrabold uppercase hover:bg-[#00cc34] transition shadow-lg shadow-[#00FF41]/20"
+                        className="inline-flex bg-sky-600 text-white px-6 py-3 rounded-xl text-xs font-semibold normal-case hover:bg-sky-600 transition shadow-lg shadow-sky-700/20"
                     >
                         Khám phá sản phẩm ngay
                     </button>
@@ -289,7 +289,7 @@ export default function OrdersView({
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     {/* ── LEFT: Order List ── */}
                     <div className="lg:col-span-4 space-y-2">
-                        <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500 mb-3">
+                        <h2 className="text-[10px] font-bold normal-case tracking-normal text-slate-500 mb-3">
                             Danh sách đơn hàng ({displayOrders.length})
                         </h2>
                         <div className="custom-scrollbar space-y-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
@@ -299,24 +299,24 @@ export default function OrdersView({
                                     onClick={() => handleSelectOrder(ord.id)}
                                     className={`w-full text-left p-4 rounded-xl border cursor-pointer transition-all duration-200 space-y-2.5 ${
                                         activeId === ord.id
-                                            ? "border-[#00FF41] bg-[#00FF41]/[0.07] shadow-[0_0_20px_rgba(0,255,65,0.08)]"
-                                            : "border-neutral-900 bg-neutral-950 hover:border-neutral-700 hover:bg-neutral-900/50"
+                                            ? "border-sky-700 bg-sky-50 shadow-sm"
+                                            : "border-slate-200 bg-white hover:border-slate-200 hover:bg-white"
                                     }`}
                                 >
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="font-mono font-bold text-[#00FF41] tracking-wide">
+                                        <span className="font-sans font-bold text-sky-700 tracking-wide">
                                             #{ord.orderNumber}
                                         </span>
-                                        <span className="text-[10px] text-neutral-600 font-mono">{ord.date.split(",")[0]}</span>
+                                        <span className="text-[10px] text-slate-400 font-sans">{ord.date.split(",")[0]}</span>
                                     </div>
-                                    <p className="text-xs font-semibold text-white line-clamp-1 leading-snug">
+                                    <p className="text-xs font-semibold text-slate-800 line-clamp-1 leading-snug">
                                         {ord.items[0]?.product?.name || "Không còn thông tin sản phẩm"}
                                         {ord.items.length > 1 && (
-                                            <span className="text-neutral-500 font-normal"> (+{ord.items.length - 1} khác)</span>
+                                            <span className="text-slate-500 font-normal"> (+{ord.items.length - 1} khác)</span>
                                         )}
                                     </p>
                                     <div className="flex items-center justify-between pt-0.5">
-                                        <span className="font-mono text-[12px] text-neutral-200 font-bold">
+                                        <span className="font-sans text-[12px] text-slate-600 font-bold">
                                             {formatVND(ord.finalAmount)}
                                         </span>
                                         <StatusBadge status={ord.status} />
@@ -329,34 +329,34 @@ export default function OrdersView({
                     {/* ── RIGHT: Order Detail ── */}
                     <div className="lg:col-span-8">
                         {!currentOrder ? (
-                            <div className="p-10 bg-neutral-950 border border-neutral-900 rounded-2xl text-center text-neutral-500 text-xs">
+                            <div className="p-10 bg-white border border-slate-200 rounded-2xl text-center text-slate-500 text-xs">
                                 Chọn một đơn hàng bên trái để xem chi tiết.
                             </div>
                         ) : (
-                            <div className="bg-neutral-950 rounded-2xl border border-neutral-900 overflow-hidden">
+                            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                                 {/* ── Section 1: Header metadata ── */}
-                                <div className="p-6 sm:p-8 border-b border-neutral-900">
+                                <div className="p-6 sm:p-8 border-b border-slate-200">
                                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
                                         <div>
-                                            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-neutral-500">
+                                            <span className="text-[10px] font-sans normal-case tracking-normal text-slate-500">
                                                 MÃ ĐƠN HÀNG CHI TIẾT
                                             </span>
-                                            <h2 className="text-2xl sm:text-3xl font-black font-mono text-[#00FF41] mt-0.5 tracking-tight">
+                                            <h2 className="text-2xl sm:text-3xl font-semibold font-sans text-sky-700 mt-0.5 tracking-tight">
                                                 #{currentOrder.orderNumber}
                                             </h2>
-                                            <p className="text-[11px] text-neutral-500 mt-1.5 font-mono">
+                                            <p className="text-[11px] text-slate-500 mt-1.5 font-sans">
                                                 Khởi tạo lúc{" "}
-                                                <span className="text-neutral-300">{currentOrder.date}</span>
+                                                <span className="text-slate-600">{currentOrder.date}</span>
                                                 {" · "}Cổng thanh toán:{" "}
-                                                <span className="font-bold text-white">{currentOrder.paymentMethod || "Chưa cập nhật"}</span>
+                                                <span className="font-bold text-slate-800">{currentOrder.paymentMethod || "Chưa cập nhật"}</span>
                                             </p>
                                         </div>
                                         <div className="sm:text-right shrink-0">
-                                            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-neutral-500 block mb-1.5">
+                                            <span className="text-[10px] font-sans normal-case tracking-normal text-slate-500 block mb-1.5">
                                                 MÃ VẬN ĐƠN (TRACKING)
                                             </span>
-                                            <span className="inline-flex items-center gap-2 text-xs font-mono font-bold text-white bg-neutral-900 border border-neutral-800 px-3 py-2 rounded-lg">
-                                                <Truck className="w-3.5 h-3.5 text-[#00FF41]" />
+                                            <span className="inline-flex items-center gap-2 text-xs font-sans font-bold text-slate-800 bg-white border border-slate-200 px-3 py-2 rounded-lg">
+                                                <Truck className="w-3.5 h-3.5 text-sky-700" />
                                                 {currentOrder.trackingNumber || "Chưa có mã vận đơn"}
                                             </span>
                                         </div>
@@ -364,15 +364,15 @@ export default function OrdersView({
                                 </div>
 
                                 {/* ── Section 2: Status Stepper ── */}
-                                <div className="px-6 sm:px-8 py-6 border-b border-neutral-900">
+                                <div className="px-6 sm:px-8 py-6 border-b border-slate-200">
                                     {currentOrder.status === "CANCELLED" ? (
-                                        <div className="p-4 bg-red-500/[0.08] border border-red-500/25 rounded-xl text-red-400 text-xs font-semibold flex items-center gap-2.5">
+                                        <div className="p-4 bg-red-500/[0.08] border border-red-500/25 rounded-xl text-red-600 text-xs font-semibold flex items-center gap-2.5">
                                             <AlertCircle className="w-4 h-4 shrink-0" />
                                             Đơn hàng này đã bị hủy theo yêu cầu.
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
-                                            <h3 className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+                                            <h3 className="text-[10px] font-bold normal-case tracking-normal text-slate-500">
                                                 Trạng thái tiến độ đơn hàng
                                             </h3>
 
@@ -387,10 +387,10 @@ export default function OrdersView({
                                                             {/* Step node */}
                                                             <div className="flex flex-col items-center gap-2 z-10">
                                                                 <div
-                                                                    className={`w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-sm transition-all duration-500 ${
+                                                                    className={`w-10 h-10 rounded-full flex items-center justify-center font-sans font-bold text-sm transition-all duration-500 ${
                                                                         isDone
-                                                                            ? "bg-[#00FF41] text-black shadow-[0_0_20px_rgba(0,255,65,0.35)]"
-                                                                            : "bg-neutral-900 border-2 border-neutral-800 text-neutral-600"
+                                                                            ? "bg-sky-600 text-white shadow-sm"
+                                                                            : "bg-white border-2 border-slate-200 text-slate-400"
                                                                     }`}
                                                                 >
                                                                     {isDone ? (
@@ -402,10 +402,10 @@ export default function OrdersView({
                                                                 <span
                                                                     className={`text-[10px] sm:text-[11px] font-semibold text-center leading-tight max-w-[70px] ${
                                                                         isCurrent
-                                                                            ? "text-[#00FF41] font-bold"
+                                                                            ? "text-sky-700 font-bold"
                                                                             : isDone
-                                                                            ? "text-white"
-                                                                            : "text-neutral-600"
+                                                                            ? "text-slate-800"
+                                                                            : "text-slate-400"
                                                                     }`}
                                                                 >
                                                                     {step.label}
@@ -415,12 +415,12 @@ export default function OrdersView({
                                                             {/* Connector line between steps */}
                                                             {!isLast && (
                                                                 <div className="flex-1 relative top-5 mx-1">
-                                                                    <div className="h-0.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+                                                                    <div className="h-0.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                                                         <div
                                                                             className={`h-full rounded-full transition-all duration-700 ${
                                                                                 i < currentStepIdx
-                                                                                    ? "w-full bg-[#00FF41]"
-                                                                                    : "w-0 bg-[#00FF41]"
+                                                                                    ? "w-full bg-sky-600"
+                                                                                    : "w-0 bg-sky-600"
                                                                             }`}
                                                                         />
                                                                     </div>
@@ -435,35 +435,35 @@ export default function OrdersView({
                                 </div>
 
                                 {/* ── Section 3: Products ── */}
-                                <div className="px-6 sm:px-8 py-6 border-b border-neutral-900">
-                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500 mb-4">
+                                <div className="px-6 sm:px-8 py-6 border-b border-slate-200">
+                                    <h3 className="text-[10px] font-bold normal-case tracking-normal text-slate-500 mb-4">
                                         Sản phẩm trong đơn ({currentOrder.items.length})
                                     </h3>
                                     <div className="space-y-3">
                                         {currentOrder.items.map((it, i) => (
                                             <div
                                                 key={i}
-                                                className="flex items-center justify-between gap-4 p-4 bg-neutral-900/50 border border-neutral-900 rounded-xl"
+                                                className="flex items-center justify-between gap-4 p-4 bg-white border border-slate-200 rounded-xl"
                                             >
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     {it.product.images?.[0] ? (
                                                         <img
                                                             src={it.product.images[0]}
                                                             alt={it.product.name}
-                                                            className="w-16 h-16 shrink-0 bg-neutral-950 rounded-lg object-contain p-1.5 border border-neutral-800"
+                                                            className="w-16 h-16 shrink-0 bg-white rounded-lg object-contain p-1.5 border border-slate-200"
                                                         />
                                                     ) : (
-                                                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-950 text-[9px] text-neutral-500">
+                                                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-[9px] text-slate-500">
                                                             Chưa có ảnh
                                                         </div>
                                                     )}
                                                     <div className="min-w-0">
-                                                        <h4 className="text-xs font-bold text-white leading-snug line-clamp-2">
+                                                        <h4 className="text-xs font-bold text-slate-800 leading-snug line-clamp-2">
                                                             {it.product.name}
                                                         </h4>
                                                         {/* Specs line */}
                                                         {(it.selectedRam || it.selectedStorage || it.selectedColorName) && (
-                                                            <p className="text-[10px] font-mono text-neutral-500 mt-1 truncate">
+                                                            <p className="text-[10px] font-sans text-slate-500 mt-1 truncate">
                                                                 {[
                                                                     it.selectedRam,
                                                                     it.selectedStorage,
@@ -475,11 +475,11 @@ export default function OrdersView({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="text-right font-mono shrink-0">
-                                                    <span className="text-xs font-bold text-white block">
+                                                <div className="text-right font-sans shrink-0">
+                                                    <span className="text-xs font-bold text-slate-800 block">
                                                         {formatVND(it.price * it.quantity)}
                                                     </span>
-                                                    <span className="text-[10px] text-neutral-600">
+                                                    <span className="text-[10px] text-slate-400">
                                                         {formatVND(it.price)} × {it.quantity}
                                                     </span>
                                                 </div>
@@ -489,22 +489,22 @@ export default function OrdersView({
                                 </div>
 
                                 {/* ── Section 4: Shipping + Payment Summary ── */}
-                                <div className="px-6 sm:px-8 py-6 border-b border-neutral-900 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div className="px-6 sm:px-8 py-6 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     {/* Shipping Info */}
-                                    <div className="bg-neutral-900/40 rounded-xl p-5 space-y-2">
+                                    <div className="bg-white rounded-xl p-5 space-y-2">
                                         <div className="flex items-center gap-2 mb-3">
-                                            <MapPin className="w-3.5 h-3.5 text-[#00FF41]" />
-                                            <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-neutral-500">
+                                            <MapPin className="w-3.5 h-3.5 text-sky-700" />
+                                            <span className="text-[10px] font-sans normal-case tracking-normal text-slate-500">
                                                 Nơi nhận hàng
                                             </span>
                                         </div>
-                                        <p className="text-sm font-bold text-white">
+                                        <p className="text-sm font-bold text-slate-800">
                                             {currentOrder.shippingAddress.fullName}
                                         </p>
-                                        <p className="text-[11px] font-mono text-neutral-400">
+                                        <p className="text-[11px] font-sans text-slate-500">
                                             {currentOrder.shippingAddress.phone}
                                         </p>
-                                        <p className="text-[11px] text-neutral-300 leading-relaxed">
+                                        <p className="text-[11px] text-slate-600 leading-relaxed">
                                             {[
                                                 currentOrder.shippingAddress.addressDetail,
                                                 currentOrder.shippingAddress.ward,
@@ -516,12 +516,12 @@ export default function OrdersView({
                                         </p>
 
                                         {currentOrder.status === "PENDING" && (
-                                            <div className="pt-3 mt-3 border-t border-neutral-800/80">
+                                            <div className="pt-3 mt-3 border-t border-slate-200">
                                                 <button
                                                     type="button"
                                                     disabled={isCancelling}
                                                     onClick={() => handleCancelOrder(Number(currentOrder.id))}
-                                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-mono font-bold text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-all disabled:opacity-50"
+                                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-sans font-bold text-red-600 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-all disabled:opacity-50"
                                                 >
                                                     <XCircle className="w-4 h-4" />
                                                     {isCancelling ? "ĐANG HỦY ĐƠN..." : "HỦY ĐƠN HÀNG"}
@@ -531,76 +531,76 @@ export default function OrdersView({
                                     </div>
 
                                     {/* Payment Summary */}
-                                    <div className="bg-neutral-900/40 rounded-xl p-5 space-y-2.5">
+                                    <div className="bg-white rounded-xl p-5 space-y-2.5">
                                         <div className="flex items-center gap-2 mb-3">
-                                            <CreditCard className="w-3.5 h-3.5 text-[#00FF41]" />
-                                            <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-neutral-500">
+                                            <CreditCard className="w-3.5 h-3.5 text-sky-700" />
+                                            <span className="text-[10px] font-sans normal-case tracking-normal text-slate-500">
                                                 Tổng kết thanh toán
                                             </span>
                                         </div>
-                                        <div className="flex justify-between text-xs font-mono text-neutral-400">
+                                        <div className="flex justify-between text-xs font-sans text-slate-500">
                                             <span>Tạm tính:</span>
-                                            <span className="text-white">{formatVND(currentOrder.subTotal)}</span>
+                                            <span className="text-slate-800">{formatVND(currentOrder.subTotal)}</span>
                                         </div>
                                         {currentOrder.discountAmount > 0 && (
-                                            <div className="flex justify-between text-xs font-mono text-[#00FF41]">
+                                            <div className="flex justify-between text-xs font-sans text-sky-700">
                                                 <span>Giảm giá:</span>
                                                 <span>-{formatVND(currentOrder.discountAmount)}</span>
                                             </div>
                                         )}
-                                        <div className="flex justify-between text-xs font-mono text-neutral-400">
+                                        <div className="flex justify-between text-xs font-sans text-slate-500">
                                             <span>Phí vận chuyển:</span>
                                             {currentOrder.shippingFee > 0 ? (
-                                                <span className="text-white">{formatVND(currentOrder.shippingFee)}</span>
+                                                <span className="text-slate-800">{formatVND(currentOrder.shippingFee)}</span>
                                             ) : (
-                                                <span className="text-[#00FF41] font-bold">MIỄN PHÍ</span>
+                                                <span className="text-sky-700 font-bold">MIỄN PHÍ</span>
                                             )}
                                         </div>
-                                        <div className="flex justify-between text-sm font-bold text-white pt-2.5 border-t border-neutral-800 mt-1">
+                                        <div className="flex justify-between text-sm font-bold text-slate-800 pt-2.5 border-t border-slate-200 mt-1">
                                             <span>Tổng cộng:</span>
-                                            <span className="text-[#00FF41] text-base">{formatVND(currentOrder.finalAmount)}</span>
+                                            <span className="text-sky-700 text-base">{formatVND(currentOrder.finalAmount)}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* ── Section 5: Order History Timeline ── */}
-                                <div className="px-6 sm:px-8 py-6 border-b border-neutral-900">
-                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500 mb-4">
+                                <div className="px-6 sm:px-8 py-6 border-b border-slate-200">
+                                    <h3 className="text-[10px] font-bold normal-case tracking-normal text-slate-500 mb-4">
                                         Lịch sử cập nhật đơn hàng
                                     </h3>
 
                                     {isLoadingHistories ? (
-                                        <div className="flex items-center gap-2 text-xs text-neutral-500 py-2">
-                                            <div className="w-3.5 h-3.5 border border-[#00FF41] border-t-transparent rounded-full animate-spin" />
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 py-2">
+                                            <div className="w-3.5 h-3.5 border border-sky-700 border-t-transparent rounded-full animate-spin" />
                                             Đang tải lịch sử...
                                         </div>
                                     ) : currentOrderHistories.length === 0 ? (
-                                        <p className="text-[11px] text-neutral-600 font-mono py-2">
+                                        <p className="text-[11px] text-slate-400 font-sans py-2">
                                             Chưa có bản ghi lịch sử cho đơn hàng này.
                                         </p>
                                     ) : (
                                         <div className="relative pl-5 space-y-0">
                                             {/* Vertical line */}
-                                            <div className="absolute left-[7px] top-1 bottom-1 w-px bg-neutral-800" />
+                                            <div className="absolute left-[7px] top-1 bottom-1 w-px bg-slate-100" />
 
                                             {currentOrderHistories.map((h, i) => (
                                                 <div key={h.id} className="relative flex gap-4 pb-5 last:pb-0">
                                                     {/* Dot */}
-                                                    <div className="absolute -left-[13px] top-0.5 w-4 h-4 rounded-full bg-neutral-950 border border-neutral-800 flex items-center justify-center">
+                                                    <div className="absolute -left-[13px] top-0.5 w-4 h-4 rounded-full bg-white border border-slate-200 flex items-center justify-center">
                                                         <HistoryStatusIcon status={h.status} />
                                                     </div>
 
                                                     <div className="flex-1 min-w-0 pl-2">
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             <StatusBadge status={h.status} />
-                                                            <span className="text-[10px] font-mono text-neutral-600">
+                                                            <span className="text-[10px] font-sans text-slate-400">
                                                                 {h.createdAt
                                                                     ? new Date(h.createdAt).toLocaleString("vi-VN")
                                                                     : ""}
                                                             </span>
                                                         </div>
                                                         {h.description && (
-                                                            <p className="text-[11px] text-neutral-400 mt-1 leading-relaxed">
+                                                            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
                                                                 {h.description}
                                                             </p>
                                                         )}
@@ -627,7 +627,7 @@ export default function OrdersView({
                                                     showToast("Lỗi khi kết nối đến VNPay.");
                                                 }
                                             }}
-                                            className="flex items-center gap-2 bg-[#00FF41] text-black px-5 py-2.5 rounded-xl text-xs font-extrabold uppercase hover:bg-[#00cc34] transition shadow-lg shadow-[#00FF41]/20"
+                                            className="flex items-center gap-2 bg-sky-600 text-white px-5 py-2.5 rounded-xl text-xs font-semibold normal-case hover:bg-sky-600 transition shadow-lg shadow-sky-700/20"
                                         >
                                             <RefreshCw className="w-3.5 h-3.5" />
                                             Thanh toán lại VNPay
@@ -637,7 +637,7 @@ export default function OrdersView({
                                     {currentOrder.status === "DELIVERED" && (
                                         <button
                                             onClick={() => setShowReturnModal(true)}
-                                            className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500 hover:text-black text-amber-400 px-5 py-2.5 rounded-xl text-xs font-extrabold uppercase transition shadow-md shadow-amber-500/10"
+                                            className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500 hover:text-white text-amber-600 px-5 py-2.5 rounded-xl text-xs font-semibold normal-case transition shadow-md shadow-amber-500/10"
                                         >
                                             <RotateCcw className="w-3.5 h-3.5" />
                                             Yêu cầu trả hàng
@@ -645,8 +645,8 @@ export default function OrdersView({
                                     )}
 
                                     {currentOrder.status === "RETURN_REQUESTED" && (
-                                        <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 text-orange-400 px-4 py-2.5 rounded-xl text-xs font-semibold">
-                                            <Clock className="w-3.5 h-3.5 animate-pulse" />
+                                        <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 text-orange-600 px-4 py-2.5 rounded-xl text-xs font-semibold">
+                                            <Clock className="w-3.5 h-3.5 " />
                                             Đang chờ cửa hàng xem xét yêu cầu trả hàng
                                         </div>
                                     )} 
@@ -659,17 +659,17 @@ export default function OrdersView({
 
             {/* Modal Yêu Cầu Trả Hàng */}
             {showReturnModal && currentOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-                    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
-                        <div className="flex items-center gap-3 text-amber-400">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/25 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-md w-full shadow-xl shadow-sky-100/50 space-y-4">
+                        <div className="flex items-center gap-3 text-amber-600">
                             <RotateCcw className="w-6 h-6" />
-                            <h3 className="text-lg font-bold text-white">Yêu Cầu Trả Hàng / Hoàn Tiền</h3>
+                            <h3 className="text-lg font-bold text-slate-800">Yêu Cầu Trả Hàng / Hoàn Tiền</h3>
                         </div>
-                        <p className="text-xs text-neutral-400 leading-relaxed">
-                            Bạn đang yêu cầu trả hàng cho đơn hàng <span className="font-mono text-white font-bold">#{currentOrder.id}</span>. Bộ phận CSKH sẽ xem xét và quyết định hoàn tiền.
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            Bạn đang yêu cầu trả hàng cho đơn hàng <span className="font-sans text-slate-800 font-bold">#{currentOrder.id}</span>. Bộ phận CSKH sẽ xem xét và quyết định hoàn tiền.
                         </p>
                         <div>
-                            <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">
                                 Lý do trả hàng (không bắt buộc):
                             </label>
                             <textarea
@@ -677,7 +677,7 @@ export default function OrdersView({
                                 onChange={(e) => setReturnReason(e.target.value)}
                                 placeholder="Nhập lý do trả hàng (ví dụ: sản phẩm không vừa ý, lỗi nhà sản xuất...)"
                                 rows={3}
-                                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 transition resize-none"
+                                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-neutral-600 focus:outline-none focus:border-amber-500 transition resize-none"
                             />
                         </div>
                         <div className="flex items-center justify-end gap-3 pt-2">
@@ -687,14 +687,14 @@ export default function OrdersView({
                                     setReturnReason("");
                                 }}
                                 disabled={isSubmittingReturn}
-                                className="px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white transition"
+                                className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 transition"
                             >
                                 Hủy bỏ
                             </button>
                             <button
                                 onClick={() => handleRequestReturn(Number(currentOrder.id))}
                                 disabled={isSubmittingReturn}
-                                className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-5 py-2.5 rounded-xl text-xs font-bold uppercase transition disabled:opacity-50"
+                                className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-5 py-2.5 rounded-xl text-xs font-bold normal-case transition disabled:opacity-50"
                             >
                                 {isSubmittingReturn ? (
                                     <>

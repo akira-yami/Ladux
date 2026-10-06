@@ -61,6 +61,7 @@ export default function AllProductsView({
     const [maxPrice, setMaxPrice] = useState<number>(Number.POSITIVE_INFINITY);
     const [sortBy, setSortBy] = useState<string>("newest");
     const [currentPage, setCurrentPage] = useState<number>(1);
+    const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
     const itemsPerPage = 8;
 
     const [isSortDropdownOpen, setIsSortDropdownOpen] = useState<boolean>(false);
@@ -223,48 +224,48 @@ export default function AllProductsView({
     }, [filteredProducts, currentPage]);
 
     return (
-        <div className="bg-[#080a0b] text-white min-h-screen py-8">
+        <div className="bg-white text-slate-800 min-h-screen py-8">
             <div className="container mx-auto px-5 sm:px-6">
                 {/* ── Breadcrumb & Top Bar ── */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
-                        <div className="flex items-center gap-2 text-xs text-neutral-400 font-medium mb-2">
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mb-2">
                             <button
                                 onClick={() => navigate(ROUTES.home)}
-                                className="hover:text-white transition-colors"
+                                className="hover:text-slate-800 transition-colors"
                             >
                                 Trang chủ
                             </button>
-                            <ChevronRight className="w-3 h-3 text-neutral-600" />
-                            <span className="text-neutral-200">Cửa hàng</span>
+                            <ChevronRight className="w-3 h-3 text-slate-400" />
+                            <span className="text-slate-600">Cửa hàng</span>
                         </div>
-                        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase">
-                            TẤT CẢ LAPTOP
+                        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-800 normal-case">
+                            Laptop phù hợp với bạn
                         </h1>
-                        <p className="text-xs text-neutral-400 font-mono mt-1">
+                        <p className="text-xs text-slate-500 font-sans mt-1">
                             {filteredProducts.length} sản phẩm
                         </p>
                     </div>
 
                     {/* Top Right Sort */}
                     <div className="flex items-center gap-3">
-                        <span className="text-xs text-neutral-400 font-medium hidden sm:inline">Sắp xếp:</span>
+                        <span className="text-xs text-slate-500 font-medium hidden sm:inline">Sắp xếp:</span>
                         <div className="relative" ref={sortDropdownRef}>
                             <button
                                 type="button"
                                 onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                                className="flex items-center gap-2.5 bg-[#141618] border border-white/15 hover:border-[#00FF41]/60 rounded-full px-5 py-2 text-xs font-bold text-white transition-all cursor-pointer shadow-md shadow-black/40"
+                                className="flex items-center gap-2.5 bg-white border border-sky-100 hover:border-sky-700/60 rounded-full px-5 py-2 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-md shadow-black/40"
                             >
                                 <span>{SORT_OPTIONS.find((o) => o.value === sortBy)?.label || "Nổi bật nhất"}</span>
                                 <ChevronRight
-                                    className={`w-3.5 h-3.5 text-[#00FF41] transition-transform duration-300 ${
+                                    className={`w-3.5 h-3.5 text-sky-700 transition-transform duration-300 ${
                                         isSortDropdownOpen ? "-rotate-90" : "rotate-90"
                                     }`}
                                 />
                             </button>
 
                             {isSortDropdownOpen && (
-                                <div className="absolute right-0 top-[calc(100%+8px)] w-52 rounded-2xl border border-white/20 bg-neutral-950/98 backdrop-blur-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_20px_rgba(0,255,65,0.15)] z-50 animate-in fade-in zoom-in-95 duration-150">
+                                <div className="absolute right-0 top-[calc(100%+8px)] w-52 rounded-2xl border border-sky-100 bg-white backdrop-blur-2xl p-1.5 shadow-sm z-50 animate-in fade-in zoom-in-95 duration-150">
                                     {SORT_OPTIONS.map((option) => {
                                         const isSelected = sortBy === option.value;
                                         return (
@@ -278,12 +279,12 @@ export default function AllProductsView({
                                                 }}
                                                 className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between cursor-pointer ${
                                                     isSelected
-                                                        ? "bg-[#00FF41] text-black font-extrabold shadow-md shadow-[#00FF41]/20"
-                                                        : "text-neutral-300 hover:bg-[#00FF41]/10 hover:text-[#00FF41]"
+                                                        ? "bg-sky-600 text-white font-semibold shadow-md shadow-sky-700/20"
+                                                        : "text-slate-600 hover:bg-sky-50 hover:text-sky-700"
                                                 }`}
                                             >
                                                 <span>{option.label}</span>
-                                                {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-black shrink-0" />}
+                                                {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white shrink-0" />}
                                             </button>
                                         );
                                     })}
@@ -296,12 +297,16 @@ export default function AllProductsView({
                 {/* ── Main Layout: Sidebar Filter + Products Grid ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Left Sidebar Filter Column */}
-                    <aside className="lg:col-span-3 space-y-8 bg-[#0f1112]/60 p-6 rounded-2xl border border-white/[0.06] backdrop-blur-md">
+                    <div className="lg:col-span-3">
+                    <button type="button" onClick={() => setIsMobileFiltersOpen(open => !open)} aria-expanded={isMobileFiltersOpen} aria-controls="catalog-filters" className="mb-3 flex w-full items-center justify-between rounded-2xl border border-sky-100 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-700 lg:hidden">
+                        Bộ lọc sản phẩm <ChevronRight className={`h-4 w-4 transition ${isMobileFiltersOpen ? '-rotate-90' : 'rotate-90'}`} />
+                    </button>
+                    <aside id="catalog-filters" className={`${isMobileFiltersOpen ? 'block' : 'hidden lg:block'} space-y-8 bg-white p-6 rounded-2xl border border-sky-100 store-card`}>
                         {/* 0. TÌM KIẾM BỘ LỌC ĐỘC LẬP */}
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-xs font-mono font-bold tracking-widest text-neutral-400 uppercase">
-                                    LỌC TỪ KHÓA
+                                <h3 className="text-xs font-sans font-bold tracking-normal text-slate-500 normal-case">
+                                    Tìm nhanh
                                 </h3>
                                 {(sidebarSearch || searchQuery || (selectedCategory && selectedCategory !== "All") || selectedRam !== "All" || selectedRom !== "All" || Number.isFinite(maxPrice) || filters.brandId !== null || filters.categoryId !== null) && (
                                     <button
@@ -316,7 +321,7 @@ export default function AllProductsView({
                                             setCategoryFilter(null);
                                             setCurrentPage(1);
                                         }}
-                                        className="text-[11px] font-bold text-[#00FF41] hover:underline flex items-center gap-1 cursor-pointer"
+                                        className="text-[11px] font-bold text-sky-700 hover:underline flex items-center gap-1 cursor-pointer"
                                     >
                                         <X className="w-3.5 h-3.5" />
                                         <span>Đặt lại</span>
@@ -324,7 +329,7 @@ export default function AllProductsView({
                                 )}
                             </div>
                             <div className="relative">
-                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                 <input
                                     type="text"
                                     value={sidebarSearch}
@@ -333,12 +338,12 @@ export default function AllProductsView({
                                         setCurrentPage(1);
                                     }}
                                     placeholder="Lọc tên laptop, CPU..."
-                                    className="w-full bg-[#181a1b] border border-white/10 rounded-xl pl-9 pr-8 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#00FF41] transition font-medium"
+                                    className="w-full bg-white border border-sky-100 rounded-xl pl-9 pr-8 py-2.5 text-xs text-slate-800 placeholder-neutral-500 focus:outline-none focus:border-sky-700 transition font-medium"
                                 />
                                 {sidebarSearch && (
                                     <button
                                         onClick={() => setSidebarSearch("")}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
                                     >
                                         <X className="w-3.5 h-3.5" />
                                     </button>
@@ -346,8 +351,8 @@ export default function AllProductsView({
                             </div>
                         </div>
                         <div>
-                            <h3 className="text-xs font-mono font-bold tracking-widest text-neutral-400 uppercase mb-3">
-                                THƯƠNG HIỆU
+                            <h3 className="text-xs font-sans font-bold tracking-normal text-slate-500 normal-case mb-3">
+                                Thương hiệu
                             </h3>
                             <div className="space-y-1.5 flex flex-col items-start">
                                 <button
@@ -356,8 +361,8 @@ export default function AllProductsView({
                                         setCurrentPage(1);
                                     }}
                                     className={`text-xs font-bold transition-all text-left ${filters.brandId === null
-                                            ? "bg-[#00FF41] text-black rounded-full py-1.5 px-4 shadow-md shadow-[#00FF41]/20"
-                                            : "text-neutral-400 hover:text-white py-1.5 px-4"
+                                            ? "bg-sky-600 text-white rounded-full py-1.5 px-4 shadow-md shadow-sky-700/20"
+                                            : "text-slate-500 hover:text-slate-800 py-1.5 px-4"
                                         }`}
                                 >
                                     Tất cả thương hiệu
@@ -372,8 +377,8 @@ export default function AllProductsView({
                                                 setCurrentPage(1);
                                             }}
                                             className={`text-xs font-bold transition-all text-left ${isActive
-                                                    ? "bg-[#00FF41] text-black rounded-full py-1.5 px-4 shadow-md shadow-[#00FF41]/20"
-                                                    : "text-neutral-400 hover:text-white py-1.5 px-4"
+                                                    ? "bg-sky-600 text-white rounded-full py-1.5 px-4 shadow-md shadow-sky-700/20"
+                                                    : "text-slate-500 hover:text-slate-800 py-1.5 px-4"
                                                 }`}
                                         >
                                             {b.name}
@@ -383,10 +388,10 @@ export default function AllProductsView({
                             </div>
                         </div>
 
-                        {/* 2. DÒNG MÁY / DANH MỤC ĐỘNG TỪ BACKEND */}
-                        <div className="pt-4 border-t border-white/[0.06]">
-                            <h3 className="text-xs font-mono font-bold tracking-widest text-neutral-400 uppercase mb-3">
-                                DÒNG MÁY
+                        {/* 2. Nhu cầu sử dụng / DANH MỤC ĐỘNG TỪ BACKEND */}
+                        <div className="pt-4 border-t border-sky-100">
+                            <h3 className="text-xs font-sans font-bold tracking-normal text-slate-500 normal-case mb-3">
+                                Nhu cầu sử dụng
                             </h3>
                             <div className="space-y-1.5 flex flex-col items-start">
                                 <button
@@ -397,8 +402,8 @@ export default function AllProductsView({
                                     }}
                                     className={`text-xs font-bold transition-all text-left ${
                                         filters.categoryId === null && (!selectedCategory || selectedCategory === "All")
-                                            ? "bg-[#00FF41] text-black rounded-full py-1.5 px-4 shadow-md shadow-[#00FF41]/20"
-                                            : "text-neutral-400 hover:text-white py-1.5 px-4"
+                                            ? "bg-sky-600 text-white rounded-full py-1.5 px-4 shadow-md shadow-sky-700/20"
+                                            : "text-slate-500 hover:text-slate-800 py-1.5 px-4"
                                     }`}
                                 >
                                     Tất cả dòng máy
@@ -422,27 +427,27 @@ export default function AllProductsView({
                                             }}
                                             className={`text-xs font-bold transition-all text-left flex items-center justify-between gap-2 cursor-pointer ${
                                                 isActive
-                                                    ? "bg-[#00FF41] text-black rounded-full py-1.5 px-4 shadow-md shadow-[#00FF41]/20"
-                                                    : "text-neutral-400 hover:text-white py-1.5 px-4"
+                                                    ? "bg-sky-600 text-white rounded-full py-1.5 px-4 shadow-md shadow-sky-700/20"
+                                                    : "text-slate-500 hover:text-slate-800 py-1.5 px-4"
                                             }`}
                                         >
                                             <span>{c.name}</span>
-                                            {isActive && <X className="w-3 h-3 text-black shrink-0" />}
+                                            {isActive && <X className="w-3 h-3 text-white shrink-0" />}
                                         </button>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        {/* 3. TẦM GIÁ */}
-                        <div className="pt-4 border-t border-white/[0.06]">
+                        {/* 3. Khoảng giá */}
+                        <div className="pt-4 border-t border-sky-100">
                             <div className="flex justify-between items-center mb-3">
-                                <h3 className="text-xs font-mono font-bold tracking-widest text-neutral-400 uppercase">
-                                    TẦM GIÁ
+                                <h3 className="text-xs font-sans font-bold tracking-normal text-slate-500 normal-case">
+                                    Khoảng giá
                                 </h3>
                                 <button
                                     onClick={() => setMaxPrice(Number.POSITIVE_INFINITY)}
-                                    className="text-[11px] font-medium text-[#00FF41] hover:underline"
+                                    className="text-[11px] font-medium text-sky-700 hover:underline"
                                 >
                                     Tất cả
                                 </button>
@@ -459,9 +464,9 @@ export default function AllProductsView({
                                             setMaxPrice(Number(e.target.value));
                                             setCurrentPage(1);
                                         }}
-                                        className="w-full accent-[#00FF41] bg-neutral-800 rounded-lg cursor-pointer h-2"
+                                        className="w-full accent-sky-700 bg-slate-100 rounded-lg cursor-pointer h-2"
                                     />
-                                    <div className="flex justify-between text-[11px] font-mono text-neutral-400 mt-2">
+                                    <div className="flex justify-between text-[11px] font-sans text-slate-500 mt-2">
                                         <span>0 ₫</span>
                                         <span>{new Intl.NumberFormat("vi-VN").format(catalogMaxPrice)} ₫</span>
                                     </div>
@@ -469,10 +474,10 @@ export default function AllProductsView({
                             )}
                         </div>
 
-                        {/* 4. DUNG LƯỢNG RAM */}
-                        <div className="pt-4 border-t border-white/[0.06]">
-                            <h3 className="text-xs font-mono font-bold tracking-widest text-neutral-400 uppercase mb-3">
-                                DUNG LƯỢNG RAM
+                        {/* 4. Bộ nhớ RAM */}
+                        <div className="pt-4 border-t border-sky-100">
+                            <h3 className="text-xs font-sans font-bold tracking-normal text-slate-500 normal-case mb-3">
+                                Bộ nhớ RAM
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {["All", ...ramOptions].map((value) => {
@@ -486,8 +491,8 @@ export default function AllProductsView({
                                                 setCurrentPage(1);
                                             }}
                                             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${isActive
-                                                    ? "bg-[#00FF41] text-black shadow-md shadow-[#00FF41]/20"
-                                                    : "border border-neutral-800 text-neutral-300 hover:border-neutral-600"
+                                                    ? "bg-sky-600 text-white shadow-md shadow-sky-700/20"
+                                                    : "border border-slate-200 text-slate-600 hover:border-neutral-600"
                                                 }`}
                                         >
                                             {item.label}
@@ -497,10 +502,10 @@ export default function AllProductsView({
                             </div>
                         </div>
 
-                        {/* 5. DUNG LƯỢNG Ổ CỨNG (ROM) */}
-                        <div className="pt-4 border-t border-white/[0.06]">
-                            <h3 className="text-xs font-mono font-bold tracking-widest text-neutral-400 uppercase mb-3">
-                                DUNG LƯỢNG Ổ CỨNG (ROM)
+                        {/* 5. Dung lượng lưu trữ */}
+                        <div className="pt-4 border-t border-sky-100">
+                            <h3 className="text-xs font-sans font-bold tracking-normal text-slate-500 normal-case mb-3">
+                                Dung lượng lưu trữ
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {["All", ...romOptions].map((value) => {
@@ -514,8 +519,8 @@ export default function AllProductsView({
                                                 setCurrentPage(1);
                                             }}
                                             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${isActive
-                                                    ? "bg-[#00FF41] text-black shadow-md shadow-[#00FF41]/20"
-                                                    : "border border-neutral-800 text-neutral-300 hover:border-neutral-600"
+                                                    ? "bg-sky-600 text-white shadow-md shadow-sky-700/20"
+                                                    : "border border-slate-200 text-slate-600 hover:border-neutral-600"
                                                 }`}
                                         >
                                             {item.label}
@@ -525,13 +530,14 @@ export default function AllProductsView({
                             </div>
                         </div>
                     </aside>
+                    </div>
 
                     {/* Right Products Grid Column */}
                     <main className="lg:col-span-9 space-y-8">
                         {isLoading ? (
-                            <div className="text-center py-20 bg-[#0f1112]/40 rounded-2xl border border-white/[0.06]">
-                                <div className="inline-block w-8 h-8 border-2 border-[#00FF41] border-t-transparent rounded-full animate-spin mb-3"></div>
-                                <p className="text-neutral-400 text-xs font-mono">Đang tải sản phẩm từ Database...</p>
+                            <div className="text-center py-20 bg-white rounded-2xl border border-sky-100">
+                                <div className="inline-block w-8 h-8 border-2 border-sky-700 border-t-transparent rounded-full animate-spin mb-3"></div>
+                                <p className="text-slate-500 text-xs font-sans">Đang tải sản phẩm từ Database...</p>
                             </div>
                         ) : paginatedProducts.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -556,8 +562,8 @@ export default function AllProductsView({
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-16 bg-[#0f1112]/40 rounded-2xl border border-white/[0.06]">
-                                <p className="text-neutral-400 text-sm font-medium">
+                            <div className="text-center py-16 bg-white rounded-2xl border border-sky-100">
+                                <p className="text-slate-500 text-sm font-medium">
                                     Không tìm thấy sản phẩm nào phù hợp với bộ lọc hiện tại.
                                 </p>
                                 <button
@@ -568,7 +574,7 @@ export default function AllProductsView({
                                         setSelectedRom("All");
                                         setMaxPrice(Number.POSITIVE_INFINITY);
                                     }}
-                                    className="mt-4 bg-[#00FF41] text-black font-bold text-xs px-5 py-2 rounded-full hover:bg-[#00cc34] transition-colors"
+                                    className="mt-4 bg-sky-600 text-white font-bold text-xs px-5 py-2 rounded-full hover:bg-sky-600 transition-colors"
                                 >
                                     Xóa tất cả bộ lọc
                                 </button>
@@ -577,11 +583,11 @@ export default function AllProductsView({
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-2 pt-8 border-t border-white/[0.06]">
+                            <div className="flex items-center justify-center gap-2 pt-8 border-t border-sky-100">
                                 <button
                                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                     disabled={currentPage === 1}
-                                    className="px-4 py-2 rounded-full border border-neutral-800 text-xs font-medium text-neutral-400 hover:border-neutral-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    className="px-4 py-2 rounded-full border border-slate-200 text-xs font-medium text-slate-500 hover:border-neutral-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
                                     &larr; Trước
                                 </button>
@@ -593,8 +599,8 @@ export default function AllProductsView({
                                             key={pageNum}
                                             onClick={() => setCurrentPage(pageNum)}
                                             className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center transition-all ${isActive
-                                                    ? "bg-[#00FF41] text-black shadow-md shadow-[#00FF41]/20"
-                                                    : "border border-neutral-800 text-neutral-300 hover:border-neutral-600"
+                                                    ? "bg-sky-600 text-white shadow-md shadow-sky-700/20"
+                                                    : "border border-slate-200 text-slate-600 hover:border-neutral-600"
                                                 }`}
                                         >
                                             {pageNum}
@@ -605,7 +611,7 @@ export default function AllProductsView({
                                 <button
                                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="px-4 py-2 rounded-full border border-neutral-800 text-xs font-medium text-neutral-400 hover:border-neutral-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    className="px-4 py-2 rounded-full border border-slate-200 text-xs font-medium text-slate-500 hover:border-neutral-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Sau &rarr;
                                 </button>

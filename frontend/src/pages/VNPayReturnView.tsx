@@ -77,15 +77,15 @@ export default function VNPayReturnView() {
     };
 
     return (
-        <main className="container mx-auto px-6 py-16 max-w-2xl text-white">
-            <div className="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <main className="container mx-auto px-6 py-16 max-w-2xl text-slate-800">
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-sky-100/50 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[radial-gradient(circle_at_top_right,rgba(0,255,65,0.1),transparent_70%)] pointer-events-none" />
 
                 {loading ? (
                     <div className="py-12 text-center space-y-4">
-                        <Loader2 className="w-12 h-12 text-[#00FF41] animate-spin mx-auto" />
+                        <Loader2 className="w-12 h-12 text-sky-700 animate-spin mx-auto" />
                         <h2 className="text-xl font-bold">Đang đối soát kết quả thanh toán VNPay...</h2>
-                        <p className="text-xs text-neutral-400 font-mono">
+                        <p className="text-xs text-slate-500 font-sans">
                             Vui lòng không đóng trình duyệt. LADUX đang xác thực dữ liệu từ cổng thanh toán.
                         </p>
                     </div>
@@ -95,14 +95,14 @@ export default function VNPayReturnView() {
                             <XCircle className="w-8 h-8" />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-black tracking-tight text-white">Xác nhận thanh toán thất bại</h2>
-                            <p className="text-sm text-neutral-400">{errorMsg}</p>
+                            <h2 className="text-2xl font-semibold tracking-tight text-slate-800">Xác nhận thanh toán thất bại</h2>
+                            <p className="text-sm text-slate-500">{errorMsg}</p>
                         </div>
 
                         <div className="pt-4 flex gap-4 justify-center">
                             <button
                                 onClick={() => navigate(ROUTES.orders)}
-                                className="px-6 py-3 bg-neutral-900 border border-neutral-800 rounded-xl text-xs font-bold text-neutral-300 hover:text-white transition"
+                                className="px-6 py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-800 transition"
                             >
                                 Xem danh sách đơn hàng
                             </button>
@@ -110,50 +110,50 @@ export default function VNPayReturnView() {
                     </div>
                 ) : payment?.status === "SUCCESS" ? (
                     <div className="py-6 text-center space-y-6">
-                        <div className="w-16 h-16 rounded-full bg-[#00FF41]/10 border border-[#00FF41]/30 flex items-center justify-center mx-auto text-[#00FF41]">
+                        <div className="w-16 h-16 rounded-full bg-sky-50 border border-sky-700/30 flex items-center justify-center mx-auto text-sky-700">
                             <CheckCircle2 className="w-8 h-8" />
                         </div>
 
                         <div className="space-y-2">
-                            <span className="text-xs font-mono uppercase tracking-widest text-[#00FF41]">
+                            <span className="text-xs font-sans normal-case tracking-normal text-sky-700">
                                 THANH TOÁN THÀNH CÔNG
                             </span>
-                            <h2 className="text-3xl font-black tracking-tight text-white">Cảm ơn bạn đã mua hàng!</h2>
-                            <p className="text-xs text-neutral-400">
+                            <h2 className="text-3xl font-semibold tracking-tight text-slate-800">Cảm ơn bạn đã mua hàng!</h2>
+                            <p className="text-xs text-slate-500">
                                 Đơn hàng #{payment.orderId} đã được thanh toán thành công và đang được chuẩn bị để giao tới bạn.
                             </p>
                         </div>
 
                         {/* Payment Details Card */}
-                        <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-5 text-xs font-mono space-y-3 text-left">
-                            <div className="flex justify-between border-b border-neutral-800 pb-2">
-                                <span className="text-neutral-400">Mã giao dịch LADUX:</span>
-                                <span className="text-white font-bold">{payment.merchantTxnRef || "N/A"}</span>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-5 text-xs font-sans space-y-3 text-left">
+                            <div className="flex justify-between border-b border-slate-200 pb-2">
+                                <span className="text-slate-500">Mã giao dịch LADUX:</span>
+                                <span className="text-slate-800 font-bold">{payment.merchantTxnRef || "N/A"}</span>
                             </div>
-                            <div className="flex justify-between border-b border-neutral-800 pb-2">
-                                <span className="text-neutral-400">Mã giao dịch VNPay:</span>
-                                <span className="text-white font-bold">{payment.transactionNo || queryParams.get("vnp_TransactionNo") || "N/A"}</span>
+                            <div className="flex justify-between border-b border-slate-200 pb-2">
+                                <span className="text-slate-500">Mã giao dịch VNPay:</span>
+                                <span className="text-slate-800 font-bold">{payment.transactionNo || queryParams.get("vnp_TransactionNo") || "N/A"}</span>
                             </div>
-                            <div className="flex justify-between border-b border-neutral-800 pb-2">
-                                <span className="text-neutral-400">Số tiền thanh toán:</span>
-                                <span className="text-[#00FF41] font-bold">{formatVND(payment.amount)}</span>
+                            <div className="flex justify-between border-b border-slate-200 pb-2">
+                                <span className="text-slate-500">Số tiền thanh toán:</span>
+                                <span className="text-sky-700 font-bold">{formatVND(payment.amount)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-neutral-400">Cổng thanh toán:</span>
-                                <span className="text-white font-bold">{payment.provider}</span>
+                                <span className="text-slate-500">Cổng thanh toán:</span>
+                                <span className="text-slate-800 font-bold">{payment.provider}</span>
                             </div>
                         </div>
 
                         <div className="pt-4 flex flex-col sm:flex-row gap-4">
                             <button
                                 onClick={() => navigate(ROUTES.orders)}
-                                className="flex-1 py-4 bg-[#00FF41] text-black rounded-xl font-extrabold text-xs uppercase tracking-wider hover:bg-[#00cc34] transition flex items-center justify-center gap-2 shadow-lg shadow-[#00FF41]/20"
+                                className="flex-1 py-4 bg-sky-600 text-white rounded-xl font-semibold text-xs normal-case tracking-normal hover:bg-sky-600 transition flex items-center justify-center gap-2 shadow-lg shadow-sky-700/20"
                             >
                                 <ShoppingBag className="w-4 h-4" /> Xem đơn hàng của tôi
                             </button>
                             <button
                                 onClick={() => navigate(ROUTES.products)}
-                                className="flex-1 py-4 bg-neutral-900 border border-neutral-800 rounded-xl font-bold text-xs uppercase tracking-wider text-neutral-300 hover:text-white transition flex items-center justify-center gap-2"
+                                className="flex-1 py-4 bg-white border border-slate-200 rounded-xl font-bold text-xs normal-case tracking-normal text-slate-600 hover:text-slate-800 transition flex items-center justify-center gap-2"
                             >
                                 Tiếp tục mua sắm <ArrowRight className="w-4 h-4" />
                             </button>
@@ -166,28 +166,28 @@ export default function VNPayReturnView() {
                         </div>
 
                         <div className="space-y-2">
-                            <span className="text-xs font-mono uppercase tracking-widest text-red-400">
+                            <span className="text-xs font-sans normal-case tracking-normal text-red-600">
                                 THANH TOÁN KHÔNG THÀNH CÔNG
                             </span>
-                            <h2 className="text-2xl font-black tracking-tight text-white">Giao dịch chưa hoàn tất</h2>
-                            <p className="text-xs text-neutral-400">
+                            <h2 className="text-2xl font-semibold tracking-tight text-slate-800">Giao dịch chưa hoàn tất</h2>
+                            <p className="text-xs text-slate-500">
                                 Giao dịch VNPay của bạn không thành công hoặc đã bị hủy (Mã phản hồi: {responseCode || "N/A"}).
                             </p>
                         </div>
 
                         {/* Detail Info */}
-                        <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-5 text-xs font-mono space-y-3 text-left">
-                            <div className="flex justify-between border-b border-neutral-800 pb-2">
-                                <span className="text-neutral-400">Mã đơn hàng:</span>
-                                <span className="text-white font-bold">#{payment?.orderId}</span>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-5 text-xs font-sans space-y-3 text-left">
+                            <div className="flex justify-between border-b border-slate-200 pb-2">
+                                <span className="text-slate-500">Mã đơn hàng:</span>
+                                <span className="text-slate-800 font-bold">#{payment?.orderId}</span>
                             </div>
-                            <div className="flex justify-between border-b border-neutral-800 pb-2">
-                                <span className="text-neutral-400">Mã tham chiếu:</span>
-                                <span className="text-white font-bold">{payment?.merchantTxnRef || txnRef}</span>
+                            <div className="flex justify-between border-b border-slate-200 pb-2">
+                                <span className="text-slate-500">Mã tham chiếu:</span>
+                                <span className="text-slate-800 font-bold">{payment?.merchantTxnRef || txnRef}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-neutral-400">Số tiền:</span>
-                                <span className="text-white font-bold">{payment ? formatVND(payment.amount) : "N/A"}</span>
+                                <span className="text-slate-500">Số tiền:</span>
+                                <span className="text-slate-800 font-bold">{payment ? formatVND(payment.amount) : "N/A"}</span>
                             </div>
                         </div>
 
@@ -195,14 +195,14 @@ export default function VNPayReturnView() {
                             <button
                                 onClick={handleRetryPayment}
                                 disabled={isRetrying}
-                                className="flex-1 py-4 bg-[#00FF41] text-black rounded-xl font-extrabold text-xs uppercase tracking-wider hover:bg-[#00cc34] transition flex items-center justify-center gap-2 disabled:opacity-50"
+                                className="flex-1 py-4 bg-sky-600 text-white rounded-xl font-semibold text-xs normal-case tracking-normal hover:bg-sky-600 transition flex items-center justify-center gap-2 disabled:opacity-50"
                             >
                                 <RefreshCw className={`w-4 h-4 ${isRetrying ? "animate-spin" : ""}`} />
                                 <span>{isRetrying ? "Đang tạo liên kết mới..." : "Thanh toán lại VNPay"}</span>
                             </button>
                             <button
                                 onClick={() => navigate(ROUTES.orders)}
-                                className="flex-1 py-4 bg-neutral-900 border border-neutral-800 rounded-xl font-bold text-xs uppercase tracking-wider text-neutral-300 hover:text-white transition"
+                                className="flex-1 py-4 bg-white border border-slate-200 rounded-xl font-bold text-xs normal-case tracking-normal text-slate-600 hover:text-slate-800 transition"
                             >
                                 Xem danh sách đơn hàng
                             </button>

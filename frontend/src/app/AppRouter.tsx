@@ -4,7 +4,8 @@ import { Link, Navigate, Outlet, Route, Routes, useLocation, useNavigate, usePar
 import Footer from "../components/common/Footer";
 import Header from "../components/common/Header";
 import AIChatbot from "../components/common/AIChatbot";
-import laduxLogoImg from "../assets/ladux-logo.png";
+import BrandMark from "../components/common/BrandMark";
+import "../styles/storefront.css";
 import { authService } from "../services";
 import { productPath, ROUTES } from "./routePaths";
 import { useStorefront } from "./StorefrontProvider";
@@ -25,7 +26,7 @@ const VNPayReturnView = lazy(() => import("../pages/VNPayReturnView"));
 
 function RouteLoading() {
     return (
-        <main className="container mx-auto flex min-h-[50vh] items-center justify-center px-6 text-sm text-neutral-400">
+        <main className="container mx-auto flex min-h-[50vh] items-center justify-center px-6 text-sm text-slate-500">
             Đang tải giao diện...
         </main>
     );
@@ -36,7 +37,7 @@ function NotificationToast() {
     if (!notificationMsg) return null;
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-md border border-neutral-200 bg-white px-5 py-3 text-sm font-medium text-black shadow-2xl animate-in fade-in slide-in-from-bottom-5">
+        <div role="status" className="fixed bottom-6 left-5 right-5 z-[60] mx-auto flex w-fit max-w-[calc(100vw-40px)] items-center gap-3 rounded-2xl border border-sky-100 bg-white px-5 py-3 text-sm font-medium text-slate-700 shadow-xl shadow-sky-100/50 animate-in fade-in slide-in-from-bottom-5">
             <Check className="h-4 w-4 text-emerald-600" />
             <span>{notificationMsg}</span>
         </div>
@@ -57,8 +58,7 @@ function StoreLayout() {
     } = useStorefront();
 
     return (
-        <div className="dark min-h-screen overflow-x-hidden bg-[#080a0b] font-sans text-white selection:bg-[#00FF41] selection:text-black">
-            <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_78%_8%,rgba(0,255,65,0.12),transparent_24%),radial-gradient(circle_at_14%_56%,rgba(93,77,155,0.1),transparent_28%)]" />
+        <div className="storefront-ui min-h-screen overflow-x-hidden selection:bg-sky-100 selection:text-sky-900">
             <NotificationToast />
             <Header
                 searchQuery={searchQuery}
@@ -84,14 +84,12 @@ function StoreLayout() {
 
 function AuthLayout() {
     return (
-        <div className="dark min-h-screen overflow-x-hidden bg-[#080a0b] font-sans text-white selection:bg-[#00FF41] selection:text-black">
-            <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_78%_8%,rgba(0,255,65,0.12),transparent_24%),radial-gradient(circle_at_14%_56%,rgba(93,77,155,0.1),transparent_28%)]" />
+        <div className="storefront-ui min-h-screen overflow-x-hidden selection:bg-sky-100 selection:text-sky-900">
             <NotificationToast />
-            <header className="border-b border-white/10 bg-[#080a0b]/65 backdrop-blur-xl">
+            <header className="border-b border-sky-100 bg-white backdrop-blur-xl">
                 <div className="container mx-auto flex h-16 items-center px-6">
                     <Link to={ROUTES.home} className="flex items-center gap-3">
-                        <img src={laduxLogoImg} alt="LADUX Logo" className="h-9 w-auto rounded-[10px] object-contain" />
-                        <span className="text-xl font-black tracking-widest text-[#00FF41]">LADUX</span>
+                        <BrandMark />
                     </Link>
                 </div>
             </header>
@@ -162,8 +160,8 @@ function ProductDetailRoute() {
         if (catalogError) {
             return (
                 <main className="container mx-auto flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 text-center">
-                    <p className="text-sm text-neutral-400">Không thể tải sản phẩm này.</p>
-                    <Link to={ROUTES.products} className="text-sm font-bold text-[#00FF41] hover:underline">
+                    <p className="text-sm text-slate-500">Không thể tải sản phẩm này.</p>
+                    <Link to={ROUTES.products} className="text-sm font-bold text-sky-700 hover:underline">
                         Trở lại danh sách sản phẩm
                     </Link>
                 </main>
@@ -293,8 +291,8 @@ function OAuth2SuccessRoute() {
     return (
         <main className="flex min-h-[70vh] items-center justify-center px-6">
             <div className="text-center">
-                <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-white/15 border-t-[#00FF41]" />
-                <p className="text-sm font-semibold text-neutral-300">Đang hoàn tất đăng nhập Google...</p>
+                <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-sky-100 border-t-sky-600" />
+                <p className="text-sm font-semibold text-slate-600">Đang hoàn tất đăng nhập Google...</p>
             </div>
         </main>
     );

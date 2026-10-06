@@ -174,18 +174,18 @@ export default function CheckoutView({
 
     return (
         <main className="container mx-auto px-6 py-12 max-w-6xl">
-            <div className="flex items-center justify-between border-b border-neutral-900 pb-6 mb-8">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-6 mb-8">
                 <div>
-                    <span className="text-xs font-mono uppercase tracking-widest text-[#00FF41]">
+                    <span className="text-xs font-sans normal-case tracking-normal text-sky-700">
                         XÁC NHẬN ĐƠN HÀNG LADUX
                     </span>
-                    <h1 className="text-3xl font-black text-white tracking-tight mt-1">
+                    <h1 className="text-3xl font-semibold text-slate-800 tracking-tight mt-1">
                         Thanh toán đơn hàng
                     </h1>
                 </div>
                 <button
                     onClick={() => navigate(ROUTES.cart)}
-                    className="text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-[#00FF41] transition"
+                    className="text-xs font-bold normal-case tracking-normal text-slate-500 hover:text-sky-700 transition"
                 >
                     ← Trở lại giỏ hàng
                 </button>
@@ -195,15 +195,15 @@ export default function CheckoutView({
                 {/* Left Column: Shipping Address, Coupons, Payment Method */}
                 <div className="lg:col-span-7 space-y-8">
                     {/* 1. Shipping Address Selector */}
-                    <div className="p-6 bg-neutral-950 rounded-2xl border border-neutral-900 space-y-5">
+                    <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-5">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-[#00FF41]" />
+                            <h2 className="text-sm font-semibold text-slate-800 normal-case tracking-normal flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-sky-700" />
                                 <span>1. ĐỊA CHỈ NHẬN HÀNG</span>
                             </h2>
                             <button
                                 onClick={() => setShowAddressModal(true)}
-                                className="text-xs font-bold text-[#00FF41] hover:underline flex items-center gap-1"
+                                className="text-xs font-bold text-sky-700 hover:underline flex items-center gap-1"
                             >
                                 <Plus className="w-3.5 h-3.5" /> Thêm địa chỉ mới
                             </button>
@@ -211,7 +211,7 @@ export default function CheckoutView({
 
                         <div className="space-y-3">
                             {addresses.length === 0 ? (
-                                <p className="text-xs text-neutral-400 py-2">
+                                <p className="text-xs text-slate-500 py-2">
                                     Chưa có địa chỉ giao hàng nào. Vui lòng bấm "Thêm địa chỉ mới".
                                 </p>
                             ) : (
@@ -221,23 +221,23 @@ export default function CheckoutView({
                                         onClick={() => setSelectedAddrId(addr.id)}
                                         className={`p-4 rounded-xl border cursor-pointer transition flex items-start justify-between gap-4 ${
                                             selectedAddrId === addr.id
-                                                ? "border-[#00FF41] bg-[#00FF41]/10"
-                                                : "border-neutral-800 bg-neutral-900/50 hover:border-neutral-700"
+                                                ? "border-sky-700 bg-sky-50"
+                                                : "border-slate-200 bg-white hover:border-slate-200"
                                         }`}
                                     >
                                         <div className="space-y-1 text-xs">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold text-white text-sm">
+                                                <span className="font-bold text-slate-800 text-sm">
                                                     {addr.receiverName || (addr as any).fullName}
                                                 </span>
-                                                <span className="font-mono text-neutral-400">({addr.phone})</span>
+                                                <span className="font-sans text-slate-500">({addr.phone})</span>
                                                 {addr.isDefault && (
-                                                    <span className="bg-[#00FF41]/20 border border-[#00FF41]/40 text-[#00FF41] text-[9px] font-mono font-bold px-2 py-0.5 rounded">
+                                                    <span className="bg-sky-50 border border-sky-700/40 text-sky-700 text-[9px] font-sans font-bold px-2 py-0.5 rounded">
                                                         Default
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-neutral-300">
+                                            <p className="text-slate-600">
                                                 {addr.street || (addr as any).addressLine}
                                                 {addr.ward ? `, ${addr.ward}` : ""}
                                                 {addr.district ? `, ${addr.district}` : ""}
@@ -247,12 +247,12 @@ export default function CheckoutView({
                                         <div
                                             className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
                                                 selectedAddrId === addr.id
-                                                    ? "border-[#00FF41] bg-[#00FF41]"
-                                                    : "border-neutral-700"
+                                                    ? "border-sky-700 bg-sky-600"
+                                                    : "border-slate-200"
                                             }`}
                                         >
                                             {selectedAddrId === addr.id && (
-                                                <div className="w-2 h-2 rounded-full bg-black" />
+                                                <div className="w-2 h-2 rounded-full bg-white" />
                                             )}
                                         </div>
                                     </div>
@@ -263,68 +263,68 @@ export default function CheckoutView({
 
                     {/* Add Address Modal */}
                     {showAddressModal && (
-                        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-6 max-w-md w-full space-y-4">
-                                <h3 className="text-base font-bold text-white">Thêm Địa Chỉ Giao Hàng Mới</h3>
+                        <div className="fixed inset-0 z-50 bg-slate-900/25 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-md w-full space-y-4">
+                                <h3 className="text-base font-bold text-slate-800">Thêm Địa Chỉ Giao Hàng Mới</h3>
                                 <div className="space-y-3 text-xs">
                                     <div>
-                                        <label className="block text-neutral-400 mb-1">Họ và tên người nhận</label>
+                                        <label className="block text-slate-500 mb-1">Họ và tên người nhận</label>
                                         <input
                                             type="text"
                                             value={newAddress.receiverName}
                                             onChange={(e) => setNewAddress({ ...newAddress, receiverName: e.target.value })}
-                                            className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-[#00FF41]"
+                                            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-sky-700"
                                             placeholder="Lê Huy"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-neutral-400 mb-1">Số điện thoại</label>
+                                        <label className="block text-slate-500 mb-1">Số điện thoại</label>
                                         <input
                                             type="text"
                                             value={newAddress.phone}
                                             onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
-                                            className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white font-mono focus:outline-none focus:border-[#00FF41]"
+                                            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-sans focus:outline-none focus:border-sky-700"
                                             placeholder="0988 123 456"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-neutral-400 mb-1">Địa chỉ chi tiết (Số nhà, đường)</label>
+                                        <label className="block text-slate-500 mb-1">Địa chỉ chi tiết (Số nhà, đường)</label>
                                         <input
                                             type="text"
                                             value={newAddress.street}
                                             onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
-                                            className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-[#00FF41]"
+                                            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-sky-700"
                                             placeholder="Số 88 Tôn Thất Thuyết"
                                         />
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
                                         <div>
-                                            <label className="block text-neutral-400 mb-1">Phường / Xã</label>
+                                            <label className="block text-slate-500 mb-1">Phường / Xã</label>
                                             <input
                                                 type="text"
                                                 value={newAddress.ward}
                                                 onChange={(e) => setNewAddress({ ...newAddress, ward: e.target.value })}
-                                                className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-[#00FF41]"
+                                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-sky-700"
                                                 placeholder="Mỹ Đình 2"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-neutral-400 mb-1">Quận / Huyện</label>
+                                            <label className="block text-slate-500 mb-1">Quận / Huyện</label>
                                             <input
                                                 type="text"
                                                 value={newAddress.district}
                                                 onChange={(e) => setNewAddress({ ...newAddress, district: e.target.value })}
-                                                className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-[#00FF41]"
+                                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-sky-700"
                                                 placeholder="Nam Từ Liêm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-neutral-400 mb-1">Tỉnh / Thành phố</label>
+                                            <label className="block text-slate-500 mb-1">Tỉnh / Thành phố</label>
                                             <input
                                                 type="text"
                                                 value={newAddress.city}
                                                 onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                                                className="w-full p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-[#00FF41]"
+                                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-sky-700"
                                                 placeholder="Hà Nội"
                                             />
                                         </div>
@@ -334,7 +334,7 @@ export default function CheckoutView({
                                 <div className="flex gap-3 pt-2">
                                     <button
                                         onClick={() => setShowAddressModal(false)}
-                                        className="flex-1 py-3 border border-neutral-800 rounded-xl text-xs font-bold text-neutral-400 hover:text-white"
+                                        className="flex-1 py-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800"
                                     >
                                         Hủy
                                     </button>
@@ -354,7 +354,7 @@ export default function CheckoutView({
                                                 showToast("Không thể tạo địa chỉ mới!");
                                             }
                                         }}
-                                        className="flex-1 py-3 bg-[#00FF41] text-black rounded-xl text-xs font-extrabold hover:bg-[#00cc34]"
+                                        className="flex-1 py-3 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-600"
                                     >
                                         Lưu Địa Chỉ
                                     </button>
@@ -364,9 +364,9 @@ export default function CheckoutView({
                     )}
 
                     {/* 2. Coupon Code Input */}
-                    <div className="p-6 bg-neutral-950 rounded-2xl border border-neutral-900 space-y-4">
-                        <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-[#00FF41]" />
+                    <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4">
+                        <h2 className="text-sm font-semibold text-slate-800 normal-case tracking-normal flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-sky-700" />
                             <span>2. MÃ GIẢM GIÁ / COUPON</span>
                         </h2>
 
@@ -376,30 +376,30 @@ export default function CheckoutView({
                                 value={couponCodeInput}
                                 onChange={(e) => setCouponCodeInput(e.target.value)}
                                 placeholder="Nhập mã giảm giá"
-                                className="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#00FF41]"
+                                className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 font-sans placeholder:text-slate-400 focus:outline-none focus:border-sky-700"
                             />
                             <button
                                 onClick={handleApplyCoupon}
-                                className="bg-[#00FF41] text-black px-6 py-3 rounded-xl text-xs font-extrabold uppercase hover:bg-[#00cc34] transition shrink-0"
+                                className="bg-sky-600 text-white px-6 py-3 rounded-xl text-xs font-semibold normal-case hover:bg-sky-600 transition shrink-0"
                             >
                                 Áp dụng
                             </button>
                         </div>
 
                         {couponErrMsg && (
-                            <p className="text-xs text-red-400 font-semibold flex items-center gap-1.5">
+                            <p className="text-xs text-red-600 font-semibold flex items-center gap-1.5">
                                 <AlertCircle className="w-3.5 h-3.5" />
                                 {couponErrMsg}
                             </p>
                         )}
 
                         {appliedCouponItem && (
-                            <div className="p-3 bg-[#00FF41]/10 border border-[#00FF41]/30 rounded-xl flex items-center justify-between text-xs">
+                            <div className="p-3 bg-sky-50 border border-sky-700/30 rounded-xl flex items-center justify-between text-xs">
                                 <div>
-                                    <span className="font-mono font-bold text-[#00FF41]">
+                                    <span className="font-sans font-bold text-sky-700">
                                         {appliedCouponItem.code}
                                     </span>
-                                    <p className="text-neutral-400 text-[11px]">{appliedCouponItem.description}</p>
+                                    <p className="text-slate-500 text-[11px]">{appliedCouponItem.description}</p>
                                 </div>
                                 <button
                                     onClick={() => {
@@ -407,7 +407,7 @@ export default function CheckoutView({
                                         setCouponCodeInput("");
                                         showToast("Đã hủy mã giảm giá.");
                                     }}
-                                    className="text-neutral-500 hover:text-white"
+                                    className="text-slate-500 hover:text-slate-800"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -416,9 +416,9 @@ export default function CheckoutView({
                     </div>
 
                     {/* 3. Payment Method Selection */}
-                    <div className="p-6 bg-neutral-950 rounded-2xl border border-neutral-900 space-y-4">
-                        <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                            <Lock className="w-4 h-4 text-[#00FF41]" />
+                    <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4">
+                        <h2 className="text-sm font-semibold text-slate-800 normal-case tracking-normal flex items-center gap-2">
+                            <Lock className="w-4 h-4 text-sky-700" />
                             <span>3. PHƯƠNG THỨC THANH TOÁN</span>
                         </h2>
 
@@ -428,25 +428,25 @@ export default function CheckoutView({
                                 onClick={() => setPaymentProvider("VNPAY")}
                                 className={`p-4 rounded-xl border cursor-pointer transition flex items-center justify-between ${
                                     paymentProvider === "VNPAY"
-                                        ? "border-[#00FF41] bg-[#00FF41]/10"
-                                        : "border-neutral-800 bg-neutral-900/50 hover:border-neutral-700"
+                                        ? "border-sky-700 bg-sky-50"
+                                        : "border-slate-200 bg-white hover:border-slate-200"
                                 }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-blue-900/30 border border-blue-500/30 flex items-center justify-center font-black text-blue-400 text-xs">
+                                    <div className="w-10 h-10 rounded-lg bg-blue-900/30 border border-blue-500/30 flex items-center justify-center font-semibold text-blue-600 text-xs">
                                         VNPay
                                     </div>
                                     <div>
-                                        <span className="font-bold text-xs text-white block">Cổng VNPay</span>
-                                        <span className="text-[10px] text-neutral-400">Thẻ ATM / QR Code / E-Wallet</span>
+                                        <span className="font-bold text-xs text-slate-800 block">Cổng VNPay</span>
+                                        <span className="text-[10px] text-slate-500">Thẻ ATM / QR Code / E-Wallet</span>
                                     </div>
                                 </div>
                                 <div
                                     className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                        paymentProvider === "VNPAY" ? "border-[#00FF41] bg-[#00FF41]" : "border-neutral-700"
+                                        paymentProvider === "VNPAY" ? "border-sky-700 bg-sky-600" : "border-slate-200"
                                     }`}
                                 >
-                                    {paymentProvider === "VNPAY" && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                                    {paymentProvider === "VNPAY" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                 </div>
                             </div>
 
@@ -455,25 +455,25 @@ export default function CheckoutView({
                                 onClick={() => setPaymentProvider("COD")}
                                 className={`p-4 rounded-xl border cursor-pointer transition flex items-center justify-between ${
                                     paymentProvider === "COD"
-                                        ? "border-[#00FF41] bg-[#00FF41]/10"
-                                        : "border-neutral-800 bg-neutral-900/50 hover:border-neutral-700"
+                                        ? "border-sky-700 bg-sky-50"
+                                        : "border-slate-200 bg-white hover:border-slate-200"
                                 }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-emerald-900/30 border border-emerald-500/30 flex items-center justify-center font-bold text-[#00FF41] text-xs">
+                                    <div className="w-10 h-10 rounded-lg bg-emerald-900/30 border border-emerald-500/30 flex items-center justify-center font-bold text-sky-700 text-xs">
                                         COD
                                     </div>
                                     <div>
-                                        <span className="font-bold text-xs text-white block">Thanh toán khi nhận</span>
-                                        <span className="text-[10px] text-neutral-400">Tiền mặt / Kiểm tra máy trước</span>
+                                        <span className="font-bold text-xs text-slate-800 block">Thanh toán khi nhận</span>
+                                        <span className="text-[10px] text-slate-500">Tiền mặt / Kiểm tra máy trước</span>
                                     </div>
                                 </div>
                                 <div
                                     className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                        paymentProvider === "COD" ? "border-[#00FF41] bg-[#00FF41]" : "border-neutral-700"
+                                        paymentProvider === "COD" ? "border-sky-700 bg-sky-600" : "border-slate-200"
                                     }`}
                                 >
-                                    {paymentProvider === "COD" && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                                    {paymentProvider === "COD" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                 </div>
                             </div>
                         </div>
@@ -482,8 +482,8 @@ export default function CheckoutView({
 
                 {/* Right Column: Order Summary & Place Order Action */}
                 <div className="lg:col-span-5 space-y-6">
-                    <div className="p-6 bg-neutral-950 rounded-2xl border border-neutral-900 space-y-6 sticky top-24">
-                        <h2 className="text-base font-black text-white uppercase tracking-wider pb-4 border-b border-neutral-900">
+                    <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-6 sticky top-24">
+                        <h2 className="text-base font-semibold text-slate-800 normal-case tracking-normal pb-4 border-b border-slate-200">
                             TỔNG QUAN ĐƠN HÀNG
                         </h2>
 
@@ -498,30 +498,30 @@ export default function CheckoutView({
                                 return (
                                     <div
                                         key={item.id}
-                                        className="flex items-center justify-between gap-3 text-xs border-b border-neutral-900/60 pb-3"
+                                        className="flex items-center justify-between gap-3 text-xs border-b border-slate-200 pb-3"
                                     >
                                         <div className="flex items-center gap-3">
                                             {imageUrl ? (
                                                 <img
                                                     src={imageUrl}
                                                     alt={mapped.name}
-                                                    className="w-12 h-12 bg-neutral-900 rounded-lg object-contain p-1 border border-neutral-800 shrink-0"
+                                                    className="w-12 h-12 bg-white rounded-lg object-contain p-1 border border-slate-200 shrink-0"
                                                 />
                                             ) : (
-                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 text-[9px] text-neutral-500">
+                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-[9px] text-slate-500">
                                                     Chưa có ảnh
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="font-bold text-white line-clamp-1">{mapped.name}</p>
-                                                <p className="text-[10px] font-mono text-neutral-500">
+                                                <p className="font-bold text-slate-800 line-clamp-1">{mapped.name}</p>
+                                                <p className="text-[10px] font-sans text-slate-500">
                                                     {[item.productVariant?.ram, item.productVariant?.rom, item.productVariant?.color?.name]
                                                         .filter(Boolean)
                                                         .join(" · ") || "Chưa có cấu hình"} · x{item.quantity}
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="font-mono font-bold text-white shrink-0">
+                                        <span className="font-sans font-bold text-slate-800 shrink-0">
                                             {formatVND(price * item.quantity)}
                                         </span>
                                     </div>
@@ -530,29 +530,29 @@ export default function CheckoutView({
                         </div>
 
                         {/* Financial Summary */}
-                        <div className="space-y-2.5 font-mono text-xs pt-2 border-t border-neutral-900">
-                            <div className="flex justify-between text-neutral-400">
+                        <div className="space-y-2.5 font-sans text-xs pt-2 border-t border-slate-200">
+                            <div className="flex justify-between text-slate-500">
                                 <span>Tạm tính (subTotal):</span>
-                                <span className="text-white font-semibold">
+                                <span className="text-slate-800 font-semibold">
                                     {formatVND(subTotal)}
                                 </span>
                             </div>
 
-                            <div className="flex justify-between text-neutral-400">
+                            <div className="flex justify-between text-slate-500">
                                 <span>Giảm giá (discountAmount):</span>
-                                <span className="text-[#00FF41] font-semibold">
+                                <span className="text-sky-700 font-semibold">
                                     -{formatVND(discountAmount)}
                                 </span>
                             </div>
 
-                            <div className="flex justify-between text-neutral-400">
+                            <div className="flex justify-between text-slate-500">
                                 <span>Phí vận chuyển (shippingFee):</span>
-                                <span className="text-white font-semibold">{formatVND(shippingFee)}</span>
+                                <span className="text-slate-800 font-semibold">{formatVND(shippingFee)}</span>
                             </div>
 
-                            <div className="pt-4 border-t border-neutral-900 flex justify-between items-baseline">
-                                <span className="text-sm font-bold text-white uppercase">Tổng cộng (finalAmount):</span>
-                                <span className="text-2xl font-black text-[#00FF41]">
+                            <div className="pt-4 border-t border-slate-200 flex justify-between items-baseline">
+                                <span className="text-sm font-bold text-slate-800 normal-case">Tổng cộng (finalAmount):</span>
+                                <span className="text-2xl font-semibold text-sky-700">
                                     {formatVND(finalAmount)}
                                 </span>
                             </div>
@@ -562,15 +562,15 @@ export default function CheckoutView({
                         <button
                             onClick={handlePlaceOrder}
                             disabled={isSubmitting || cartItemsList.length === 0}
-                            className="w-full bg-[#00FF41] text-black py-4 rounded-xl font-extrabold text-sm uppercase tracking-wider hover:bg-[#00cc34] transition shadow-lg shadow-[#00FF41]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="w-full bg-sky-600 text-white py-4 rounded-xl font-semibold text-sm normal-case tracking-normal hover:bg-sky-600 transition shadow-lg shadow-sky-700/20 flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             <CheckCircle2 className="w-5 h-5" />
                             <span>{isSubmitting ? "ĐANG XỬ LÝ ĐƠN HÀNG..." : "ĐẶT HÀNG NGAY"}</span>
                         </button>
 
-                        <div className="pt-2 flex items-center justify-center gap-4 text-[10px] text-neutral-500 font-mono">
+                        <div className="pt-2 flex items-center justify-center gap-4 text-[10px] text-slate-500 font-sans">
                             <span className="flex items-center gap-1">
-                                <Lock className="w-3.5 h-3.5 text-[#00FF41]" /> Thanh toán SSL 256-bit
+                                <Lock className="w-3.5 h-3.5 text-sky-700" /> Thanh toán SSL 256-bit
                             </span>
                             <span>•</span>
                             <span>Đổi trả 30 ngày</span>

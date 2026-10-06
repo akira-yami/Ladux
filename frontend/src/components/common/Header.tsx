@@ -15,7 +15,7 @@ import {
     X,
     Trash2,
 } from "lucide-react";
-import laduxLogoImg from "../../assets/ladux-logo.png";
+import BrandMark from "./BrandMark";
 import { getAvatarUrl } from "../../types";
 import { ROUTES } from "../../app/routePaths";
 import { useAuthStore, useNotificationStore, useOrderStore, useProductStore, useWishlistStore } from "../../stores";
@@ -71,15 +71,47 @@ export default function Header({
     const [isCatDropdownOpen, setIsCatDropdownOpen] = React.useState<boolean>(false);
     const catDropdownRef = React.useRef<HTMLDivElement>(null);
 
+    const [isNotifOpen, setIsNotifOpen] = React.useState<boolean>(false);
+    const notifRef = React.useRef<HTMLDivElement>(null);
+
+    const [isUserMenuOpen, setIsUserMenuOpen] = React.useState<boolean>(false);
+    const userMenuRef = React.useRef<HTMLDivElement>(null);
+
     React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (catDropdownRef.current && !catDropdownRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            if (catDropdownRef.current && !catDropdownRef.current.contains(target)) {
                 setIsCatDropdownOpen(false);
             }
+            if (notifRef.current && !notifRef.current.contains(target)) {
+                setIsNotifOpen(false);
+            }
+            if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+                setIsUserMenuOpen(false);
+            }
         };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsCatDropdownOpen(false);
+                setIsNotifOpen(false);
+                setIsUserMenuOpen(false);
+            }
+        };
+
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
     }, []);
+
+    React.useEffect(() => {
+        setIsCatDropdownOpen(false);
+        setIsNotifOpen(false);
+        setIsUserMenuOpen(false);
+    }, [location.pathname]);
 
     const [isScrolled, setIsScrolled] = React.useState<boolean>(false);
     const [isSubHeaderVisible, setIsSubHeaderVisible] = React.useState<boolean>(true);
@@ -147,33 +179,29 @@ export default function Header({
 
     return (
         <header
-            className={`fixed top-0 left-0 right-0 z-50 border-b text-white transition-all duration-500 ${isScrolled
-                ? "border-white/15 bg-[#080a0b]/95 backdrop-blur-2xl shadow-[0_15px_40px_rgba(0,0,0,0.95)]"
-                : "border-white/10 bg-[#080a0b]/80 backdrop-blur-xl"
+            className={`fixed top-0 left-0 right-0 z-50 border-b text-slate-800 transition-all duration-500 ${isScrolled
+                ? "border-sky-100 bg-white backdrop-blur-2xl shadow-sm"
+                : "border-sky-100 bg-white backdrop-blur-xl"
                 }`}
         >
-            <div className="container mx-auto px-6 sm:px-10 lg:px-16 h-[72px] flex items-center justify-between gap-3 md:gap-6">
+            <div className="container mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between gap-3 md:gap-6 relative">
                 {/* ── Logo ── */}
                 <div className="z-10 flex items-center shrink-0">
                     <Link
                         to={ROUTES.home}
                         className="flex items-center gap-2.5 group shrink-0 cursor-pointer"
                     >
-                        <img
-                            src={laduxLogoImg}
-                            alt="LADUX Logo"
-                            className="h-9 sm:h-10 w-9 sm:w-10 object-cover rounded-full border border-white/10"
-                        />
-                        <span className="hidden sm:block text-xl sm:text-2xl font-black font-logo tracking-[0.2em] text-[#00FF41] drop-shadow-[0_0_12px_rgba(0,255,65,0.4)]">LADUX</span>
+                        <BrandMark />
                     </Link>
                 </div>
 
-                {/* ── Dynamic Flex Search Bar (max-w-[850px] centered) ── */}
-                <div className="flex-1 max-w-[850px] hidden sm:flex items-stretch h-11 relative rounded-none border border-white/[0.12] bg-white/[0.04] focus-within:border-[#00FF41]/60 focus-within:ring-1 focus-within:ring-[#00FF41]/20 transition-all z-20 mx-4 md:mx-8 lg:mx-12 translate-x-[30px]">
+                {/* ── Dynamic Flex Search Bar (centered) ── */}
+                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[420px] lg:max-w-[500px] xl:max-w-[580px] 2xl:max-w-[620px] items-stretch h-11 rounded-2xl border border-sky-100 bg-slate-50 focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100 transition-all z-20">
                     {/* Text Input */}
                     <input
                         type="text"
-                        placeholder="Tìm kiếm sản phẩm..."
+                        placeholder="Tìm chiếc laptop của bạn..."
+                        aria-label="Tìm kiếm laptop"
                         value={searchQuery}
                         onChange={(e) => {
                             setSearchQuery(e.target.value);
@@ -186,31 +214,31 @@ export default function Header({
                                 handleNavigate(ROUTES.products);
                             }
                         }}
-                        className="flex-1 bg-transparent px-4 text-sm text-white placeholder:text-neutral-500 focus:outline-none min-w-0 rounded-none"
+                        className="flex-1 bg-transparent px-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none min-w-0 rounded-l-2xl"
                     />
 
                     {/* Divider */}
-                    <div className="w-px bg-white/[0.1] self-stretch" />
+                    <div className="w-px bg-sky-50 self-stretch" />
 
                     {/* Custom Category Dropdown */}
-                    <div className="relative flex items-center shrink-0 h-full" ref={catDropdownRef}>
+                    <div className="relative hidden lg:flex items-center  shrink-0 h-full" ref={catDropdownRef}>
                         <button
                             type="button"
                             onClick={() => setIsCatDropdownOpen(!isCatDropdownOpen)}
-                            className="flex items-center gap-2 px-3 sm:px-4 h-full text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-300 hover:text-[#00FF41] transition-colors cursor-pointer"
+                            className="flex items-center gap-2 px-3 sm:px-4 h-full text-[10px] sm:text-[11px] font-sans font-bold normal-case tracking-normal text-slate-600 hover:text-sky-700 transition-colors cursor-pointer"
                         >
-                            <span className="truncate max-w-[130px]">
-                                {selectedCategory && selectedCategory !== "All" ? selectedCategory : "CHỌN DANH MỤC"}
+                            <span className="max-w-[130px] text-[12.5px] leading-none">
+                                {selectedCategory && selectedCategory !== "All" ? selectedCategory : "Danh mục"}
                             </span>
                             <ChevronRight
-                                className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-300 ${isCatDropdownOpen ? "-rotate-90 text-[#00FF41]" : "rotate-90"
+                                className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-300 shrink-0 translate-y-[0.5px] ${isCatDropdownOpen ? "-rotate-90 text-sky-700" : "rotate-90"
                                     }`}
                             />
                         </button>
 
                         {/* Custom Dropdown Popover */}
                         {isCatDropdownOpen && (
-                            <div className="absolute right-0 top-[calc(100%+8px)] w-56 rounded-2xl border border-white/20 bg-neutral-950/98 backdrop-blur-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_20px_rgba(0,255,65,0.15)] z-50 animate-in fade-in zoom-in-95 duration-150">
+                            <div className="absolute right-0 top-[calc(100%+8px)] w-56 rounded-2xl border border-sky-100 bg-white backdrop-blur-2xl p-1.5 shadow-sm z-50 animate-in fade-in zoom-in-95 duration-150">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -220,17 +248,17 @@ export default function Header({
                                             handleNavigate(ROUTES.products);
                                         }
                                     }}
-                                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-between cursor-pointer ${!selectedCategory || selectedCategory === "All"
-                                        ? "bg-[#00FF41] text-black shadow-md shadow-[#00FF41]/20"
-                                        : "text-neutral-300 hover:bg-white/10 hover:text-white"
+                                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans font-bold transition-all flex items-center justify-between cursor-pointer ${!selectedCategory || selectedCategory === "All"
+                                        ? "bg-sky-600 text-white shadow-md shadow-sky-700/20"
+                                        : "text-slate-600 hover:bg-sky-50 hover:text-slate-800"
                                         }`}
                                 >
-                                    <span>TẤT CẢ DANH MỤC</span>
+                                    <span>Tất cả danh mục</span>
                                     {(!selectedCategory || selectedCategory === "All") && (
-                                        <div className="h-1.5 w-1.5 rounded-full bg-black" />
+                                        <div className="h-1.5 w-1.5 rounded-full bg-white" />
                                     )}
                                 </button>
-                                <div className="h-px bg-white/10 my-1" />
+                                <div className="h-px bg-sky-50 my-1" />
                                 <div className="max-h-60 overflow-y-auto space-y-0.5 scrollbar-thin">
                                     {categories.map((category) => {
                                         const isSelected = selectedCategory === category.name;
@@ -245,13 +273,13 @@ export default function Header({
                                                         handleNavigate(ROUTES.products);
                                                     }
                                                 }}
-                                                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-between cursor-pointer ${isSelected
-                                                    ? "bg-[#00FF41] text-black shadow-md shadow-[#00FF41]/20"
-                                                    : "text-neutral-300 hover:bg-[#00FF41]/10 hover:text-[#00FF41]"
+                                                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans font-bold transition-all flex items-center justify-between cursor-pointer ${isSelected
+                                                    ? "bg-sky-600 text-white shadow-md shadow-sky-700/20"
+                                                    : "text-slate-600 hover:bg-sky-50 hover:text-sky-700"
                                                     }`}
                                             >
-                                                <span>{category.name.toUpperCase()}</span>
-                                                {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-black" />}
+                                                <span>{category.name}</span>
+                                                {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
                                             </button>
                                         );
                                     })}
@@ -263,62 +291,79 @@ export default function Header({
                     {/* Search Button */}
                     <button
                         onClick={() => handleNavigate(ROUTES.products)}
-                        className="flex items-center justify-center w-11 sm:w-12 bg-[#00FF41] hover:bg-[#00cc34] active:bg-[#00b32d] transition-colors shrink-0 rounded-none cursor-pointer"
+                        className="flex items-center justify-center w-11 sm:w-12 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 transition-colors shrink-0 rounded-r-2xl cursor-pointer"
                         aria-label="Tìm kiếm"
                     >
-                        <Search className="w-5 h-5 text-black stroke-[2.5]" />
+                        <Search className="w-5 h-5 text-white stroke-[2.5]" />
                     </button>
                 </div>
 
                 {/* ── Right Actions ── */}
-                <div className="z-10 flex items-center gap-2 shrink-0 mr-2 sm:mr-4 lg:mr-10">
+                <div className="z-10 flex items-center gap-1 sm:gap-2 shrink-0 ml-auto">
+                    <Link to={ROUTES.products} aria-label="Tìm kiếm laptop" className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-sky-50 hover:text-sky-700 md:hidden"><Search className="h-5 w-5" /></Link>
                     {/* Cart Badge */}
                     <Link
                         to={ROUTES.cart}
-                        className="relative p-2.5 text-neutral-300 hover:text-[#00FF41] transition-all duration-200 rounded-xl hover:bg-white/[0.08] flex items-center justify-center group cursor-pointer"
+                        className="relative p-2.5 text-sky-600 hover:text-sky-700 transition-all duration-200 rounded-xl hover:bg-sky-50 flex items-center justify-center group cursor-pointer"
                         aria-label="Giỏ hàng"
                     >
                         <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         {cartCount > 0 && (
-                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#00FF41] text-black font-extrabold text-[10px] rounded-full flex items-center justify-center shadow-[0_0_10px_#00FF41] animate-pulse">
+                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-sky-600 text-white font-semibold text-[10px] rounded-full flex items-center justify-center shadow-sm">
                                 {cartCount}
                             </span>
                         )}
                     </Link>
 
                     {/* Notification Badge & Popover */}
-                    <div className="relative group/notif">
+                    <div className="relative" ref={notifRef}>
                         <button
-                            onClick={() => {
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 if (!isLoggedIn) {
                                     navigate(ROUTES.login);
+                                    return;
                                 }
+                                setIsUserMenuOpen(false);
+                                setIsNotifOpen((prev) => !prev);
                             }}
-                            className="relative p-2 text-neutral-400 hover:text-white transition rounded-xl hover:bg-white/[0.06] flex items-center justify-center cursor-pointer"
+                            className={`relative p-2.5 transition-all duration-200 rounded-xl flex items-center justify-center group cursor-pointer ${
+                                isNotifOpen
+                                    ? "bg-sky-100 text-sky-800 ring-2 ring-sky-200"
+                                    : "text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+                            }`}
                             aria-label="Thông báo"
+                            aria-expanded={isNotifOpen}
                         >
-                            <Bell className="w-4.5 h-4.5" />
+                            <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
                             {unreadCount > 0 && (
-                                <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-amber-400 text-black font-bold text-[8px] rounded-full flex items-center justify-center animate-pulse">
+                                <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-amber-400 text-white font-bold text-[8px] rounded-full flex items-center justify-center shadow-sm">
                                     {unreadCount > 99 ? "99+" : unreadCount}
                                 </span>
                             )}
                         </button>
 
                         {/* Notification Dropdown Menu */}
-                        {isLoggedIn && (
-                            <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover/notif:opacity-100 group-hover/notif:visible transition-all duration-200 z-50 pointer-events-none group-hover/notif:pointer-events-auto">
-                                <div className="w-80 sm:w-96 rounded-2xl border border-neutral-800 bg-neutral-950/95 backdrop-blur-xl p-4 shadow-2xl">
-                                    <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-3">
+                        {isLoggedIn && isNotifOpen && (
+                            <div
+                                className="absolute right-0 top-full pt-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="w-[min(calc(100vw-24px),384px)] rounded-2xl border border-sky-100 bg-white/95 backdrop-blur-2xl p-4 shadow-2xl shadow-sky-100/70">
+                                    <div className="flex items-center justify-between border-b border-sky-100 pb-3 mb-3">
                                         <div className="flex items-center gap-2">
-                                            <Bell className="w-4 h-4 text-[#00FF41]" />
-                                            <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">Thông báo</span>
+                                            <Bell className="w-4 h-4 text-sky-700" />
+                                            <span className="text-xs font-sans font-bold normal-case tracking-normal text-slate-800">Thông báo</span>
                                         </div>
                                         {unreadCount > 0 && (
                                             <button
                                                 type="button"
-                                                onClick={() => markAllAsRead()}
-                                                className="text-[10px] font-mono text-[#00FF41] hover:underline"
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    await markAllAsRead();
+                                                }}
+                                                className="text-[10px] font-sans text-sky-700 hover:underline cursor-pointer"
                                             >
                                                 Đánh dấu đã đọc
                                             </button>
@@ -326,28 +371,40 @@ export default function Header({
                                     </div>
 
                                     {/* ── Tabs: Tất cả | Chưa đọc | Đã đọc ── */}
-                                    <div className="grid grid-cols-3 gap-1 bg-neutral-900/90 p-1 rounded-xl mb-3 text-[10px] font-mono font-bold">
+                                    <div className="grid grid-cols-3 gap-1 bg-slate-100/80 p-1 rounded-xl mb-3 text-[10px] font-sans font-bold">
                                         <button
                                             type="button"
-                                            onClick={() => setNotifTab("all")}
-                                            className={`py-1 rounded-lg transition ${notifTab === "all" ? "bg-[#00FF41] text-black shadow" : "text-neutral-400 hover:text-white"
-                                                }`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setNotifTab("all");
+                                            }}
+                                            className={`py-1 rounded-lg transition cursor-pointer ${
+                                                notifTab === "all" ? "bg-sky-600 text-white shadow" : "text-slate-600 hover:text-slate-800"
+                                            }`}
                                         >
                                             Tất cả
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setNotifTab("unread")}
-                                            className={`py-1 rounded-lg transition ${notifTab === "unread" ? "bg-[#00FF41] text-black shadow" : "text-neutral-400 hover:text-white"
-                                                }`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setNotifTab("unread");
+                                            }}
+                                            className={`py-1 rounded-lg transition cursor-pointer ${
+                                                notifTab === "unread" ? "bg-sky-600 text-white shadow" : "text-slate-600 hover:text-slate-800"
+                                            }`}
                                         >
                                             Chưa đọc
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setNotifTab("read")}
-                                            className={`py-1 rounded-lg transition ${notifTab === "read" ? "bg-[#00FF41] text-black shadow" : "text-neutral-400 hover:text-white"
-                                                }`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setNotifTab("read");
+                                            }}
+                                            className={`py-1 rounded-lg transition cursor-pointer ${
+                                                notifTab === "read" ? "bg-sky-600 text-white shadow" : "text-slate-600 hover:text-slate-800"
+                                            }`}
                                         >
                                             Đã đọc
                                         </button>
@@ -355,26 +412,32 @@ export default function Header({
 
                                     {/* ── Notification Items List ── */}
                                     {notifications.length === 0 ? (
-                                        <div className="py-8 text-center text-xs font-mono text-neutral-500">
+                                        <div className="py-8 text-center text-xs font-sans text-slate-500">
                                             Không có thông báo nào ({notifTab === "all" ? "Tất cả" : notifTab === "unread" ? "Chưa đọc" : "Đã đọc"})
                                         </div>
                                     ) : (
-                                        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                                        <div className="space-y-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
                                             {notifications.map((n) => (
                                                 <div
                                                     key={n.id}
-                                                    onClick={() => !n.isRead && markAsRead(n.id)}
-                                                    className={`group/item relative p-3 rounded-xl border text-xs transition cursor-pointer flex items-start justify-between gap-3 ${n.isRead
-                                                        ? "bg-neutral-900/40 border-neutral-800/60 text-neutral-400"
-                                                        : "bg-neutral-900 border-emerald-500/30 text-white font-medium"
-                                                        }`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (!n.isRead) {
+                                                            markAsRead(n.id);
+                                                        }
+                                                    }}
+                                                    className={`group/item relative p-3 rounded-xl border text-xs transition cursor-pointer flex items-start justify-between gap-3 ${
+                                                        n.isRead
+                                                            ? "bg-slate-50/60 border-slate-200 text-slate-500"
+                                                            : "bg-sky-50/50 border-sky-200 text-slate-800 font-medium hover:border-sky-300"
+                                                    }`}
                                                 >
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2 mb-1">
-                                                            {!n.isRead && <span className="w-2 h-2 rounded-full bg-[#00FF41] shrink-0" />}
-                                                            <span className="font-bold text-white truncate">{n.title}</span>
+                                                            {!n.isRead && <span className="w-2 h-2 rounded-full bg-sky-600 shrink-0" />}
+                                                            <span className="font-bold text-slate-800 truncate">{n.title}</span>
                                                         </div>
-                                                        <p className="text-[11px] text-neutral-300 line-clamp-2 leading-relaxed">{n.message}</p>
+                                                        <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">{n.message}</p>
                                                     </div>
 
                                                     {/* Dấu X ở bên phải để xóa thông báo cụ thể */}
@@ -385,7 +448,7 @@ export default function Header({
                                                             e.stopPropagation();
                                                             deleteNotification(n.id);
                                                         }}
-                                                        className="p-1 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition shrink-0"
+                                                        className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition shrink-0 cursor-pointer"
                                                     >
                                                         <X className="w-3.5 h-3.5" />
                                                     </button>
@@ -396,16 +459,17 @@ export default function Header({
 
                                     {/* ── Bottom Section: Label xóa tất cả ── */}
                                     {notifications.length > 0 && (
-                                        <div className="mt-3 pt-2.5 border-t border-neutral-800 flex items-center justify-between text-[11px] font-mono">
-                                            <span className="text-neutral-500">Tổng: {notifications.length}</span>
+                                        <div className="mt-3 pt-2.5 border-t border-sky-100 flex items-center justify-between text-[11px] font-sans">
+                                            <span className="text-slate-500">Tổng: {notifications.length}</span>
                                             <button
                                                 type="button"
-                                                onClick={() => {
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
                                                     if (window.confirm("Bạn có chắc muốn xóa tất cả thông báo không?")) {
-                                                        deleteAllNotifications();
+                                                        await deleteAllNotifications();
                                                     }
                                                 }}
-                                                className="text-red-400 hover:text-red-300 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                                                className="text-red-600 hover:text-red-700 font-bold hover:underline flex items-center gap-1 cursor-pointer"
                                             >
                                                 <Trash2 className="w-3 h-3" />
                                                 Xóa tất cả thông báo
@@ -420,12 +484,12 @@ export default function Header({
                     {/* Wishlist Badge */}
                     <Link
                         to={ROUTES.wishlist}
-                        className="relative p-2.5 text-neutral-400 hover:text-white transition rounded-xl hover:bg-white/[0.06]"
+                        className="relative p-2.5 text-sky-600 hover:text-sky-700 transition-all duration-200 rounded-xl hover:bg-sky-50 flex items-center justify-center group cursor-pointer"
                         aria-label="Danh sách yêu thích"
                     >
-                        <Heart className="w-5 h-5 text-red-400 fill-red-400/20" />
+                        <Heart className="w-5 h-5 text-sky-600 fill-sky-100 group-hover:scale-110 transition-transform" />
                         {displayWishlistCount > 0 && (
-                            <span className="absolute top-1 right-1 w-4 h-4 bg-[#00FF41] text-black font-bold text-[9px] rounded-full flex items-center justify-center">
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-sky-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center">
                                 {displayWishlistCount}
                             </span>
                         )}
@@ -437,20 +501,20 @@ export default function Header({
                             /* Logged in CTA Button */
                             <button
                                 onClick={() => navigate(ROUTES.account)}
-                                className="flex items-center gap-2 rounded-full border border-emerald-500/40 bg-white/[0.04] py-1 pl-1 pr-3 text-neutral-100 transition hover:border-[#00FF41] hover:bg-white/[0.08]"
+                                className="flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 py-1 pl-1 pr-1 lg:pr-3 text-slate-700 transition hover:border-sky-700 hover:bg-sky-50"
                             >
                                 {userAvatar ? (
                                     <img
                                         src={userAvatar}
                                         alt="Avatar"
-                                        className="h-7 w-7 rounded-full object-cover border-2 border-[#00FF41]"
+                                        className="h-7 w-7 rounded-full object-cover border-2 border-sky-700"
                                     />
                                 ) : (
-                                    <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#00FF41] bg-neutral-900">
-                                        <User className="h-3.5 w-3.5 text-[#00FF41]" />
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-sky-700 bg-white">
+                                        <User className="h-3.5 w-3.5 text-sky-700" />
                                     </span>
                                 )}
-                                <span className="text-xs font-bold truncate max-w-[110px]">
+                                <span className="text-xs font-bold truncate max-w-[110px] hidden lg:inline">
                                     {displayName}
                                 </span>
                             </button>
@@ -458,80 +522,80 @@ export default function Header({
                             /* Unauthenticated CTA Button */
                             <button
                                 onClick={() => navigate(ROUTES.login)}
-                                className="w-9 h-9 rounded-full border border-emerald-500/50 bg-white/[0.04] flex items-center justify-center text-[#00FF41] hover:border-[#00FF41] hover:bg-[#00FF41]/10 transition-all cursor-pointer"
+                                className="w-9 h-9 rounded-full border border-sky-200 bg-sky-50 flex items-center justify-center text-sky-700 hover:border-sky-700 hover:bg-sky-50 transition-all cursor-pointer"
                                 aria-label="Đăng nhập"
                             >
-                                <User className="w-4.5 h-4.5 text-[#00FF41]" />
+                                <User className="w-4.5 h-4.5 text-sky-700" />
                             </button>
                         )}
 
                         {/* Hover Dropdown Popover */}
-                        <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 z-50 pointer-events-none group-hover/user:pointer-events-auto">
-                            <div className={`bg-[#0d0f11] border border-white/10 rounded-2xl shadow-2xl p-4 text-white font-sans ${isLoggedIn ? "w-72" : "w-64"}`}>
+                        <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover/user:opacity-100 group-focus-within/user:opacity-100 group-hover/user:visible group-focus-within/user:visible transition-all duration-200 z-50 pointer-events-none group-hover/user:pointer-events-auto group-focus-within/user:pointer-events-auto">
+                            <div className={`bg-white border border-sky-100 rounded-2xl shadow-xl shadow-sky-100/50 p-4 text-slate-800 font-sans ${isLoggedIn ? "w-72" : "w-64"}`}>
                                 {isLoggedIn ? (
                                     <>
                                         {/* User Header Info */}
                                         <div className="px-1 py-0.5">
-                                            <div className="font-extrabold text-sm text-white truncate">{displayName}</div>
-                                            <div className="text-[11px] font-mono text-[#00FF41] font-semibold flex items-center gap-1 mt-0.5">
+                                            <div className="font-semibold text-sm text-slate-800 truncate">{displayName}</div>
+                                            <div className="text-[11px] font-sans text-sky-700 font-semibold flex items-center gap-1 mt-0.5">
                                                 <span>{user?.level || "BROWSER"} MEMBER</span>
                                                 <span>·</span>
                                                 <span>{userPhone}</span>
                                             </div>
                                         </div>
 
-                                        <div className="my-3 border-b border-white/10" />
+                                        <div className="my-3 border-b border-sky-100" />
 
                                         {/* Nav items */}
                                         <div className="space-y-1">
                                             <Link
                                                 to={ROUTES.account}
-                                                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-neutral-200 hover:text-white hover:bg-white/[0.06] transition"
+                                                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-sky-50 transition"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <User className="w-4 h-4 text-[#00FF41]" />
+                                                    <User className="w-4 h-4 text-sky-700" />
                                                     <span>Xem thông tin tài khoản</span>
                                                 </div>
                                             </Link>
 
                                             <Link
                                                 to={ROUTES.orders}
-                                                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-neutral-200 hover:text-white hover:bg-white/[0.06] transition"
+                                                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-sky-50 transition"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <Package className="w-4 h-4 text-[#00FF41]" />
+                                                    <Package className="w-4 h-4 text-sky-700" />
                                                     <span>Quản lý đơn hàng</span>
                                                 </div>
-                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-[#00FF41]/20 text-[#00FF41] rounded-md">
+                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-sky-50 text-sky-700 rounded-md">
                                                     {displayOrderCount}
                                                 </span>
                                             </Link>
 
                                             <Link
                                                 to={ROUTES.addresses}
-                                                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-neutral-200 hover:text-white hover:bg-white/[0.06] transition"
+                                                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-sky-50 transition"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <MapPin className="w-4 h-4 text-[#00FF41]" />
+                                                    <MapPin className="w-4 h-4 text-sky-700" />
                                                     <span>Sổ địa chỉ giao hàng</span>
                                                 </div>
                                             </Link>
 
                                             <Link
                                                 to={ROUTES.wishlist}
-                                                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-neutral-200 hover:text-white hover:bg-white/[0.06] transition"
+                                                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-sky-50 transition"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <Heart className="w-4 h-4 text-red-500 fill-red-500/20" />
                                                     <span>Danh sách yêu thích</span>
                                                 </div>
-                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-red-500/20 text-red-400 rounded-md">
+                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-red-500/20 text-red-600 rounded-md">
                                                     {displayWishlistCount}
                                                 </span>
                                             </Link>
                                         </div>
 
-                                        <div className="my-3 border-b border-white/10" />
+                                        <div className="my-3 border-b border-sky-100" />
 
                                         {/* Logout action */}
                                         <button
@@ -547,14 +611,14 @@ export default function Header({
                                         {/* Unauthenticated Popover */}
                                         <button
                                             onClick={() => navigate(ROUTES.login)}
-                                            className="w-full bg-[#00FF41] hover:bg-[#00cc34] text-black font-extrabold py-2.5 px-4 rounded-full flex items-center justify-center gap-2 text-xs tracking-wider transition shadow-lg shadow-[#00FF41]/20 uppercase"
+                                            className="w-full bg-sky-600 hover:bg-sky-600 text-white font-semibold py-2.5 px-4 rounded-full flex items-center justify-center gap-2 text-xs tracking-normal transition shadow-lg shadow-sky-700/20 normal-case"
                                         >
-                                            <Lock className="w-4 h-4 text-black stroke-[2.5]" />
+                                            <Lock className="w-4 h-4 text-white stroke-[2.5]" />
                                             <span>Đăng nhập</span>
                                         </button>
                                         <Link
                                             to={ROUTES.register}
-                                            className="w-full text-center text-xs font-semibold text-neutral-300 hover:text-[#00FF41] transition-colors mt-3 block py-1"
+                                            className="w-full text-center text-xs font-semibold text-slate-600 hover:text-sky-700 transition-colors mt-3 block py-1"
                                         >
                                             Tạo tài khoản mới
                                         </Link>
@@ -568,21 +632,21 @@ export default function Header({
 
             {/* ── Sub-header (Header phụ) ── */}
             <div
-                className={`border-t border-white/[0.06] bg-black/40 backdrop-blur-md overflow-hidden transition-all duration-500 ease-in-out ${!isSubHeaderVisible
+                className={`border-t border-sky-100 bg-white backdrop-blur-md overflow-hidden transition-all duration-500 ease-in-out ${!isSubHeaderVisible
                     ? "max-h-0 opacity-0 -translate-y-4 pointer-events-none py-0 border-t-0"
                     : "max-h-24 opacity-100 translate-y-0 py-3"
                     }`}
             >
-                <div className="container mx-auto px-5 sm:px-6 flex flex-col md:flex-row md:items-center justify-between gap-4 text-[16px] text-neutral-300 font-medium">
+                <div className="container mx-auto px-5 sm:px-8 flex items-center justify-between gap-4 text-sm text-slate-600 font-medium">
                     {/* Left side links */}
-                    <div className="flex flex-wrap items-center gap-x-10 gap-y-3 ml-10">
+                    <nav aria-label="Điều hướng chính" className="flex items-center gap-5 sm:gap-8">
                         <NavLink
                             to={ROUTES.home}
                             end
                             className={({ isActive }) =>
-                                `transition-colors pb-1 hover:text-[#00FF41] border-b-2 text-[16px] ${isActive
-                                    ? "text-[#00FF41] border-[#00FF41] font-semibold"
-                                    : "text-neutral-300 border-transparent hover:border-[#00FF41]/50"
+                                `transition-colors pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
+                                    ? "text-sky-700 border-sky-700 font-semibold"
+                                    : "text-slate-600 border-transparent hover:border-sky-700/50"
                                 }`
                             }
                         >
@@ -591,9 +655,9 @@ export default function Header({
                         <NavLink
                             to={ROUTES.products}
                             className={({ isActive }) =>
-                                `transition-colors pb-1 hover:text-[#00FF41] border-b-2 text-[16px] ${isActive
-                                    ? "text-[#00FF41] border-[#00FF41] font-semibold"
-                                    : "text-neutral-300 border-transparent hover:border-[#00FF41]/50"
+                                `transition-colors pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
+                                    ? "text-sky-700 border-sky-700 font-semibold"
+                                    : "text-slate-600 border-transparent hover:border-sky-700/50"
                                 }`
                             }
                         >
@@ -602,9 +666,9 @@ export default function Header({
                         <NavLink
                             to={ROUTES.about}
                             className={({ isActive }) =>
-                                `transition-colors pb-1 hover:text-[#00FF41] border-b-2 text-[16px] ${isActive
-                                    ? "text-[#00FF41] border-[#00FF41] font-semibold"
-                                    : "text-neutral-300 border-transparent hover:border-[#00FF41]/50"
+                                `transition-colors pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
+                                    ? "text-sky-700 border-sky-700 font-semibold"
+                                    : "text-slate-600 border-transparent hover:border-sky-700/50"
                                 }`
                             }
                         >
@@ -613,27 +677,27 @@ export default function Header({
                         <NavLink
                             to={ROUTES.contact}
                             className={({ isActive }) =>
-                                `transition-colors pb-1 hover:text-[#00FF41] border-b-2 text-[16px] ${isActive
-                                    ? "text-[#00FF41] border-[#00FF41] font-semibold"
-                                    : "text-neutral-300 border-transparent hover:border-[#00FF41]/50"
+                                `transition-colors pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
+                                    ? "text-sky-700 border-sky-700 font-semibold"
+                                    : "text-slate-600 border-transparent hover:border-sky-700/50"
                                 }`
                             }
                         >
                             Liên hệ
                         </NavLink>
-                    </div>
+                    </nav>
 
                     {/* Right side info */}
-                    <div className="flex items-center gap-6 text-[15px]">
+                    <div className="hidden lg:flex items-center gap-6 text-xs">
                         {STOREFRONT_CONTACT.phone && <div className="flex items-center gap-2.5 group cursor-pointer">
-                            <Phone className="w-[18px] h-[18px] text-[#00FF41] group-hover:scale-110 transition-transform" />
-                            <span className="text-neutral-400 group-hover:text-white transition-colors">
-                                Hotline: <strong className="text-white font-medium">{STOREFRONT_CONTACT.phone}</strong>
+                            <Phone className="w-[18px] h-[18px] text-sky-700 group-hover:scale-110 transition-transform" />
+                            <span className="text-slate-500 group-hover:text-slate-800 transition-colors">
+                                Hotline: <strong className="text-slate-800 font-medium">{STOREFRONT_CONTACT.phone}</strong>
                             </span>
                         </div>}
-                        {STOREFRONT_CONTACT.phone && <span className="text-white/10 hidden sm:inline">|</span>}
-                        <div className="flex items-center gap-2.5 text-[#00FF41] font-semibold">
-                            <span className="w-2 h-2 rounded-full bg-[#00FF41] animate-pulse" />
+                        {STOREFRONT_CONTACT.phone && <span className="text-slate-800 hidden sm:inline">|</span>}
+                        <div className="flex items-center gap-2.5 text-sky-700 font-semibold">
+                            <span className="w-2 h-2 rounded-full bg-sky-600 " />
                             <span>Giao hỏa tốc 2H</span>
                         </div>
                     </div>

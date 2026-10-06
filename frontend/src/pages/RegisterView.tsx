@@ -58,29 +58,29 @@ export default function RegisterView({ onRegister, onGoLogin, onBack }: Register
             <div className="w-full max-w-md">
                 <button
                     onClick={onBack}
-                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-[#00FF41] mb-10 transition-colors"
+                    className="flex items-center gap-2 text-xs font-bold normal-case tracking-normal text-slate-500 hover:text-sky-700 mb-10 transition-colors"
                 >
                     <ArrowLeft className="w-3.5 h-3.5" /> Quay lại cửa hàng
                 </button>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-8 sm:p-10 backdrop-blur-md">
+                <div className="store-card rounded-3xl border border-sky-100 bg-white p-8 sm:p-10">
                     <div className="mb-8 text-center">
-                        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#00FF41]/15 border border-[#00FF41]/30 mb-4">
-                            <UserPlus className="w-6 h-6 text-[#00FF41]" />
+                        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 border border-sky-700/30 mb-4">
+                            <UserPlus className="w-6 h-6 text-sky-700" />
                         </div>
-                        <h1 className="text-2xl font-black tracking-tight text-white">Tạo tài khoản</h1>
-                        <p className="mt-1.5 text-xs text-neutral-500">Tham gia cộng đồng thành viên LADUX</p>
+                        <h1 className="text-2xl font-semibold tracking-tight text-slate-800">Tạo tài khoản</h1>
+                        <p className="mt-1.5 text-xs text-slate-500">Tham gia cộng đồng thành viên LADUX</p>
                     </div>
 
                     {error && (
-                        <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-medium">
+                        <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 text-xs text-center font-medium">
                             {error}
                         </div>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-2">
+                            <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-2">
                                 Tên đăng nhập (Username)
                             </label>
                             <input
@@ -89,12 +89,12 @@ export default function RegisterView({ onRegister, onGoLogin, onBack }: Register
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 placeholder="nguyenvana"
-                                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#00FF41]/60 focus:ring-1 focus:ring-[#00FF41]/30 transition"
+                                className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-700/60 focus:ring-1 focus:ring-sky-700/30 transition"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-2">
+                            <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-2">
                                 Họ & Tên
                             </label>
                             <input
@@ -103,13 +103,13 @@ export default function RegisterView({ onRegister, onGoLogin, onBack }: Register
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Nguyễn Văn A"
-                                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#00FF41]/60 focus:ring-1 focus:ring-[#00FF41]/30 transition"
+                                className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-700/60 focus:ring-1 focus:ring-sky-700/30 transition"
                             />
                         </div>
 
 
                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-2">
+                            <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-2">
                                 Mật khẩu
                             </label>
                             <input
@@ -118,12 +118,12 @@ export default function RegisterView({ onRegister, onGoLogin, onBack }: Register
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Tối thiểu 8 ký tự"
-                                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#00FF41]/60 focus:ring-1 focus:ring-[#00FF41]/30 transition"
+                                className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-700/60 focus:ring-1 focus:ring-sky-700/30 transition"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-2">
+                            <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-2">
                                 Xác nhận mật khẩu
                             </label>
                             <input
@@ -132,31 +132,31 @@ export default function RegisterView({ onRegister, onGoLogin, onBack }: Register
                                 value={confirm}
                                 onChange={(e) => setConfirm(e.target.value)}
                                 placeholder="Nhập lại mật khẩu"
-                                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#00FF41]/60 focus:ring-1 focus:ring-[#00FF41]/30 transition"
+                                className="w-full rounded-xl border border-sky-100 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-700/60 focus:ring-1 focus:ring-sky-700/30 transition"
                             />
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full rounded-xl bg-[#00FF41] py-3.5 text-sm font-extrabold text-black uppercase tracking-wider hover:bg-[#00cc34] disabled:opacity-60 transition-all hover:scale-[1.02] active:scale-100 mt-2"
+                            className="w-full rounded-xl bg-sky-600 py-3.5 text-sm font-semibold text-white normal-case tracking-normal hover:bg-sky-600 disabled:opacity-60 transition-all hover:scale-[1.02] active:scale-100 mt-2"
                         >
                             {loading ? "Đang xử lý API..." : "Đăng Ký"}
                         </button>
                     </form>
 
-                    <p className="mt-7 text-center text-xs text-neutral-500">
+                    <p className="mt-7 text-center text-xs text-slate-500">
                         Đã có tài khoản?{" "}
                         <button
                             onClick={onGoLogin}
-                            className="font-bold text-[#00FF41] hover:underline"
+                            className="font-bold text-sky-700 hover:underline"
                         >
                             Đăng nhập
                         </button>
                     </p>
                 </div>
 
-                <p className="mt-6 text-center text-[10px] text-neutral-600 font-mono uppercase tracking-widest">
+                <p className="mt-6 text-center text-[10px] text-slate-400 font-sans normal-case tracking-normal">
                     Bảo mật SSL · Dữ liệu mã hóa 256-bit
                 </p>
             </div>
