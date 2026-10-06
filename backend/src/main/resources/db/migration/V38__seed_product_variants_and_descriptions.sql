@@ -320,7 +320,7 @@ BEGIN
         ON CONFLICT (sku) DO UPDATE SET price = EXCLUDED.price, discount_price = EXCLUDED.discount_price, stock_quantity = EXCLUDED.stock_quantity;
         
         -- Reset sequence for product_variants
-        SELECT setval(
+        PERFORM setval(
             pg_get_serial_sequence('product_variants', 'id'),
             COALESCE((SELECT MAX(id) FROM product_variants), 1)
         );
