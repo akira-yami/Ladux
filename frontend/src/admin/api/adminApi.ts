@@ -47,9 +47,7 @@ import type {
   UserUpdateRequest,
 } from "../types";
 
-export type AdminLoginResponse =
-  | { message: string; userId: string; username: string; accessToken: string; tokenType: "Bearer" }
-  | { mfaRequired: true; challengeId: string };
+export type AdminLoginResponse = { message: string; userId: string; username: string; accessToken: string; tokenType: "Bearer" };
 
 function get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
   return apiClient.get(url, config) as unknown as Promise<T>;
@@ -75,8 +73,6 @@ export const adminApi = {
   auth: {
     login: (data: { username: string; password: string; captchaToken?: string }) =>
       post<AdminLoginResponse>("/admin/auth/login", data),
-    verifyMfa: (data: { challengeId: string; code: string }) =>
-      post<Exclude<AdminLoginResponse, { mfaRequired: true }>>("/admin/auth/mfa/verify", data),
     currentUser: () => get<UserResponse>("/admin/auth/me"),
     refresh: () => post<{ message: string; accessToken: string; tokenType: "Bearer" }>("/admin/auth/refresh"),
     logout: () => post<void>("/admin/auth/logout"),

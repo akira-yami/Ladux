@@ -10,7 +10,7 @@ port/adapter hoặc các lớp use case trung gian.
 ```text
 backend/src/main/java/org/akira/ladux/
 ├── LaduxApplication.java
-├── identity/       # tài khoản, xác thực, MFA, OTP, OAuth2, bảo mật
+├── identity/       # tài khoản, xác thực, OTP email, OAuth2, bảo mật
 ├── customer/       # hồ sơ, địa chỉ, hạng và điểm khách hàng
 ├── catalog/        # sản phẩm, biến thể, thương hiệu, danh mục, đánh giá, yêu thích
 ├── ordering/       # giỏ hàng, đơn hàng, lịch sử, vòng đời đơn
@@ -104,7 +104,7 @@ Spring Cache có thể lưu tên đầy đủ của DTO trong dữ liệu serial
 `application.properties`. Lần chạy đầu sẽ tạo lại cache qua truy vấn DB. Tên cache,
 key nghiệp vụ và thời gian sống hiện có được giữ nguyên.
 
-Namespace này chỉ áp dụng Spring Cache. Refresh token, OTP, MFA challenge và
+Namespace này chỉ áp dụng Spring Cache. Refresh token, OTP email và
 rate-limit bucket không bị xóa hoặc đổi key. Không cần chạy `FLUSHDB`/`FLUSHALL`.
 Không chạy lẫn phiên bản cũ và mới: cache eviction của hai namespace độc lập;
 khi triển khai hoặc rollback, thay toàn bộ instance và làm mới riêng cache của

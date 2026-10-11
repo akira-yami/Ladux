@@ -13,10 +13,6 @@ public class LoginRateLimitServiceImpl implements LoginRateLimitService {
     private final long loginAccountRefillMinutes;
     private final int loginIpAccountCapacity;
     private final long loginIpAccountRefillMinutes;
-    private final int mfaAccountCapacity;
-    private final long mfaAccountRefillMinutes;
-    private final int mfaChallengeCapacity;
-    private final long mfaChallengeRefillMinutes;
 
     public LoginRateLimitServiceImpl(
             DistributedRateLimitService rateLimitService,
@@ -27,25 +23,13 @@ public class LoginRateLimitServiceImpl implements LoginRateLimitService {
             @org.springframework.beans.factory.annotation.Value("${app.rate-limit.login.ip-account-capacity:3}")
             int loginIpAccountCapacity,
             @org.springframework.beans.factory.annotation.Value("${app.rate-limit.login.ip-account-refill-minutes:10}")
-            long loginIpAccountRefillMinutes,
-            @org.springframework.beans.factory.annotation.Value("${app.rate-limit.mfa.account-capacity:5}")
-            int mfaAccountCapacity,
-            @org.springframework.beans.factory.annotation.Value("${app.rate-limit.mfa.account-refill-minutes:10}")
-            long mfaAccountRefillMinutes,
-            @org.springframework.beans.factory.annotation.Value("${app.rate-limit.mfa.challenge-capacity:5}")
-            int mfaChallengeCapacity,
-            @org.springframework.beans.factory.annotation.Value("${app.rate-limit.mfa.challenge-refill-minutes:10}")
-            long mfaChallengeRefillMinutes
+            long loginIpAccountRefillMinutes
     ) {
         this.rateLimitService = rateLimitService;
         this.loginAccountCapacity = loginAccountCapacity;
         this.loginAccountRefillMinutes = loginAccountRefillMinutes;
         this.loginIpAccountCapacity = loginIpAccountCapacity;
         this.loginIpAccountRefillMinutes = loginIpAccountRefillMinutes;
-        this.mfaAccountCapacity = mfaAccountCapacity;
-        this.mfaAccountRefillMinutes = mfaAccountRefillMinutes;
-        this.mfaChallengeCapacity = mfaChallengeCapacity;
-        this.mfaChallengeRefillMinutes = mfaChallengeRefillMinutes;
     }
 
     @Override
@@ -65,24 +49,6 @@ public class LoginRateLimitServiceImpl implements LoginRateLimitService {
                 loginIpAccountCapacity,
                 loginIpAccountRefillMinutes,
                 "Ban da thu dang nhap qua nhieu, hay thu lai sau"
-        );
-    }
-
-    @Override
-    public void checkMfaAccountAndChallenge(String username, String challengeId) {
-        rateLimitService.check(
-                "mfa-account",
-                normalizeUsername(username),
-                mfaAccountCapacity,
-                mfaAccountRefillMinutes,
-                "Ban da thu xac thuc MFA qua nhieu, hay thu lai sau"
-        );
-        rateLimitService.check(
-                "mfa-challenge",
-                challengeId,
-                mfaChallengeCapacity,
-                mfaChallengeRefillMinutes,
-                "MFA challenge bi gioi han toc do"
         );
     }
 

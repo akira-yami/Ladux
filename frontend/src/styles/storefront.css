@@ -79,6 +79,25 @@ html:has(.storefront-ui)::-webkit-scrollbar-track,
 html:has(.storefront-ui)::-webkit-scrollbar-corner { background: #f8fcff; }
 html:has(.storefront-ui)::-webkit-scrollbar-thumb { background: #bae6fd; box-shadow: none; }
 
+.storefront-ui .store-landing {
+  position: relative;
+  isolation: isolate;
+}
+.storefront-ui .store-landing::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: max(40rem, 56.28vw);
+  background: url('../assets/ladux-side-clouds-v1.png') center top / 100% 100% no-repeat;
+  opacity: 0.72;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+  pointer-events: none;
+}
+@media (max-width: 639px) {
+  .storefront-ui .store-landing::before { opacity: 0.48; }
+}
+
 .storefront-ui .store-hero {
   position: relative;
   display: grid;

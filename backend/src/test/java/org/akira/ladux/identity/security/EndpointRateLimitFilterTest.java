@@ -50,25 +50,24 @@ class EndpointRateLimitFilterTest {
     }
 
     @Test
-    void adminMfaVerificationIsLimitedOnlyByIpInTheFilter() throws Exception {
+    void emailOtpIsLimitedByClientIp() throws Exception {
         DistributedRateLimitService rateLimitService = mock(DistributedRateLimitService.class);
         EndpointRateLimitFilter filter = filter(rateLimitService);
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/admin/auth/mfa/verify");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/users/me/password/email/otp");
         request.setRemoteAddr("203.0.113.11");
         request.addHeader("X-Forwarded-For", "1.1.1.1"); // spoofed by client; must be ignored
 
         filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
 
         verify(rateLimitService).check(
-                "mfa-ip", "203.0.113.11", 5, 1,
-                "Bạn xác thực MFA quá nhiều, hãy thử lại sau"
+                "otp-send-ip", "203.0.113.11", 3, 1,
+                "Bạn đã yêu cầu gửi OTP quá nhiều, hãy thử lại sau"
         );
     }
 
     private EndpointRateLimitFilter filter(DistributedRateLimitService service) {
         return new EndpointRateLimitFilter(
                 service,
-                5, 1,
                 5, 1,
                 5, 1,
                 5, 1,

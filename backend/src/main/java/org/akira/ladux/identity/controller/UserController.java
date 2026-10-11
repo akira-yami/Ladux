@@ -3,17 +3,14 @@ package org.akira.ladux.identity.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.akira.ladux.identity.dto.request.EmailVerifyRequest;
-import org.akira.ladux.identity.dto.request.PhoneVerifyRequest;
 import org.akira.ladux.identity.dto.request.UserAdminUpdateRequest;
 import org.akira.ladux.identity.dto.request.UserUpdatePassword;
 import org.akira.ladux.identity.dto.response.EmailOtpSendResponse;
-import org.akira.ladux.identity.dto.response.OtpSendResponse;
 import org.akira.ladux.identity.dto.response.PasswordVerificationResponse;
 import org.akira.ladux.identity.dto.response.UserResponse;
 import org.akira.ladux.identity.security.SecurityUtils;
 import org.akira.ladux.identity.service.DistributedRateLimitService;
 import org.akira.ladux.identity.service.EmailVerificationService;
-import org.akira.ladux.identity.service.PhoneVerificationService;
 import org.akira.ladux.identity.service.UserService;
 import org.akira.ladux.shared.dto.PageResponse;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
 
     private final UserService service;
-    private final PhoneVerificationService phoneVerificationService;
     private final EmailVerificationService emailVerificationService;
     private final DistributedRateLimitService rateLimitService;
 
@@ -42,18 +38,6 @@ public class UserController {
     @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponse> uploadAvatar(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(service.uploadAvatar(SecurityUtils.getCurrentUserId(), file));
-    }
-
-    @PostMapping("/me/password/phone/otp")
-    public ResponseEntity<OtpSendResponse> sendPasswordChangePhoneOtp() {
-        rateLimitService.checkOtpUser("password-phone", SecurityUtils.getCurrentUserId());
-        return ResponseEntity.ok(phoneVerificationService.sendPasswordChangeOtp());
-    }
-
-    @PostMapping("/me/password/phone/verify")
-    public ResponseEntity<PasswordVerificationResponse> verifyPasswordChangePhoneOtp(
-            @Valid @RequestBody PhoneVerifyRequest request) {
-        return ResponseEntity.ok(phoneVerificationService.verifyPasswordChangeOtp(request));
     }
 
     @PutMapping("/me/password")

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,9 +18,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [mfaCode, setMfaCode] = useState("");
-  const { status, login, verifyMfa, isLoggingIn } = useAdminAuth();
+  const { status, login, isLoggingIn } = useAdminAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const form = useForm<LoginValues>({ resolver: zodResolver(loginSchema), defaultValues: { username: "", password: "" } });
@@ -31,30 +29,13 @@ export default function AdminLoginPage() {
   const onSubmit = form.handleSubmit(async (values) => {
     setServerError(null);
     try {
-      const result = await login(values);
-      if (result.mfaRequired) {
-        setChallengeId(result.challengeId);
-        return;
-      }
+      await login(values);
       const from = (location.state as { from?: string } | null)?.from;
       navigate(from?.startsWith("/admin") ? from : "/admin/dashboard", { replace: true });
     } catch (error) {
       setServerError(error instanceof Error ? error.message : "Đăng nhập thất bại");
     }
   });
-
-  const onVerifyMfa = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!challengeId) return;
-    setServerError(null);
-    try {
-      await verifyMfa(challengeId, mfaCode);
-      const from = (location.state as { from?: string } | null)?.from;
-      navigate(from?.startsWith("/admin") ? from : "/admin/dashboard", { replace: true });
-    } catch (error) {
-      setServerError(error instanceof Error ? error.message : "Xác thực MFA thất bại");
-    }
-  };
 
   return (
     <div className="grid min-h-screen bg-slate-950 lg:grid-cols-[1.08fr_0.92fr]">
@@ -75,9 +56,9 @@ export default function AdminLoginPage() {
           <div className="mb-10 flex items-center gap-3 lg:hidden"><img src={laduxLogo} alt="LADUX" className="h-11 w-11 rounded-xl" /><p className="text-xl font-black tracking-[0.14em] text-slate-950">LADUX</p></div>
           <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-indigo-600">Admin Portal</p>
           <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950">Chào mừng trở lại</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-500">{challengeId ? "Nhập mã 6 số từ ứng dụng xác thực của bạn." : "Đăng nhập bằng tài khoản có quyền ADMIN để tiếp tục."}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-500">Đăng nhập bằng tài khoản có quyền ADMIN để tiếp tục.</p>
 
-          {!challengeId ? <form onSubmit={onSubmit} className="mt-8 space-y-5" noValidate>
+          <form onSubmit={onSubmit} className="mt-8 space-y-5" noValidate>
             {serverError && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{serverError}</div>}
             <div>
               <label htmlFor="admin-username" className="mb-2 block text-sm font-bold text-slate-700">Tên đăng nhập</label>
@@ -90,15 +71,7 @@ export default function AdminLoginPage() {
               {form.formState.errors.password && <p className="mt-1.5 text-xs font-medium text-rose-600">{form.formState.errors.password.message}</p>}
             </div>
             <AdminButton type="submit" className="w-full" disabled={isLoggingIn}>{isLoggingIn ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}Đăng nhập quản trị<ArrowRight className="ml-auto h-4 w-4" /></AdminButton>
-          </form> : <form onSubmit={onVerifyMfa} className="mt-8 space-y-5" noValidate>
-            {serverError && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{serverError}</div>}
-            <div>
-              <label htmlFor="admin-mfa-code" className="mb-2 block text-sm font-bold text-slate-700">Mã xác thực</label>
-              <input id="admin-mfa-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" required value={mfaCode} onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, ""))} className={fieldClassName} placeholder="123456" />
-            </div>
-            <AdminButton type="submit" className="w-full" disabled={isLoggingIn || mfaCode.length !== 6}>{isLoggingIn ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}Xác thực MFA<ArrowRight className="ml-auto h-4 w-4" /></AdminButton>
-            <button type="button" className="w-full text-xs font-semibold text-slate-500 hover:text-slate-800" onClick={() => { setChallengeId(null); setMfaCode(""); setServerError(null); }}>Dùng tài khoản khác</button>
-          </form>}
+          </form>
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-4"><p className="text-xs font-bold text-slate-700">Bảo mật phiên</p><p className="mt-1 text-xs leading-5 text-slate-500">Ladux không lưu token trong trình duyệt. Phiên đăng nhập được bảo vệ bằng cookie HttpOnly.</p></div>
         </div>
       </section>

@@ -24,12 +24,12 @@ class LoginSuccessServiceImplTest {
         when(tokens.issueAuthenticationTokens(user)).thenReturn(
                 new AuthenticationTokenService.IssuedAuthenticationTokens("access", "refresh")
         );
-        when(history.recordSuccessfulLogin(eq(user), any(), eq("device-hash"), any(), eq(false)))
+        when(history.recordSuccessfulLogin(eq(user), any(), eq("device-hash"), any()))
                 .thenReturn(new LoginHistoryService.LoginHistoryResult(false, false));
 
-        new LoginSuccessServiceImpl(tokens, devices, history, alerts).complete(user, new MockHttpServletRequest(), false);
+        new LoginSuccessServiceImpl(tokens, devices, history, alerts).complete(user, new MockHttpServletRequest());
 
-        verify(history).recordSuccessfulLogin(eq(user), any(), eq("device-hash"), any(), eq(false));
+        verify(history).recordSuccessfulLogin(eq(user), any(), eq("device-hash"), any());
         verify(alerts, never()).sendNewLoginAlert(any(), any(), any(), any(Boolean.class), any(Boolean.class));
     }
 
@@ -45,11 +45,11 @@ class LoginSuccessServiceImplTest {
         when(tokens.issueAuthenticationTokens(user)).thenReturn(
                 new AuthenticationTokenService.IssuedAuthenticationTokens("access", "refresh")
         );
-        when(history.recordSuccessfulLogin(eq(user), any(), eq("new-device-hash"), any(), eq(true)))
+        when(history.recordSuccessfulLogin(eq(user), any(), eq("new-device-hash"), any()))
                 .thenReturn(new LoginHistoryService.LoginHistoryResult(true, true));
 
         LoginSuccessService.CompletedLogin result = new LoginSuccessServiceImpl(tokens, devices, history, alerts)
-                .complete(user, new MockHttpServletRequest(), true);
+                .complete(user, new MockHttpServletRequest());
 
         verify(alerts).sendNewLoginAlert(eq(user), any(), any(), eq(true), eq(true));
         verify(devices).createCookie("raw-device-token");

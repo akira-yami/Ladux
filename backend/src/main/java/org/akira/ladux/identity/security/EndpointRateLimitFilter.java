@@ -28,8 +28,6 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
     private final long loginRefillMinutes;
     private final int adminLoginCapacity;
     private final long adminLoginRefillMinutes;
-    private final int mfaIpCapacity;
-    private final long mfaIpRefillMinutes;
     private final int registerCapacity;
     private final long registerRefillMinutes;
     private final int otpIpCapacity;
@@ -49,8 +47,6 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
             @Value("${app.rate-limit.login.refill-minutes:1}") long loginRefillMinutes,
             @Value("${app.rate-limit.admin-login.capacity:5}") int adminLoginCapacity,
             @Value("${app.rate-limit.admin-login.refill-minutes:1}") long adminLoginRefillMinutes,
-            @Value("${app.rate-limit.mfa.ip-capacity:5}") int mfaIpCapacity,
-            @Value("${app.rate-limit.mfa.ip-refill-minutes:1}") long mfaIpRefillMinutes,
             @Value("${app.rate-limit.register.capacity:5}") int registerCapacity,
             @Value("${app.rate-limit.register.refill-minutes:1}") long registerRefillMinutes,
             @Value("${app.rate-limit.otp-send.ip-capacity:3}") int otpIpCapacity,
@@ -69,8 +65,6 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
         this.loginRefillMinutes = loginRefillMinutes;
         this.adminLoginCapacity = adminLoginCapacity;
         this.adminLoginRefillMinutes = adminLoginRefillMinutes;
-        this.mfaIpCapacity = mfaIpCapacity;
-        this.mfaIpRefillMinutes = mfaIpRefillMinutes;
         this.registerCapacity = registerCapacity;
         this.registerRefillMinutes = registerRefillMinutes;
         this.otpIpCapacity = otpIpCapacity;
@@ -107,10 +101,6 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
         } else if ("POST".equals(method) && "/api/v1/admin/auth/login".equals(path)) {
             rateLimitService.check("admin-login-ip", clientIp, adminLoginCapacity, adminLoginRefillMinutes,
                     "Bạn đăng nhập quản trị quá nhiều, hãy thử lại sau");
-        } else if ("POST".equals(method)
-                && isAny(path, "/api/v1/auth/mfa/verify", "/api/v1/admin/auth/mfa/verify")) {
-            rateLimitService.check("mfa-ip", clientIp, mfaIpCapacity, mfaIpRefillMinutes,
-                    "Bạn xác thực MFA quá nhiều, hãy thử lại sau");
         } else if ("POST".equals(method) && "/api/v1/auth/register".equals(path)) {
             rateLimitService.check("register-ip", clientIp, registerCapacity, registerRefillMinutes,
                     "Bạn đăng ký quá nhiều, hãy thử lại sau");
@@ -148,15 +138,6 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
     private String normalizedPath(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         return path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
-    }
-
-    private boolean isAny(String path, String... candidates) {
-        for (String candidate : candidates) {
-            if (candidate.equals(path)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void writeTooManyRequests(HttpServletResponse response, RateLimitExceededException exception) throws IOException {

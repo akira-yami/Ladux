@@ -22,13 +22,7 @@ export interface UserUpdatePasswordRequest {
   verificationId: string;
 }
 
-export interface PasswordPhoneOtpSendResponse {
-  verificationId: string;
-  maskedPhone: string;
-  expiresInSeconds: number;
-}
-
-export interface PasswordPhoneOtpVerifyRequest {
+export interface PasswordEmailOtpVerifyRequest {
   verificationId: string;
   otp: string;
 }
@@ -59,22 +53,12 @@ export const userService = {
    * Đổi mật khẩu của người dùng hiện tại.
    * PUT /api/v1/users/me/password
    */
-  sendPasswordPhoneOtp: (): Promise<PasswordPhoneOtpSendResponse> => {
-    return apiClient.post('/users/me/password/phone/otp');
-  },
-
-  verifyPasswordPhoneOtp: (
-    data: PasswordPhoneOtpVerifyRequest
-  ): Promise<PasswordVerificationResponse> => {
-    return apiClient.post('/users/me/password/phone/verify', data);
-  },
-
   sendPasswordEmailOtp: (): Promise<PasswordEmailOtpSendResponse> => {
     return apiClient.post('/users/me/password/email/otp');
   },
 
   verifyPasswordEmailOtp: (
-    data: PasswordPhoneOtpVerifyRequest
+    data: PasswordEmailOtpVerifyRequest
   ): Promise<PasswordVerificationResponse> => {
     return apiClient.post('/users/me/password/email/verify', data);
   },

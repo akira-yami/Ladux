@@ -35,11 +35,11 @@ Phạm vi: `backend/`. Kiến trúc: **monolith chia module nghiệp vụ, phân
 - Giữ URL, HTTP method/status, JSON, validation và phân quyền khi refactor.
 - Giữ transaction, propagation, lock order, cache eviction, lịch chạy và tên ShedLock.
 - Checkout, reserve/release stock, coupon và cập nhật order phải giữ rollback nguyên tử.
-- Không thay cơ chế JWT, refresh rotation, MFA, OTP, OAuth2 hoặc rate limit khi đổi package.
+- Không thay cơ chế JWT, refresh rotation, OTP email, OAuth2 hoặc rate limit khi đổi package.
 - Giữ kiểm tra signature/reference/amount và tính lũy đẳng của callback thanh toán.
 - Không sửa Flyway migration đã áp dụng; thay schema phải có migration mới.
 - Khi đổi package của DTO được cache, đổi namespace Spring Cache; không xóa session,
-  MFA challenge, rate-limit bucket hoặc toàn bộ Redis.
+  rate-limit bucket hoặc toàn bộ Redis.
 - Giữ thay đổi chưa commit của người dùng và tránh trộn tính năng mới vào refactor.
 
 ## Kiểm tra

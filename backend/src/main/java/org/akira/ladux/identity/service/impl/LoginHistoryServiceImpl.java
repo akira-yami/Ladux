@@ -23,8 +23,7 @@ public class LoginHistoryServiceImpl implements LoginHistoryService {
             User user,
             String ipAddress,
             String deviceIdHash,
-            String userAgent,
-            boolean mfaUsed
+            String userAgent
     ) {
         boolean newIp = !loginHistoryRepository.existsByUserIdAndIpAddress(user.getId(), ipAddress);
         boolean newDevice = !loginHistoryRepository.existsByUserIdAndDeviceIdHash(user.getId(), deviceIdHash);
@@ -33,7 +32,6 @@ public class LoginHistoryServiceImpl implements LoginHistoryService {
                 .ipAddress(trim(ipAddress, 64))
                 .deviceIdHash(deviceIdHash)
                 .userAgent(trim(userAgent, 500))
-                .mfaUsed(mfaUsed)
                 .newIp(newIp)
                 .newDevice(newDevice)
                 .build());

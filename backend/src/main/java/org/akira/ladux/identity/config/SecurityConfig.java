@@ -110,7 +110,6 @@ public class SecurityConfig {
                         .requestMatchers("/error", "/api/v1/auth/**").permitAll()
                         .requestMatchers(
                                 "/api/v1/admin/auth/login", "/api/v1/admin/auth/login/",
-                                "/api/v1/admin/auth/mfa/verify", "/api/v1/admin/auth/mfa/verify/",
                                 "/api/v1/admin/auth/refresh", "/api/v1/admin/auth/refresh/",
                                 "/api/v1/admin/auth/logout", "/api/v1/admin/auth/logout/"
                         ).permitAll()

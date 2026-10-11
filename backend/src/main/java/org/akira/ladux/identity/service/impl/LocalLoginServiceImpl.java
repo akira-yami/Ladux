@@ -10,8 +10,6 @@ import org.akira.ladux.identity.repository.UserRepository;
 import org.akira.ladux.identity.service.CaptchaService;
 import org.akira.ladux.identity.service.LocalLoginService;
 import org.akira.ladux.identity.service.LoginRateLimitService;
-import org.akira.ladux.identity.service.MfaChallengeService;
-import org.akira.ladux.identity.service.MfaService;
 import org.akira.ladux.identity.service.SecurityEventService;
 import org.akira.ladux.shared.util.ClientIpUtils;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,12 +28,10 @@ public class LocalLoginServiceImpl implements LocalLoginService {
     private final LoginRateLimitService loginRateLimitService;
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
-    private final MfaService mfaService;
-    private final MfaChallengeService mfaChallengeService;
     private final SecurityEventService securityEventService;
 
     @Override
-    public PasswordLoginResult verifyPassword(LoginRequest request, boolean adminLogin, HttpServletRequest servletRequest) {
+    public User verifyPassword(LoginRequest request, boolean adminLogin, HttpServletRequest servletRequest) {
         String username = request.username().trim();
         String ipAddress = ClientIpUtils.getClientIp(servletRequest);
         String userAgent = servletRequest == null ? null : servletRequest.getHeader("User-Agent");
@@ -57,12 +53,6 @@ public class LocalLoginServiceImpl implements LocalLoginService {
         if (adminLogin && user.getRoles().stream().noneMatch(role -> role.getName() == RoleName.ADMIN)) {
             throw new AccessDeniedException("Tai khoan khong co quyen quan tri");
         }
-        if (!mfaService.requiresMfa(user)) {
-            return new PasswordLoginResult(user, null);
-        }
-
-        MfaChallengeService.MfaChallenge challenge = mfaChallengeService.create(user.getId(), adminLogin);
-        securityEventService.record(user, SecurityEventType.MFA_REQUIRED, ipAddress, userAgent, true);
-        return new PasswordLoginResult(user, challenge.id());
+        return user;
     }
 }

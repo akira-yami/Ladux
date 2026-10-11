@@ -3,20 +3,17 @@ package org.akira.ladux.customer.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.akira.ladux.customer.dto.request.AdminCustomerUpdateRequest;
+import org.akira.ladux.customer.dto.request.PhoneUpdateRequest;
 import org.akira.ladux.customer.dto.response.CustomerResponse;
 import org.akira.ladux.customer.enums.CustomerLevel;
 import org.akira.ladux.customer.service.CustomerService;
 import org.akira.ladux.identity.dto.request.EmailRegisterRequest;
 import org.akira.ladux.identity.dto.request.EmailVerifyRequest;
-import org.akira.ladux.identity.dto.request.PhoneRegisterRequest;
-import org.akira.ladux.identity.dto.request.PhoneVerifyRequest;
 import org.akira.ladux.identity.dto.request.UpdateInformationPersonal;
 import org.akira.ladux.identity.dto.response.EmailOtpSendResponse;
-import org.akira.ladux.identity.dto.response.OtpSendResponse;
 import org.akira.ladux.identity.dto.response.UserResponse;
 import org.akira.ladux.identity.service.DistributedRateLimitService;
 import org.akira.ladux.identity.service.EmailVerificationService;
-import org.akira.ladux.identity.service.PhoneVerificationService;
 import org.akira.ladux.shared.dto.PageResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -28,20 +25,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CustomerController {
 
-    private final PhoneVerificationService phoneVerificationService;
     private final CustomerService customerService;
     private final EmailVerificationService emailVerificationService;
     private final DistributedRateLimitService rateLimitService;
 
-    @PostMapping("/phone/otp")
-    public ResponseEntity<OtpSendResponse> sendPhoneOtp(@Valid @RequestBody PhoneRegisterRequest request) {
-        rateLimitService.checkOtpDestination("phone", request.phone());
-        return ResponseEntity.ok(phoneVerificationService.sendPhoneOtp(request));
-    }
-
-    @PostMapping("/phone/verify")
-    public ResponseEntity<CustomerResponse> verifyPhoneOtp(@Valid @RequestBody PhoneVerifyRequest request) {
-        return ResponseEntity.ok(phoneVerificationService.verifyPhoneOtp(request));
+    @PutMapping("/phone")
+    public ResponseEntity<UserResponse> updatePhone(@Valid @RequestBody PhoneUpdateRequest request) {
+        return ResponseEntity.ok(customerService.updatePhone(request));
     }
 
     @PutMapping("/information-personal")

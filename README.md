@@ -226,7 +226,7 @@ Ladux/
 
 - **Core Capabilities**: Hoàn thiện toàn bộ luồng Auth, Catalog, Cart, Atomic Checkout, VNPay Webhook, Order State Machine, Sổ cái kho và Distributed Rate Limiting.
 - **Testing**: Đã triển khai Unit Test và Integration Test với Testcontainers (PostgreSQL).
-- **Active Improvements**: Đang hoàn thiện các hạng mục trong [`08-ke_hoach_production.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/08-ke_hoach_production.md) (tích hợp SMS provider chính thức thay thế stub OTP, cấu hình CDN và hoàn thiện monitoring với Prometheus/Grafana).
+- **Active Improvements**: Đang hoàn thiện các hạng mục trong [`08-ke_hoach_production.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/08-ke_hoach_production.md) (cấu hình CDN và hoàn thiện monitoring với Prometheus/Grafana).
 
 ---
 

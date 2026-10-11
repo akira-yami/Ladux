@@ -47,9 +47,6 @@ public class LoginHistory {
     @Column(name = "login_at", nullable = false, updatable = false)
     private Instant loginAt;
 
-    @Column(name = "mfa_used", nullable = false)
-    private boolean mfaUsed;
-
     @Column(name = "new_ip", nullable = false)
     private boolean newIp;
 

@@ -23,13 +23,13 @@ public class LoginSuccessServiceImpl implements LoginSuccessService {
 
     @Override
     @Transactional
-    public CompletedLogin complete(User user, HttpServletRequest request, boolean mfaUsed) {
+    public CompletedLogin complete(User user, HttpServletRequest request) {
         DeviceTokenService.DeviceIdentity device = deviceTokenService.resolve(request);
         String ipAddress = ClientIpUtils.getClientIp(request);
         String userAgent = request == null ? null : request.getHeader("User-Agent");
         AuthenticationTokenService.IssuedAuthenticationTokens tokens = authenticationTokenService.issueAuthenticationTokens(user);
         LoginHistoryService.LoginHistoryResult history = loginHistoryService.recordSuccessfulLogin(
-                user, ipAddress, device.hash(), userAgent, mfaUsed
+                user, ipAddress, device.hash(), userAgent
         );
         if (history.newIp() || history.newDevice()) {
             loginAlertService.sendNewLoginAlert(user, ipAddress, userAgent, history.newIp(), history.newDevice());

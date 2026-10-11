@@ -47,7 +47,7 @@ export default function ProductStoreView({ filteredProducts, toggleWishlist, set
     );
 
     return (
-        <main>
+        <main className="store-landing">
             <ProductHero onShopNowClick={() => document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' })} onAiConsultClick={() => showToast('Bạn có thể mở trợ lý ở góc màn hình để được tư vấn laptop nhé!')} />
             <div className="container mx-auto space-y-12 px-5 py-10 sm:px-8 sm:py-12">
                 <section>

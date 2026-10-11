@@ -1,8 +1,11 @@
 package org.akira.ladux.identity.service;
 
 import java.util.Optional;
+import java.util.Set;
 import org.akira.ladux.identity.dto.request.LoginRequest;
 import org.akira.ladux.identity.entity.User;
+import org.akira.ladux.identity.entity.Role;
+import org.akira.ladux.identity.enums.RoleName;
 import org.akira.ladux.identity.enums.SecurityEventType;
 import org.akira.ladux.identity.repository.UserRepository;
 import org.akira.ladux.identity.service.impl.LocalLoginServiceImpl;
@@ -12,6 +15,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -39,7 +43,7 @@ class LocalLoginServiceImplTest {
     }
 
     @Test
-    void badPasswordRecordsFailureAndDoesNotCreateMfaChallenge() {
+    void badPasswordRecordsFailure() {
         CaptchaService captcha = mock(CaptchaService.class);
         AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -48,11 +52,10 @@ class LocalLoginServiceImplTest {
         when(userRepository.findByUsername("customer")).thenReturn(Optional.of(user));
         doThrow(new BadCredentialsException("bad credentials"))
                 .when(authenticationManager).authenticate(any());
-        MfaChallengeService challenges = mock(MfaChallengeService.class);
 
         LocalLoginService service = new LocalLoginServiceImpl(
                 captcha, mock(LoginRateLimitService.class), authenticationManager, userRepository,
-                mock(MfaService.class), challenges, events
+                events
         );
 
         assertThrows(BadCredentialsException.class, () -> service.verifyPassword(
@@ -60,7 +63,40 @@ class LocalLoginServiceImplTest {
         ));
 
         verify(events).record(eq(user), eq(SecurityEventType.LOGIN_FAILED), any(), any(), eq(false));
-        verifyNoInteractions(challenges);
+    }
+
+    @Test
+    void adminPasswordLoginReturnsUserAfterCaptchaAndRateLimitChecks() {
+        CaptchaService captcha = mock(CaptchaService.class);
+        LoginRateLimitService limits = mock(LoginRateLimitService.class);
+        AuthenticationManager authentication = mock(AuthenticationManager.class);
+        UserRepository repository = mock(UserRepository.class);
+        User admin = User.builder().id(7).username("admin")
+                .roles(Set.of(Role.builder().name(RoleName.ADMIN).build())).build();
+        when(repository.findByUsername("admin")).thenReturn(Optional.of(admin));
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("203.0.113.10");
+        LocalLoginService service = new LocalLoginServiceImpl(
+                captcha, limits, authentication, repository, mock(SecurityEventService.class));
+
+        assertSame(admin, service.verifyPassword(new LoginRequest(" admin ", "password", "captcha"), true, request));
+        org.mockito.InOrder gates = org.mockito.Mockito.inOrder(captcha, limits, authentication);
+        gates.verify(captcha).verify("captcha", "203.0.113.10");
+        gates.verify(limits).checkLoginAccountAndIp(true, "203.0.113.10", "admin");
+        gates.verify(authentication).authenticate(any());
+    }
+
+    @Test
+    void adminPasswordLoginRejectsCustomerRole() {
+        UserRepository repository = mock(UserRepository.class);
+        User customer = User.builder().id(8).username("customer")
+                .roles(Set.of(Role.builder().name(RoleName.CUSTOMER).build())).build();
+        when(repository.findByUsername("customer")).thenReturn(Optional.of(customer));
+        LocalLoginService service = service(mock(CaptchaService.class), mock(AuthenticationManager.class),
+                repository, mock(SecurityEventService.class));
+
+        assertThrows(AccessDeniedException.class, () -> service.verifyPassword(
+                new LoginRequest("customer", "password", "captcha"), true, new MockHttpServletRequest()));
     }
 
     private LocalLoginService service(
@@ -71,7 +107,7 @@ class LocalLoginServiceImplTest {
     ) {
         return new LocalLoginServiceImpl(
                 captcha, mock(LoginRateLimitService.class), authenticationManager, userRepository,
-                mock(MfaService.class), mock(MfaChallengeService.class), events
+                events
         );
     }
 }

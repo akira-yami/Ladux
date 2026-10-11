@@ -6,11 +6,6 @@ import org.akira.ladux.identity.entity.User;
 
 public interface LocalLoginService {
 
-    PasswordLoginResult verifyPassword(LoginRequest request, boolean adminLogin, HttpServletRequest servletRequest);
+    User verifyPassword(LoginRequest request, boolean adminLogin, HttpServletRequest servletRequest);
 
-    record PasswordLoginResult(User user, String challengeId) {
-        public boolean mfaRequired() {
-            return challengeId != null;
-        }
-    }
 }

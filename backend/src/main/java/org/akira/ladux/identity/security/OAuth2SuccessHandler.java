@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.akira.ladux.identity.entity.RefreshToken;
 import org.akira.ladux.identity.entity.User;
 import org.akira.ladux.identity.service.GoogleOAuth2UserService;
-import org.akira.ladux.identity.service.MfaService;
 import org.akira.ladux.identity.service.RefreshTokenCookieService;
 import org.akira.ladux.identity.service.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +24,6 @@ public class OAuth2SuccessHandler
     private final RefreshTokenCookieService refreshTokenCookieService;
     private final RefreshTokenService refreshTokenService;
     private final GoogleOAuth2UserService googleOAuth2UserService;
-    private final MfaService mfaService;
     private final OAuth2FailureHandler oAuth2FailureHandler;
 
     @Value("${app.oauth2.success-redirect}")
@@ -35,13 +33,11 @@ public class OAuth2SuccessHandler
             RefreshTokenCookieService refreshTokenCookieService,
             RefreshTokenService refreshTokenService,
             GoogleOAuth2UserService googleOAuth2UserService,
-            MfaService mfaService,
             OAuth2FailureHandler oAuth2FailureHandler
     ) {
         this.refreshTokenCookieService = refreshTokenCookieService;
         this.refreshTokenService = refreshTokenService;
         this.googleOAuth2UserService = googleOAuth2UserService;
-        this.mfaService = mfaService;
         this.oAuth2FailureHandler = oAuth2FailureHandler;
     }
 
@@ -72,12 +68,6 @@ public class OAuth2SuccessHandler
                     fullName,
                     picture
             );
-            // The OAuth callback has no MFA challenge handoff. Fail closed for privileged accounts
-            // instead of granting a refresh token that could bypass the required TOTP gate.
-            if (mfaService.requiresMfa(user)) {
-                throw new IllegalStateException("Privileged accounts must use the MFA login flow");
-            }
-
             RefreshToken refreshToken = refreshTokenService.create(user);
 
             response.addHeader(

@@ -2,6 +2,7 @@ package org.akira.ladux.customer.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.akira.ladux.customer.dto.request.AdminCustomerUpdateRequest;
+import org.akira.ladux.customer.dto.request.PhoneUpdateRequest;
 import org.akira.ladux.customer.dto.response.CustomerResponse;
 import org.akira.ladux.customer.entity.Customer;
 import org.akira.ladux.customer.enums.CustomerLevel;
@@ -102,6 +103,24 @@ public class CustomerServiceImpl implements CustomerService {
         Integer userId = SecurityUtils.getCurrentUserId();
         Customer customer = findOrThrow(userId);
         customer.setFullName(request.fullName().trim());
+        return UserMapper.fromEntity(customer.getUser());
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "users", allEntries = true)
+    public UserResponse updatePhone(PhoneUpdateRequest request) {
+        Customer customer = findOrThrow(SecurityUtils.getCurrentUserId());
+        String phone;
+        try {
+            phone = phoneNumberUtils.normalize(request.phone());
+        } catch (IllegalArgumentException exception) {
+            throw new BusinessRuleException(exception.getMessage());
+        }
+        if (repo.existsByPhoneAndIdNot(phone, customer.getId())) {
+            throw new BusinessRuleException("Số điện thoại đã được tài khoản khác sử dụng");
+        }
+        customer.setPhone(phone);
         return UserMapper.fromEntity(customer.getUser());
     }
 

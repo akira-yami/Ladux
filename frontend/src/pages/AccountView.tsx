@@ -135,9 +135,6 @@ export default function AccountView({
     const [profileSaving, setProfileSaving] = useState(false);
     const [nameInput, setNameInput] = useState("");
     const [phoneInput, setPhoneInput] = useState("");
-    const [phoneOtpInput, setPhoneOtpInput] = useState("");
-    const [phoneVerificationId, setPhoneVerificationId] = useState<string | null>(null);
-    const [phoneMasked, setPhoneMasked] = useState("");
     const [emailStep, setEmailStep] = useState<"INPUT" | "OTP">("INPUT");
     const [newEmail, setNewEmail] = useState("");
     const [emailOtp, setEmailOtp] = useState("");
@@ -146,8 +143,6 @@ export default function AccountView({
     const [sendingEmailOtp, setSendingEmailOtp] = useState(false);
     const [verifyingEmailOtp, setVerifyingEmailOtp] = useState(false);
     const [pwdStep, setPwdStep] = useState<1 | 2>(1);
-    const [authMethod, setAuthMethod] = useState<"phone" | "email">("phone");
-    const [verifyTarget, setVerifyTarget] = useState("");
     const [otpSent, setOtpSent] = useState(false);
     const [otpVerified, setOtpVerified] = useState(false);
     const [otpInput, setOtpInput] = useState("");
@@ -233,33 +228,23 @@ export default function AccountView({
     };
 
     const handleSendPasswordOtp = async () => {
-        if (authMethod === "phone" && !authStore.user?.phone) {
-            showToast("Tài khoản chưa có số điện thoại. Vui lòng thêm số điện thoại trước!");
-            return;
-        }
-        if (authMethod === "email" && !authStore.user?.email) {
+        if (!authStore.user?.email) {
             showToast("Tài khoản chưa có email. Vui lòng thêm và xác minh email trước!");
             return;
         }
 
         setOtpSending(true);
         try {
-            const response = authMethod === "phone"
-                ? await userService.sendPasswordPhoneOtp()
-                : await userService.sendPasswordEmailOtp();
+            const response = await userService.sendPasswordEmailOtp();
 
             setPasswordVerificationId(response.verificationId);
             setPasswordMaskedTarget(
-                "maskedPhone" in response ? response.maskedPhone : response.maskedEmail,
+                response.maskedEmail,
             );
             setOtpSent(true);
             setOtpVerified(false);
             setOtpInput("");
-            showToast(
-                authMethod === "phone"
-                    ? "Mã xác thực số điện thoại đã được gửi"
-                    : "Mã xác thực đã được gửi vào email",
-            );
+            showToast("Mã xác thực đã được gửi vào email");
         } catch (error: any) {
             showToast(getErrorMessage(error, "Không thể gửi mã xác thực"));
         } finally {
@@ -284,11 +269,7 @@ export default function AccountView({
 
         setOtpVerifying(true);
         try {
-            if (authMethod === "phone") {
-                await userService.verifyPasswordPhoneOtp(request);
-            } else {
-                await userService.verifyPasswordEmailOtp(request);
-            }
+            await userService.verifyPasswordEmailOtp(request);
             setOtpVerified(true);
             setPwdStep(2);
             showToast("Xác minh thành công. Bạn có thể đổi mật khẩu");
@@ -950,9 +931,6 @@ export default function AccountView({
                                     <button
                                         onClick={() => {
                                             setPhoneInput(authStore.user?.phone || "");
-                                            setPhoneOtpInput("");
-                                            setPhoneVerificationId(null);
-                                            setPhoneMasked("");
                                             setActiveProfileModal("phone");
                                         }}
                                         className="shrink-0 rounded-full border border-sky-700/40 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-700 hover:bg-sky-50 transition cursor-pointer"
@@ -1006,9 +984,6 @@ export default function AccountView({
                                 <button
                                     onClick={() => {
                                         setPwdStep(1);
-                                        const initialMethod = authStore.user?.phone ? "phone" : authStore.user?.email ? "email" : "phone";
-                                        setAuthMethod(initialMethod);
-                                        setVerifyTarget(initialMethod === "phone" ? (authStore.user?.phone || "") : (authStore.user?.email || ""));
                                         setOtpSent(false);
                                         setOtpVerified(false);
                                         setOtpInput("");
@@ -1216,34 +1191,13 @@ export default function AccountView({
                                 e.preventDefault();
                                 setProfileSaving(true);
                                 try {
-                                    if (!phoneVerificationId) {
-                                        if (!phoneInput.trim()) {
-                                            showToast("Vui lòng nhập số điện thoại!");
-                                            return;
-                                        }
-                                        const response = await customerService.sendPhoneOtp({
-                                            phone: phoneInput.replace(/\s/g, ""),
-                                        });
-                                        setPhoneVerificationId(response.verificationId);
-                                        setPhoneMasked(response.maskedPhone);
-                                        showToast("Đã tạo OTP. Dùng mã 123456 để xác minh.");
+                                    if (!phoneInput.trim()) {
+                                        showToast("Vui lòng nhập số điện thoại!");
                                         return;
                                     }
-
-                                    if (!/^\d{6}$/.test(phoneOtpInput)) {
-                                        showToast("OTP phải gồm đúng 6 chữ số!");
-                                        return;
-                                    }
-
-                                    await customerService.verifyPhoneOtp({
-                                        verificationId: phoneVerificationId,
-                                        otp: phoneOtpInput,
-                                    });
+                                    await customerService.updatePhone(phoneInput.replace(/\s/g, ""));
                                     await authStore.fetchCurrentUser();
-                                    showToast("Xác minh và cập nhật số điện thoại thành công!");
-                                    setPhoneVerificationId(null);
-                                    setPhoneOtpInput("");
-                                    setPhoneMasked("");
+                                    showToast("Cập nhật số điện thoại thành công!");
                                     setActiveProfileModal(null);
                                 } catch (err: any) {
                                     showToast(err?.response?.data?.message || err?.message || "Cập nhật thất bại!");
@@ -1262,31 +1216,10 @@ export default function AccountView({
                                     required
                                     value={phoneInput}
                                     onChange={(e) => setPhoneInput(e.target.value)}
-                                    disabled={phoneVerificationId !== null}
                                     placeholder="0988 123 456"
                                     className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 focus:border-sky-700 focus:outline-none transition font-sans disabled:opacity-60"
                                 />
                             </div>
-                            {phoneVerificationId && (
-                                <div>
-                                    <label className="block text-[11px] font-sans font-bold normal-case tracking-normal text-slate-500 mb-2">
-                                        MÃ OTP <span className="text-red-500">*</span>
-                                    </label>
-                                    <p className="mb-2 text-xs text-slate-500">
-                                        Mã có hiệu lực cho {phoneMasked || "số điện thoại đã nhập"}.
-                                    </p>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        maxLength={6}
-                                        required
-                                        value={phoneOtpInput}
-                                        onChange={(e) => setPhoneOtpInput(e.target.value.replace(/\D/g, ""))}
-                                        placeholder="123456"
-                                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 focus:border-sky-700 focus:outline-none transition font-sans tracking-normal"
-                                    />
-                                </div>
-                            )}
                             <div className="flex items-center gap-3 pt-4 border-t border-slate-200">
                                 <button
                                     type="button"
@@ -1305,7 +1238,7 @@ export default function AccountView({
                                     ) : (
                                         <>
                                             <Check className="h-4 w-4 stroke-[3]" />
-                                            <span>{phoneVerificationId ? "XÁC MINH OTP" : "GỬI OTP"}</span>
+                                            <span>LƯU SỐ ĐIỆN THOẠI</span>
                                         </>
                                     )}
                                 </button>
@@ -1463,46 +1396,18 @@ export default function AccountView({
                                 }}
                                 className="p-6 space-y-5"
                             >
-                                {/* Field 1: Phương thức xác thực */}
-                                <div>
-                                    <label className="block text-[11px] font-sans font-bold normal-case tracking-normal text-slate-500 mb-2">
-                                        PHƯƠNG THỨC XÁC THỰC <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        value={authMethod}
-                                        onChange={(e) => {
-                                            const method = e.target.value as "phone" | "email";
-                                            setAuthMethod(method);
-                                            setVerifyTarget(method === "phone" ? (authStore.user?.phone || "") : (authStore.user?.email || ""));
-                                            setOtpSent(false);
-                                            setOtpVerified(false);
-                                            setOtpInput("");
-                                            setPasswordVerificationId(null);
-                                            setPasswordMaskedTarget("");
-                                        }}
-                                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-800 focus:border-sky-700 focus:outline-none transition appearance-none font-medium cursor-pointer"
-                                    >
-                                        <option value="phone" className="bg-white">
-                                            Xác thực qua Số điện thoại (OTP SMS)
-                                        </option>
-                                        <option value="email" className="bg-white">
-                                            Xác thực qua Địa chỉ Email (Mã Email)
-                                        </option>
-                                    </select>
-                                </div>
-
                                 {/* Field 2: Target Input */}
                                 <div>
                                     <label className="block text-[11px] font-sans font-bold normal-case tracking-normal text-slate-500 mb-2">
-                                        {authMethod === "phone" ? "SỐ ĐIỆN THOẠI CỦA TÀI KHOẢN *" : "ĐỊA CHỈ EMAIL CỦA TÀI KHOẢN *"}
+                                        ĐỊA CHỈ EMAIL CỦA TÀI KHOẢN *
                                     </label>
                                     <div className="flex items-center gap-2.5">
                                         <input
-                                            type={authMethod === "phone" ? "tel" : "email"}
+                                            type="text"
                                             required
-                                            value={passwordMaskedTarget || verifyTarget}
+                                            value={passwordMaskedTarget || authStore.user?.email || ""}
                                             readOnly
-                                            placeholder={authMethod === "phone" ? "0988 123 456" : "you@example.com"}
+                                            placeholder="you@example.com"
                                             className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-800 font-sans placeholder:text-slate-400 focus:border-sky-700 focus:outline-none transition"
                                         />
                                         <button
@@ -1511,7 +1416,7 @@ export default function AccountView({
                                             disabled={otpSending}
                                             className="shrink-0 rounded-2xl border border-sky-700/40 bg-sky-50 px-4 py-3.5 text-xs font-bold text-sky-700 hover:bg-sky-50 transition cursor-pointer disabled:opacity-50"
                                         >
-                                            {otpSent ? "Gửi lại mã" : authMethod === "phone" ? "Gửi OTP SMS" : "Gửi mã Email"}
+                                            {otpSent ? "Gửi lại mã" : "Gửi mã Email"}
                                         </button>
                                     </div>
                                 </div>
@@ -1523,11 +1428,6 @@ export default function AccountView({
                                             <span className="font-bold normal-case tracking-normal text-sky-700">
                                                 NHẬP MÃ XÁC THỰC (OTP / CODE) <span className="text-red-600">*</span>
                                             </span>
-                                            {authMethod === "phone" && (
-                                                <span className="text-sky-700 font-bold">
-                                                    Mã dùng thử: <span className="underline">123456</span>
-                                                </span>
-                                            )}
                                         </div>
                                         <input
                                             type="text"

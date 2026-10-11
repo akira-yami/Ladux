@@ -8,7 +8,6 @@ import org.akira.ladux.identity.entity.Role;
 import org.akira.ladux.identity.entity.User;
 import org.akira.ladux.identity.enums.RoleName;
 import org.akira.ladux.identity.service.GoogleOAuth2UserService;
-import org.akira.ladux.identity.service.MfaService;
 import org.akira.ladux.identity.service.RefreshTokenCookieService;
 import org.akira.ladux.identity.service.RefreshTokenService;
 import org.akira.ladux.shared.exception.BusinessRuleException;
@@ -36,7 +35,6 @@ class OAuth2SuccessHandlerTest {
     private RefreshTokenCookieService refreshTokenCookieService;
     private RefreshTokenService refreshTokenService;
     private GoogleOAuth2UserService googleOAuth2UserService;
-    private MfaService mfaService;
     private OAuth2SuccessHandler successHandler;
 
     @BeforeEach
@@ -44,7 +42,6 @@ class OAuth2SuccessHandlerTest {
         refreshTokenCookieService = mock(RefreshTokenCookieService.class);
         refreshTokenService = mock(RefreshTokenService.class);
         googleOAuth2UserService = mock(GoogleOAuth2UserService.class);
-        mfaService = mock(MfaService.class);
 
         OAuth2FailureHandler failureHandler = new OAuth2FailureHandler();
         ReflectionTestUtils.setField(
@@ -57,7 +54,6 @@ class OAuth2SuccessHandlerTest {
                 refreshTokenCookieService,
                 refreshTokenService,
                 googleOAuth2UserService,
-                mfaService,
                 failureHandler
         );
         ReflectionTestUtils.setField(
@@ -86,7 +82,6 @@ class OAuth2SuccessHandlerTest {
                 "Alice",
                 "https://example.com/alice.png"
         )).thenReturn(user);
-        when(mfaService.requiresMfa(user)).thenReturn(false);
         when(refreshTokenService.create(user)).thenReturn(refreshToken);
         when(refreshTokenCookieService.createRefreshCookie("refresh-token"))
                 .thenReturn(ResponseCookie.from("REFRESH_TOKEN", "refresh-token")
@@ -123,7 +118,7 @@ class OAuth2SuccessHandlerTest {
     }
 
     @Test
-    void onAuthenticationSuccess_neverCreatesPrivilegedOAuthSessionWithoutMfa() throws Exception {
+    void onAuthenticationSuccess_createsSessionForLinkedAdmin() throws Exception {
         User admin = User.builder()
                 .id(8)
                 .username("admin")
@@ -131,13 +126,18 @@ class OAuth2SuccessHandlerTest {
                 .roles(Set.of(Role.builder().name(RoleName.ADMIN).build()))
                 .build();
         when(googleOAuth2UserService.loginOrRegister(any(), any(), any(Boolean.class), any(), any())).thenReturn(admin);
-        when(mfaService.requiresMfa(admin)).thenReturn(true);
+
+        RefreshToken token = RefreshToken.builder().tokenHash("admin-refresh").user(admin).build();
+        when(refreshTokenService.create(admin)).thenReturn(token);
+        when(refreshTokenCookieService.createRefreshCookie("admin-refresh"))
+                .thenReturn(ResponseCookie.from("REFRESH_TOKEN", "admin-refresh").httpOnly(true).build());
 
         MockHttpServletResponse response = invokeHandler(oAuth2Authentication());
 
         assertEquals(302, response.getStatus());
-        assertTrue(response.getRedirectedUrl().contains("reason=google_login_failed"));
-        verify(refreshTokenService, never()).create(any(User.class));
+        assertEquals("http://localhost:5173/auth/oauth2/success", response.getRedirectedUrl());
+        assertTrue(response.getHeader(HttpHeaders.SET_COOKIE).startsWith("REFRESH_TOKEN=admin-refresh"));
+        verify(refreshTokenService).create(admin);
     }
 
     private MockHttpServletResponse invokeHandler(OAuth2User principal) throws Exception {

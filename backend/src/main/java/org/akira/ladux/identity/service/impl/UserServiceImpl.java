@@ -192,7 +192,7 @@ public class UserServiceImpl implements UserService {
         }
 
         /*
-         * Có thể là proof phone hoặc email.
+         * Proof xác thực email.
          */
         passwordVerificationService.consume(
                 id,

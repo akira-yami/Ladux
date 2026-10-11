@@ -1,6 +1,7 @@
 package org.akira.ladux.customer.service;
 
 import org.akira.ladux.customer.dto.request.AdminCustomerUpdateRequest;
+import org.akira.ladux.customer.dto.request.PhoneUpdateRequest;
 import org.akira.ladux.customer.dto.response.CustomerResponse;
 import org.akira.ladux.customer.enums.CustomerLevel;
 import org.akira.ladux.identity.dto.request.UpdateInformationPersonal;
@@ -19,6 +20,8 @@ public interface CustomerService {
     CustomerResponse updateCustomer(int userId, AdminCustomerUpdateRequest request);
 
     PageResponse<CustomerResponse> searchCustomers(String name, String phone, Pageable pageable);
+
+    UserResponse updatePhone(PhoneUpdateRequest request);
 
     UserResponse updateInformationPersonal(UpdateInformationPersonal request);
 

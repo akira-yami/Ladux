@@ -42,21 +42,6 @@ export interface PersonalInformationUpdateRequest {
   fullName: string;
 }
 
-export interface PhoneOtpSendRequest {
-  phone: string;
-}
-
-export interface PhoneOtpSendResponse {
-  verificationId: string;
-  maskedPhone: string;
-  expiresInSeconds: number;
-}
-
-export interface PhoneOtpVerifyRequest {
-  verificationId: string;
-  otp: string;
-}
-
 export const customerService = {
   updatePersonalInformation: (
     data: PersonalInformationUpdateRequest,
@@ -72,12 +57,8 @@ export const customerService = {
     return apiClient.post('/customers/me/email/verify', data);
   },
 
-  sendPhoneOtp: (data: PhoneOtpSendRequest): Promise<PhoneOtpSendResponse> => {
-    return apiClient.post('/customers/me/phone/otp', data);
-  },
-
-  verifyPhoneOtp: (data: PhoneOtpVerifyRequest): Promise<CustomerResponse> => {
-    return apiClient.post('/customers/me/phone/verify', data);
+  updatePhone: (phone: string): Promise<UserResponse> => {
+    return apiClient.put('/customers/me/phone', { phone });
   },
 
   /**

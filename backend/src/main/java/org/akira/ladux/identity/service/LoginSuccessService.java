@@ -5,7 +5,7 @@ import org.akira.ladux.identity.entity.User;
 
 public interface LoginSuccessService {
 
-    CompletedLogin complete(User user, HttpServletRequest request, boolean mfaUsed);
+    CompletedLogin complete(User user, HttpServletRequest request);
 
     record CompletedLogin(
             AuthenticationTokenService.IssuedAuthenticationTokens tokens,

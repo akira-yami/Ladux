@@ -63,7 +63,6 @@ adminApiClient.interceptors.response.use(
     const url = originalRequest?.url ?? "";
     const isAuthEndpoint = [
       "/admin/auth/login",
-      "/admin/auth/mfa/verify",
       "/admin/auth/refresh",
       "/admin/auth/logout",
     ].some((endpoint) => url.includes(endpoint));

@@ -7,22 +7,15 @@ import { getApiErrorMessage, isAdminRole } from "../utils";
 import { setAdminAccessToken } from "../../services/authTokens";
 import { getCaptchaToken } from "../../services/captchaService";
 
-type AdminLoginResult = { mfaRequired: true; challengeId: string } | { mfaRequired: false };
-
 interface AdminAuthContextValue {
   user: UserResponse | null;
   status: AuthStatus;
-  login: (credentials: { username: string; password: string }) => Promise<AdminLoginResult>;
-  verifyMfa: (challengeId: string, code: string) => Promise<void>;
+  login: (credentials: { username: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   isLoggingIn: boolean;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null);
-
-function isMfaRequired(response: AdminLoginResponse): response is Extract<AdminLoginResponse, { mfaRequired: true }> {
-  return "mfaRequired" in response && response.mfaRequired === true;
-}
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -39,7 +32,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("ladux:admin-auth-expired", clearSession);
   }, [queryClient]);
 
-  const establishSession = async (response: Exclude<AdminLoginResponse, { mfaRequired: true }>) => {
+  const establishSession = async (response: AdminLoginResponse) => {
     setAdminAccessToken(response.accessToken);
     const user = await adminApi.auth.currentUser();
     if (!isAdminRole(user.roles)) {
@@ -50,18 +43,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { username: string; password: string }): Promise<AdminLoginResult> => {
+    mutationFn: async (credentials: { username: string; password: string }): Promise<void> => {
       const captchaToken = await getCaptchaToken("login");
       const response = await adminApi.auth.login({ ...credentials, captchaToken });
-      if (isMfaRequired(response)) return response;
-      await establishSession(response);
-      return { mfaRequired: false };
-    },
-  });
-
-  const mfaMutation = useMutation({
-    mutationFn: async ({ challengeId, code }: { challengeId: string; code: string }) => {
-      const response = await adminApi.auth.verifyMfa({ challengeId, code });
       await establishSession(response);
     },
   });
@@ -92,17 +76,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
             throw new Error(getApiErrorMessage(error));
           }
         },
-        verifyMfa: async (challengeId, code) => {
-          try {
-            await mfaMutation.mutateAsync({ challengeId, code });
-          } catch (error) {
-            throw new Error(getApiErrorMessage(error));
-          }
-        },
         logout: async () => {
           await logoutMutation.mutateAsync().catch(() => undefined);
         },
-        isLoggingIn: loginMutation.isPending || mfaMutation.isPending,
+        isLoggingIn: loginMutation.isPending,
       }}
     >
       {children}

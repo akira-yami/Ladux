@@ -65,17 +65,6 @@ export interface LoginResponse {
   tokenType: 'Bearer';
 }
 
-export interface MfaRequiredLoginResponse {
-  mfaRequired: true;
-  challengeId: string;
-}
-
-export function isMfaRequiredLogin(
-  response: LoginResponse | MfaRequiredLoginResponse,
-): response is MfaRequiredLoginResponse {
-  return "mfaRequired" in response && response.mfaRequired === true;
-}
-
 export interface RefreshResponse {
   message: string;
   accessToken: string;
@@ -108,7 +97,7 @@ export const authService = {
    * Đăng nhập: access token trả trong body, refresh token nằm trong HttpOnly cookie.
    * POST /api/v1/auth/login
    */
-  login: (data: LoginRequest): Promise<LoginResponse | MfaRequiredLoginResponse> => {
+  login: (data: LoginRequest): Promise<LoginResponse> => {
     return apiClient.post('/auth/login', data);
   },
 

@@ -2,6 +2,7 @@ package org.akira.ladux.customer.service;
 
 import java.util.List;
 import java.util.Optional;
+import org.akira.ladux.customer.dto.request.PhoneUpdateRequest;
 import org.akira.ladux.customer.entity.Customer;
 import org.akira.ladux.customer.repository.CustomerRepository;
 import org.akira.ladux.customer.service.impl.CustomerServiceImpl;
@@ -10,12 +11,14 @@ import org.akira.ladux.identity.dto.response.UserResponse;
 import org.akira.ladux.identity.entity.User;
 import org.akira.ladux.identity.security.UserPrincipal;
 import org.akira.ladux.identity.util.PhoneNumberUtils;
+import org.akira.ladux.shared.exception.BusinessRuleException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -77,4 +80,28 @@ class CustomerServiceImplTest {
         assertEquals(ORIGINAL_PHONE, customer.getPhone());
     }
 
+    @Test
+    void updatePhone_normalizesContactNumberAndPreservesEmail() {
+        UserResponse response = service.updatePhone(new PhoneUpdateRequest("0988123456"));
+
+        assertEquals("+84988123456", response.phone());
+        assertEquals("+84988123456", customer.getPhone());
+        assertEquals("old@example.com", response.email());
+    }
+
+    @Test
+    void updatePhone_rejectsNumberUsedByAnotherCustomer() {
+        when(repository.existsByPhoneAndIdNot("+84988123456", USER_ID)).thenReturn(true);
+
+        assertThrows(BusinessRuleException.class,
+                () -> service.updatePhone(new PhoneUpdateRequest("0988123456")));
+        assertEquals(ORIGINAL_PHONE, customer.getPhone());
+    }
+
+    @Test
+    void updatePhone_rejectsInvalidContactNumber() {
+        assertThrows(BusinessRuleException.class,
+                () -> service.updatePhone(new PhoneUpdateRequest("invalid")));
+        assertEquals(ORIGINAL_PHONE, customer.getPhone());
+    }
 }
