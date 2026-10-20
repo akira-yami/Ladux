@@ -13,11 +13,14 @@
 .storefront-ui .store-card-hover { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
 .storefront-ui .store-card-hover:hover { transform: translateY(-4px); border-color: var(--brand-200); box-shadow: 0 12px 30px rgb(58 29 10 / .06); }
 .storefront-ui .store-card__image { mix-blend-mode: multiply; transition: transform .35s ease; }
-.dark .storefront-ui .store-card__image { mix-blend-mode: multiply; }
+.dark .storefront-ui .store-card__image { mix-blend-mode: normal; }
 .storefront-ui .store-card-hover:hover .store-card__image { transform: scale(1.04); }
-.storefront-ui .store-brand-card { border-color: var(--line); transition: border-color .2s; }
+.storefront-ui .store-brand-card { border-color: var(--line); background-color: #ffffff !important; transition: border-color .2s, box-shadow .2s; }
 .storefront-ui .store-brand-card:hover { border-color: var(--brand-300); }
-.dark .storefront-ui .store-brand-card img { background: #f5f3ef; padding: 3px 8px; border-radius: 4px; }
+.dark .storefront-ui .store-brand-card { background-color: #ffffff !important; border-color: rgba(255, 255, 255, 0.12); }
+.dark .storefront-ui .store-brand-card:hover { border-color: #38bdf8; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+.dark .storefront-ui .store-brand-card img { background: transparent !important; padding: 0 !important; }
+.dark .storefront-ui .store-brand-card span { color: #1e293b !important; }
 .storefront-ui .store-landing { isolation: isolate; }
 .hero-section { padding-top: 28px; }
 .store-hero { position: relative; display: grid; grid-template-columns: .9fr 1.1fr; min-height: 440px; overflow: hidden; border: 1px solid var(--line); border-radius: 22px; background: #f4eee5; }

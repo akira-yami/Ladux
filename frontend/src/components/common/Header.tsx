@@ -217,24 +217,24 @@ export default function Header({
                     onCloseMobile={closeMobileSearch}
                 >
                     {/* Custom Category Dropdown */}
-                    <div className="relative hidden lg:flex items-center  shrink-0 h-full" ref={catDropdownRef}>
+                    <div className="relative hidden lg:flex items-center shrink-0 h-full" ref={catDropdownRef}>
                         <button
                             type="button"
                             onClick={() => setIsCatDropdownOpen(!isCatDropdownOpen)}
-                            className="flex items-center gap-2 px-3 sm:px-4 h-full text-[10px] sm:text-[11px] font-sans font-bold normal-case tracking-normal text-slate-600 hover:text-sky-700 transition-colors cursor-pointer"
+                            className="flex items-center gap-2 px-3 sm:px-4 h-full text-[10px] sm:text-[11px] font-sans font-bold normal-case tracking-normal text-slate-600 dark:text-slate-300 hover:text-sky-700 dark:hover:text-sky-400 transition-colors cursor-pointer"
                         >
                             <span className="max-w-[130px] text-[12.5px] leading-none">
                                 {selectedCategory && selectedCategory !== "All" ? selectedCategory : "Danh mục"}
                             </span>
                             <ChevronRight
-                                className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-300 shrink-0 translate-y-[0.5px] ${isCatDropdownOpen ? "-rotate-90 text-sky-700" : "rotate-90"
+                                className={`w-3.5 h-3.5 text-slate-500 dark:text-slate-400 transition-transform duration-300 shrink-0 translate-y-[0.5px] ${isCatDropdownOpen ? "-rotate-90 text-sky-700 dark:text-sky-400" : "rotate-90"
                                     }`}
                             />
                         </button>
 
                         {/* Custom Dropdown Popover */}
                         {isCatDropdownOpen && (
-                            <div className="absolute right-0 top-[calc(100%+8px)] w-56 rounded-2xl border border-sky-100 bg-white backdrop-blur-2xl p-1.5 shadow-xl shadow-sky-100/60 z-50 animate-in fade-in slide-in-from-top-1 zoom-in-[0.98] duration-200 ease-out origin-top-right">
+                            <div className="absolute right-0 top-[calc(100%+8px)] w-56 rounded-2xl border border-sky-100 dark:border-neutral-800 bg-white dark:bg-[#1e1e1c] backdrop-blur-2xl p-1.5 shadow-xl shadow-sky-100/60 dark:shadow-black/60 z-50 animate-in fade-in slide-in-from-top-1 zoom-in-[0.98] duration-200 ease-out origin-top-right">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -246,7 +246,7 @@ export default function Header({
                                     }}
                                     className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans font-bold transition-all flex items-center justify-between cursor-pointer ${!selectedCategory || selectedCategory === "All"
                                         ? "bg-sky-600 text-white shadow-md shadow-sky-700/20"
-                                        : "text-slate-600 hover:bg-sky-50 hover:text-slate-800"
+                                        : "text-slate-600 dark:text-neutral-300 hover:bg-sky-50 dark:hover:bg-neutral-800 hover:text-slate-800 dark:hover:text-white"
                                         }`}
                                 >
                                     <span>Tất cả danh mục</span>
@@ -254,7 +254,7 @@ export default function Header({
                                         <div className="h-1.5 w-1.5 rounded-full bg-white" />
                                     )}
                                 </button>
-                                <div className="h-px bg-sky-50 my-1" />
+                                <div className="h-px bg-sky-50 dark:bg-neutral-800 my-1" />
                                 <div className="max-h-60 overflow-y-auto space-y-0.5 scrollbar-thin">
                                     {categories.map((category) => {
                                         const isSelected = selectedCategory === category.name;
@@ -271,7 +271,7 @@ export default function Header({
                                                 }}
                                                 className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans font-bold transition-all flex items-center justify-between cursor-pointer ${isSelected
                                                     ? "bg-sky-600 text-white shadow-md shadow-sky-700/20"
-                                                    : "text-slate-600 hover:bg-sky-50 hover:text-sky-700"
+                                                    : "text-slate-600 dark:text-neutral-300 hover:bg-sky-50 dark:hover:bg-neutral-800 hover:text-sky-700 dark:hover:text-sky-400"
                                                     }`}
                                             >
                                                 <span>{category.name}</span>
