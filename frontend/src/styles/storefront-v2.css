@@ -4,7 +4,7 @@
 .storefront-ui > header.header-scrolled { background: color-mix(in srgb, var(--surface) 88%, transparent); box-shadow: 0 20px 45px -24px rgb(43 39 34 / .28); }
 .storefront-ui > header > div:last-child { background: transparent; border-color: var(--line); }
 .store-header-main { gap: 20px; }
-.store-header-main > .absolute { position: static; transform: none; translate: none; margin-left: auto; width: min(44%, 540px); border-color: var(--line); border-radius: 10px; background: var(--surface-soft); }
+.store-header-main > .absolute { width: min(44%, 540px); border-color: var(--line); border-radius: 10px; background: var(--surface-soft); box-shadow: 0 10px 30px -18px rgb(43 39 34 / .18); }
 .store-header-main > .absolute > button:last-child { border-radius: 0 9px 9px 0; }
 .store-header-main > .absolute input { font-size: 12px; }
 .store-header-main > div:last-child { margin-left: 0; }
