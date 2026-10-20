@@ -119,14 +119,12 @@ export default function Header({
     const lastScrollY = React.useRef<number>(0);
 
     React.useEffect(() => {
+        let rafId = 0;
+
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
 
-            if (currentScrollY > 30) {
-                setIsScrolled(true);
-            } else {
-                setIsScrolled(false);
-            }
+            setIsScrolled(currentScrollY > 30);
 
             if (currentScrollY < 30) {
                 setIsSubHeaderVisible(true);
@@ -141,8 +139,22 @@ export default function Header({
             lastScrollY.current = currentScrollY;
         };
 
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
+        // Throttle to animation frames so state updates stay in sync with
+        // the compositor and the header animation remains buttery smooth.
+        const onScroll = () => {
+            if (rafId) return;
+            rafId = requestAnimationFrame(() => {
+                rafId = 0;
+                handleScroll();
+            });
+        };
+
+        handleScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => {
+            window.removeEventListener("scroll", onScroll);
+            if (rafId) cancelAnimationFrame(rafId);
+        };
     }, []);
 
     const isLoggedIn = authIsLoggedIn || propsIsLoggedIn;
@@ -180,12 +192,10 @@ export default function Header({
 
     return (
         <header
-            className={`fixed top-0 left-0 right-0 z-50 border-b text-slate-800 transition-all duration-500 ${isScrolled
-                ? "border-sky-100 bg-white backdrop-blur-2xl shadow-sm"
-                : "border-sky-100 bg-white backdrop-blur-xl"
+            className={`fixed top-0 left-0 right-0 z-50 border-b text-slate-800 backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${isScrolled ? "header-scrolled" : ""
                 }`}
         >
-            <div className="store-header-main container mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between gap-3 md:gap-6 relative">
+            <div className={`store-header-main container mx-auto px-5 sm:px-8 flex items-center justify-between gap-3 md:gap-6 relative transition-[height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${isScrolled ? "h-16" : "h-[76px]"}`}>
                 {/* ── Logo ── */}
                 <div className="z-10 flex items-center shrink-0">
                     <Link
@@ -197,7 +207,7 @@ export default function Header({
                 </div>
 
                 {/* ── Dynamic Flex Search Bar (centered) ── */}
-                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[420px] lg:max-w-[500px] xl:max-w-[580px] 2xl:max-w-[620px] items-stretch h-11 rounded-2xl border border-sky-100 bg-slate-50 focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100 transition-all z-20">
+                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[420px] lg:max-w-[500px] xl:max-w-[580px] 2xl:max-w-[620px] items-stretch h-11 rounded-2xl border border-sky-100 bg-slate-50/80 focus-within:bg-white focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100 focus-within:shadow-[0_16px_40px_-16px_rgba(2,132,199,0.45)] transition-all duration-300 ease-out z-20">
                     {/* Text Input */}
                     <input
                         type="text"
@@ -239,7 +249,7 @@ export default function Header({
 
                         {/* Custom Dropdown Popover */}
                         {isCatDropdownOpen && (
-                            <div className="absolute right-0 top-[calc(100%+8px)] w-56 rounded-2xl border border-sky-100 bg-white backdrop-blur-2xl p-1.5 shadow-sm z-50 animate-in fade-in zoom-in-95 duration-150">
+                            <div className="absolute right-0 top-[calc(100%+8px)] w-56 rounded-2xl border border-sky-100 bg-white backdrop-blur-2xl p-1.5 shadow-xl shadow-sky-100/60 z-50 animate-in fade-in slide-in-from-top-1 zoom-in-[0.98] duration-200 ease-out origin-top-right">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -309,7 +319,7 @@ export default function Header({
                         className="relative p-2.5 text-sky-600 hover:text-sky-700 transition-all duration-200 rounded-xl hover:bg-sky-50 flex items-center justify-center group cursor-pointer"
                         aria-label="Giỏ hàng"
                     >
-                        <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
                         {cartCount > 0 && (
                             <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-sky-600 text-white font-semibold text-[10px] rounded-full flex items-center justify-center shadow-sm">
                                 {cartCount}
@@ -338,7 +348,7 @@ export default function Header({
                             aria-label="Thông báo"
                             aria-expanded={isNotifOpen}
                         >
-                            <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            <Bell className="w-5 h-5 group-hover:scale-110 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
                             {unreadCount > 0 && (
                                 <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-amber-400 text-white font-bold text-[8px] rounded-full flex items-center justify-center shadow-sm">
                                     {unreadCount > 99 ? "99+" : unreadCount}
@@ -349,7 +359,7 @@ export default function Header({
                         {/* Notification Dropdown Menu */}
                         {isLoggedIn && isNotifOpen && (
                             <div
-                                className="absolute right-0 top-full pt-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                                className="absolute right-0 top-full pt-2 z-50 animate-in fade-in slide-in-from-top-1 zoom-in-[0.98] duration-200 ease-out"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="w-[min(calc(100vw-24px),384px)] rounded-2xl border border-sky-100 bg-white/95 backdrop-blur-2xl p-4 shadow-2xl shadow-sky-100/70">
@@ -489,7 +499,7 @@ export default function Header({
                         className="relative p-2.5 text-sky-600 hover:text-sky-700 transition-all duration-200 rounded-xl hover:bg-sky-50 flex items-center justify-center group cursor-pointer"
                         aria-label="Danh sách yêu thích"
                     >
-                        <Heart className="w-5 h-5 text-sky-600 fill-sky-100 group-hover:scale-110 transition-transform" />
+                        <Heart className="w-5 h-5 text-sky-600 fill-sky-100 group-hover:scale-110 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
                         {displayWishlistCount > 0 && (
                             <span className="absolute top-1 right-1 w-4 h-4 bg-sky-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center">
                                 {displayWishlistCount}
@@ -532,7 +542,7 @@ export default function Header({
                         )}
 
                         {/* Hover Dropdown Popover */}
-                        <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover/user:opacity-100 group-focus-within/user:opacity-100 group-hover/user:visible group-focus-within/user:visible transition-all duration-200 z-50 pointer-events-none group-hover/user:pointer-events-auto group-focus-within/user:pointer-events-auto">
+                        <div className="absolute right-0 top-full pt-2 opacity-0 invisible translate-y-1.5 scale-[0.98] origin-top-right group-hover/user:opacity-100 group-focus-within/user:opacity-100 group-hover/user:visible group-focus-within/user:visible group-hover/user:translate-y-0 group-hover/user:scale-100 group-focus-within/user:translate-y-0 group-focus-within/user:scale-100 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none z-50 pointer-events-none group-hover/user:pointer-events-auto group-focus-within/user:pointer-events-auto">
                             <div className={`bg-white border border-sky-100 rounded-2xl shadow-xl shadow-sky-100/50 p-4 text-slate-800 font-sans ${isLoggedIn ? "w-72" : "w-64"}`}>
                                 {isLoggedIn ? (
                                     <>
@@ -634,19 +644,20 @@ export default function Header({
 
             {/* ── Sub-header (Header phụ) ── */}
             <div
-                className={`border-t border-sky-100 bg-white backdrop-blur-md overflow-hidden transition-all duration-500 ease-in-out ${!isSubHeaderVisible
-                    ? "max-h-0 opacity-0 -translate-y-4 pointer-events-none py-0 border-t-0"
-                    : "max-h-24 opacity-100 translate-y-0 py-3"
+                className={`grid backdrop-blur-md transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${!isSubHeaderVisible
+                    ? "[grid-template-rows:0fr] opacity-0 pointer-events-none"
+                    : "[grid-template-rows:1fr] opacity-100"
                     }`}
             >
-                <div className="container mx-auto px-5 sm:px-8 flex items-center justify-between gap-4 text-sm text-slate-600 font-medium">
+                <div className="min-h-0 overflow-hidden">
+                <div className="container mx-auto px-5 sm:px-8 py-3 border-t border-sky-100/70 flex items-center justify-between gap-4 text-sm text-slate-600 font-medium">
                     {/* Left side links */}
                     <nav aria-label="Điều hướng chính" className="flex items-center gap-5 sm:gap-8">
                         <NavLink
                             to={ROUTES.home}
                             end
                             className={({ isActive }) =>
-                                `transition-colors pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
+                                `transition-all duration-300 ease-out pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
                                     ? "text-sky-700 border-sky-700 font-semibold"
                                     : "text-slate-600 border-transparent hover:border-sky-700/50"
                                 }`
@@ -657,7 +668,7 @@ export default function Header({
                         <NavLink
                             to={ROUTES.products}
                             className={({ isActive }) =>
-                                `transition-colors pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
+                                `transition-all duration-300 ease-out pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
                                     ? "text-sky-700 border-sky-700 font-semibold"
                                     : "text-slate-600 border-transparent hover:border-sky-700/50"
                                 }`
@@ -668,7 +679,7 @@ export default function Header({
                         <NavLink
                             to={ROUTES.about}
                             className={({ isActive }) =>
-                                `transition-colors pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
+                                `transition-all duration-300 ease-out pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
                                     ? "text-sky-700 border-sky-700 font-semibold"
                                     : "text-slate-600 border-transparent hover:border-sky-700/50"
                                 }`
@@ -679,7 +690,7 @@ export default function Header({
                         <NavLink
                             to={ROUTES.contact}
                             className={({ isActive }) =>
-                                `transition-colors pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
+                                `transition-all duration-300 ease-out pb-1 hover:text-sky-700 border-b-2 text-xs sm:text-sm ${isActive
                                     ? "text-sky-700 border-sky-700 font-semibold"
                                     : "text-slate-600 border-transparent hover:border-sky-700/50"
                                 }`
@@ -692,7 +703,7 @@ export default function Header({
                     {/* Right side info */}
                     <div className="hidden lg:flex items-center gap-6 text-xs">
                         {STOREFRONT_CONTACT.phone && <div className="flex items-center gap-2.5 group cursor-pointer">
-                            <Phone className="w-[18px] h-[18px] text-sky-700 group-hover:scale-110 transition-transform" />
+                            <Phone className="w-[18px] h-[18px] text-sky-700 group-hover:scale-110 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
                             <span className="text-slate-500 group-hover:text-slate-800 transition-colors">
                                 Hotline: <strong className="text-slate-800 font-medium">{STOREFRONT_CONTACT.phone}</strong>
                             </span>
@@ -703,6 +714,7 @@ export default function Header({
                             <span>Giao hỏa tốc 2H</span>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
         </header>
