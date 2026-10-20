@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ArrowUpRight, Boxes, CreditCard, PackageCheck, ShoppingBag, Truck, UsersRound } from "lucide-react";
+import { AlertTriangle, ArrowRight, ArrowUpRight, Boxes, CalendarDays, CreditCard, PackageCheck, ShoppingBag, Truck, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { adminApi } from "../api/adminApi";
-import { AdminTable, PageHeader, Panel, StatusBadge, type AdminColumn } from "../components/AdminUI";
+import { AdminTable, Panel, StatusBadge, type AdminColumn } from "../components/AdminUI";
 import { adminQueryKeys } from "../queryKeys";
 import type { OrderResponse, ProductResponse, PurchaseOrderResponse } from "../types";
 import { formatBackendDateTime, formatCurrency, getApiErrorMessage } from "../utils";
+import { useAdminAuth } from "../auth/AdminAuthProvider";
+import operationsArt from "../../assets/ladux/operations.webp";
 
 type DashboardResult = {
   counts: Record<string, number | null>;
@@ -52,8 +54,19 @@ const orderColumns: AdminColumn<OrderResponse>[] = [
 ];
 
 export default function DashboardPage() {
+  const { user } = useAdminAuth();
   const query = useQuery({ queryKey: adminQueryKeys.dashboard, queryFn: loadDashboard, staleTime: 60_000 });
   const counts = query.data?.counts ?? {};
+  const name = (user?.fullName || user?.username || "bạn").trim().split(/\s+/).pop();
+  const hasMix = [counts.orders, counts.pendingOrders, counts.confirmedOrders, counts.shippedOrders].every(value => typeof value === "number");
+  const orderMix = [
+    { label: "Chờ xác nhận", value: counts.pendingOrders ?? 0, color: "#ed6c27" },
+    { label: "Đã xác nhận", value: counts.confirmedOrders ?? 0, color: "#e6b07d" },
+    { label: "Đang giao", value: counts.shippedOrders ?? 0, color: "#889e8b" },
+    { label: "Trạng thái khác", value: Math.max(0, (counts.orders ?? 0) - (counts.pendingOrders ?? 0) - (counts.confirmedOrders ?? 0) - (counts.shippedOrders ?? 0)), color: "#c9c4ba" },
+  ];
+  let angle = 0;
+  const chart = orderMix.map(item => { const start = angle; angle += (item.value / Math.max(counts.orders ?? 1, 1)) * 360; return `${item.color} ${start}deg ${angle}deg`; }).join(", ");
   const cards = [
     { label: "Tổng đơn hàng", value: counts.orders, helper: `${counts.pendingOrders ?? "—"} đang chờ xác nhận`, icon: ShoppingBag, iconClass: "bg-indigo-50 text-indigo-600", path: "/admin/orders" },
     { label: "Sản phẩm", value: counts.products, helper: "Catalog hiện có", icon: Boxes, iconClass: "bg-emerald-50 text-emerald-600", path: "/admin/products" },
@@ -63,25 +76,33 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Tổng quan vận hành" description="Báo cáo số liệu tổng quan hệ thống." actions={<span className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />Dữ liệu trực tiếp</span>} />
+      <div className="dashboard-heading"><div><h1>Tổng quan vận hành</h1><p>Một góc nhìn rõ ràng, cho những quyết định tốt hơn.</p></div><span className="dashboard-date"><CalendarDays size={14} />{new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "long", year: "numeric" }).format(new Date())}</span></div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="dashboard-welcome"><div className="dashboard-welcome-copy"><p className="section-eyebrow">A LITTLE CLARITY, EVERY DAY</p><h2>Chào {name}, ngày mới sẵn sàng.</h2><p>Cùng chăm chút từng đơn hàng và mang công nghệ phù hợp đến nhiều người hơn.</p></div><img src={operationsArt} alt="Không gian vận hành Ladux với laptop và những khối hàng màu kem, cam" width={1254} height={1254} /></section>
+
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
-          return <Link key={card.label} to={card.path} className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg">
-            <div className="flex items-start justify-between"><span className={`rounded-xl p-2.5 ${card.iconClass}`}><Icon className="h-5 w-5" /></span><ArrowUpRight className="h-4 w-4 text-slate-300 transition group-hover:text-indigo-600" /></div>
-            <p className="mt-5 text-sm font-semibold text-slate-500">{card.label}</p>
-            <p className="mt-1 text-3xl font-black tracking-tight text-slate-950">{query.isLoading ? <span className="inline-block h-9 w-20 animate-pulse rounded bg-slate-100" /> : card.value?.toLocaleString("vi-VN") ?? "—"}</p>
-            <p className="mt-2 text-xs text-slate-400">{card.helper}</p>
+          return <Link key={card.label} to={card.path} className="dashboard-stat">
+            <div className="dashboard-stat-top"><span>{card.label}</span><span className="dashboard-stat-icon"><Icon size={16} strokeWidth={1.6} /></span></div>
+            <p className="dashboard-stat-value">{query.isLoading ? <span className="inline-block h-9 w-20 animate-pulse rounded bg-slate-100" /> : card.value?.toLocaleString("vi-VN") ?? "—"}</p>
+            <p className="dashboard-stat-helper">{card.helper}<ArrowUpRight size={13} /></p>
           </Link>;
         })}
       </div>
 
       {query.isError && <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">{getApiErrorMessage(query.error)}</div>}
 
+      <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <Panel><div className="dashboard-panel-heading"><div><h2>Nhịp bán hàng</h2><p>Phân bổ trạng thái trên toàn bộ đơn hàng</p></div><Link to="/admin/orders">Chi tiết<ArrowUpRight size={12} /></Link></div>
+          {hasMix ? <div className="dashboard-mix-layout"><div className="dashboard-donut" style={{ background: counts.orders ? `conic-gradient(${chart})` : "var(--line)" }} role="img" aria-label={orderMix.map(item => `${item.label}: ${item.value}`).join(", ")}><div className="dashboard-donut-label"><strong>{counts.orders?.toLocaleString("vi-VN")}</strong><span>Tổng đơn hàng</span></div></div><div className="dashboard-mix-legend">{orderMix.map(item => <div key={item.label}><i style={{ background: item.color }} /><span>{item.label}</span><strong>{item.value.toLocaleString("vi-VN")}</strong></div>)}</div></div> : <p className="p-10 text-center text-xs text-slate-500">{query.isLoading ? "Đang tải phân bổ đơn hàng..." : "Chưa thể tải đầy đủ dữ liệu đơn hàng."}</p>}
+        </Panel>
+        <Panel><div className="dashboard-panel-heading"><div><h2>Việc cần quan tâm</h2><p>Đi thẳng đến những hoạt động đang chờ bạn</p></div><span className="admin-online-dot" /></div><div className="space-y-1 p-4">{[{ label: "Đơn hàng chờ xác nhận", value: counts.pendingOrders, to: "/admin/orders", icon: ShoppingBag }, { label: "Thanh toán cần kiểm tra", value: counts.pendingPayments, to: "/admin/payments", icon: CreditCard }, { label: "Quản lý nhập kho", value: counts.purchaseOrders, to: "/admin/purchase-orders", icon: Truck }].map(({ label, value, to, icon: Icon }) => <Link key={to} to={to} className="flex items-center gap-3 rounded-lg px-3 py-3 text-xs transition hover:bg-slate-50"><span className="rounded-lg bg-sky-50 p-2 text-sky-700"><Icon size={15} /></span><span className="text-slate-600">{label}</span><strong className="ml-auto font-semibold text-slate-900">{value?.toLocaleString("vi-VN") ?? "—"}</strong><ArrowRight size={13} className="ml-2 text-slate-400" /></Link>)}</div></Panel>
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
         <Panel>
-          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4"><div><h2 className="font-extrabold text-slate-900">Đơn hàng gần đây</h2><p className="mt-1 text-xs text-slate-400">5 đơn mới nhất backend trả về</p></div><Link to="/admin/orders" className="text-xs font-bold text-indigo-600 hover:text-indigo-700">Xem tất cả</Link></div>
+          <div className="dashboard-panel-heading"><div><h2>Đơn hàng gần đây</h2><p>Những đơn hàng mới nhất tại Ladux</p></div><Link to="/admin/orders">Xem tất cả<ArrowUpRight size={12} /></Link></div>
           <AdminTable rows={query.data?.recentOrders ?? []} columns={orderColumns} isLoading={query.isLoading} />
         </Panel>
         <div className="space-y-6">

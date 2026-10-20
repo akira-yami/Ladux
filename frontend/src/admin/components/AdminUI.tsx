@@ -19,7 +19,7 @@ export function AdminButton({
         size === "sm" && "min-h-9 px-3 text-xs",
         size === "md" && "px-4 text-sm",
         size === "icon" && "h-10 w-10 p-0",
-        tone === "primary" && "bg-indigo-600 text-white shadow-sm shadow-indigo-200 hover:bg-indigo-700",
+        tone === "primary" && "bg-indigo-600 text-white shadow-sm shadow-indigo-200 hover:bg-primary-hover",
         tone === "secondary" && "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
         tone === "danger" && "bg-rose-600 text-white hover:bg-rose-700",
         tone === "ghost" && "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
