@@ -14,6 +14,7 @@ import { useStorefront } from "./StorefrontProvider";
 
 const ProductStoreView = lazy(() => import("../pages/ProductStoreView"));
 const AllProductsView = lazy(() => import("../pages/AllProductsView"));
+const SmartFitWizard = lazy(() => import("../pages/SmartFitWizard"));
 const ProductDetailView = lazy(() => import("../pages/ProductDetailView"));
 const CartView = lazy(() => import("../pages/CartView"));
 const CheckoutView = lazy(() => import("../pages/CheckoutView"));
@@ -326,6 +327,7 @@ export default function AppRouter() {
             <Route element={<StoreLayout />}>
                 <Route index element={<HomeRoute />} />
                 <Route path={ROUTES.products} element={<ProductsRoute />} />
+                <Route path={ROUTES.smartfit} element={<SmartFitWizard />} />
                 <Route path={productPath(":id")} element={<ProductDetailRoute />} />
                 <Route path={ROUTES.cart} element={<RequireAuth><CartRoute /></RequireAuth>} />
                 <Route path={ROUTES.checkout} element={<RequireAuth><CheckoutRoute /></RequireAuth>} />

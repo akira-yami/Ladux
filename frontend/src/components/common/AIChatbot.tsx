@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Send, CheckCheck, ChevronRight, Laptop, ShoppingBag, Tag, Headphones } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import botAvatarImg from "../../assets/ladux/assistant.svg";
-import { useStorefront } from "../../app/StorefrontProvider";
 import { productPath } from "../../app/routePaths";
-import { LaptopProduct } from "../../types";
+import { env } from "../../config/env";
+import type { ChatbotProduct } from "../../services/chatbotService";
+import { contextVariantIds } from "./chatbotContext";
 import { chatbotService } from "../../services";
 
 interface Message {
@@ -12,7 +13,7 @@ interface Message {
     sender: "bot" | "user";
     text: string;
     timestamp: string;
-    products?: LaptopProduct[];
+    products?: ChatbotProduct[];
 }
 
 const PRESET_PILLS = [
@@ -25,7 +26,12 @@ const PRESET_PILLS = [
 export default function AIChatbot() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { allDisplayProducts } = useStorefront();
+    const [variantIds, setVariantIds] = useState<number[]>([]);
+    useEffect(() => {
+        const updateContext = (event: Event) => setVariantIds(contextVariantIds((event as CustomEvent<unknown>).detail));
+        window.addEventListener("ladux:recommendation-context", updateContext);
+        return () => window.removeEventListener("ladux:recommendation-context", updateContext);
+    }, []);
 
     const [isOpen, setIsOpen] = useState(false);
     useEffect(() => {
@@ -79,7 +85,7 @@ export default function AIChatbot() {
 
     const handleSendMessage = async (textToSend?: string) => {
         const query = (textToSend || inputValue).trim();
-        if (!query) return;
+        if (!query || query.length > 2000 || isTyping) return;
 
         const userMsg: Message = {
             id: `msg-${Date.now()}`,
@@ -93,15 +99,14 @@ export default function AIChatbot() {
         setIsTyping(true);
 
         try {
-            const text = await chatbotService.chat(query, conversationIdRef.current);
-            const suggestedProducts = getSuggestedProducts(query, allDisplayProducts);
+            const response = await chatbotService.contextualChat(query, conversationIdRef.current, variantIds);
             setMessages((prev) => [
                 ...prev,
                 {
                     id: `bot-${Date.now()}`,
                     sender: "bot",
-                    text,
-                    products: suggestedProducts,
+                    text: response.text,
+                    products: response.products,
                     timestamp: getFormattedTime(),
                 },
             ]);
@@ -120,23 +125,6 @@ export default function AIChatbot() {
             setIsTyping(false);
         }
     };
-
-    function getSuggestedProducts(query: string, catalog: LaptopProduct[]): LaptopProduct[] {
-        const lower = query.toLowerCase();
-
-        if (lower.includes("25 triệu") || lower.includes("đồ họa") || lower.includes("tư vấn laptop") || lower.includes("gaming")) {
-            const suitableProducts = catalog.filter((p) => p.price >= 18000000 && p.price <= 32000000).slice(0, 3);
-            return suitableProducts.length > 0 ? suitableProducts : catalog.slice(0, 2);
-        }
-
-        const matched = catalog.filter((p) => {
-            const pName = p.name.toLowerCase();
-            const pBrand = p.brand.toLowerCase();
-            return lower.split(" ").some((word) => word.length > 2 && (pName.includes(word) || pBrand.includes(word)));
-        });
-
-        return matched.slice(0, 3);
-    }
 
     return (
         <div className={`fixed z-50 flex flex-col items-center gap-3 select-none ${isOpen ? "bottom-5 right-5" : "bottom-6 right-3 sm:right-4"}`}>
@@ -189,6 +177,11 @@ export default function AIChatbot() {
                         </button>
                     </div>
 
+                    {variantIds.length > 0 && <div className="flex items-center justify-between gap-2 border-b border-sky-100 bg-sky-50 px-4 py-2 text-[11px] text-sky-800">
+                        <span>Đang tư vấn {variantIds.length} cấu hình từ SmartFit / So sánh</span>
+                        <button type="button" onClick={() => setVariantIds([])} className="shrink-0 font-semibold underline" aria-label="Xóa ngữ cảnh cấu hình">Xóa</button>
+                    </div>}
+
                     {/* CHAT MESSAGES BODY */}
                     <div className="flex-1 w-full max-w-full space-y-3.5 overflow-y-auto bg-white p-3 custom-scrollbar">
                         {messages.map((msg) => (
@@ -204,17 +197,18 @@ export default function AIChatbot() {
                                             {msg.products && msg.products.length > 0 && (
                                                 <div className="mt-3 w-full max-w-full space-y-2 overflow-hidden border-t border-sky-100 pt-2">
                                                     {msg.products.map((prod) => (
-                                                        <div
-                                                            key={prod.id}
+                                                        <button
+                                                            type="button"
+                                                            key={`${prod.productId}-${prod.variantId}`}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 setIsOpen(false);
-                                                                navigate(productPath(prod.id));
+                                                                navigate(`${productPath(prod.productId)}?variantId=${prod.variantId}`);
                                                             }}
-                                                            className="group flex w-full max-w-full cursor-pointer items-center gap-2.5 overflow-hidden rounded-xl border border-sky-100 bg-white p-2 transition-all hover:border-sky-700 hover:bg-sky-50"
+                                                            className="group flex w-full max-w-full cursor-pointer items-center gap-2.5 overflow-hidden rounded-xl border border-sky-100 bg-white p-2 text-left transition-all hover:border-sky-700 hover:bg-sky-50 focus-visible:outline-2 focus-visible:outline-sky-600"
                                                         >
                                                             <img
-                                                                src={prod.images?.[0] || ""}
+                                                                src={prod.imageUrl ? (/^https?:\/\//i.test(prod.imageUrl) ? prod.imageUrl : `${env.backendOrigin}/${prod.imageUrl.replace(/^\//, "")}`) : botAvatarImg}
                                                                 alt={prod.name}
                                                                 className="h-11 w-11 flex-shrink-0 rounded-lg bg-white p-1 object-contain"
                                                             />
@@ -227,7 +221,7 @@ export default function AIChatbot() {
                                                                 </p>
                                                             </div>
                                                             <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-500 transition-colors group-hover:text-sky-700" />
-                                                        </div>
+                                                        </button>
                                                     ))}
                                                 </div>
                                             )}
@@ -262,6 +256,7 @@ export default function AIChatbot() {
                                     <button
                                         key={idx}
                                         onClick={() => handleSendMessage(pill.query)}
+                                        disabled={isTyping}
                                         className="flex w-full min-h-9 items-center gap-2 truncate rounded-full border border-sky-100 bg-white px-3 py-2 text-left text-[11px] font-medium text-slate-700 shadow-sm transition-all hover:border-sky-700 hover:bg-sky-50 active:scale-95"
                                     >
                                         <IconComponent className="h-4 w-4 flex-shrink-0 text-sky-700" />
@@ -293,6 +288,8 @@ export default function AIChatbot() {
                         >
                             <input
                                 type="text"
+                                maxLength={2000}
+                                aria-label="Câu hỏi cho trợ lý Ladux"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 placeholder="Nhập câu hỏi của bạn..."
@@ -300,7 +297,7 @@ export default function AIChatbot() {
                             />
                             <button
                                 type="submit"
-                                disabled={!inputValue.trim()}
+                                disabled={!inputValue.trim() || isTyping}
                                 className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-sky-700 bg-sky-600 text-white shadow-sm transition-all hover:bg-sky-600 active:scale-95 disabled:opacity-40 disabled:hover:bg-sky-600"
                                 title="Gửi tin nhắn"
                             >

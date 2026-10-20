@@ -78,4 +78,23 @@ class EndpointRateLimitFilterTest {
                 60, 1
         );
     }
+
+    @Test
+    void discoveryIsLimitedEvenWhenQueryIsEmpty() throws Exception {
+        DistributedRateLimitService limiter = mock(DistributedRateLimitService.class);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/discovery/suggestions");
+        request.setRemoteAddr("203.0.113.12");
+        filter(limiter).doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+        verify(limiter).check("search-ip", "203.0.113.12", 60, 1, "Bạn tìm kiếm quá nhiều, hãy thử lại sau");
+    }
+
+    @Test
+    void smartfitHasItsOwnRateLimitBucket() throws Exception {
+        DistributedRateLimitService limiter = mock(DistributedRateLimitService.class);
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/smartfit/recommend");
+        request.setRemoteAddr("203.0.113.12");
+        filter(limiter).doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+        verify(limiter).check("smartfit-ip", "203.0.113.12", 15, 1,
+                "Bạn đã gửi quá nhiều yêu cầu tư vấn, hãy thử lại sau");
+    }
 }

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import BrandMark from "./BrandMark";
 import ThemeToggle from "./ThemeToggle";
+import SmartSearchDropdown from "./SmartSearchDropdown";
 import { getAvatarUrl } from "../../types";
 import { ROUTES } from "../../app/routePaths";
 import { useAuthStore, useNotificationStore, useOrderStore, useProductStore, useWishlistStore } from "../../stores";
@@ -47,6 +48,8 @@ export default function Header({
 }: HeaderProps) {
     const navigate = useNavigate();
     const location = useLocation();
+    const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
+    const closeMobileSearch = React.useCallback(() => setMobileSearchOpen(false), []);
 
     // Dynamic data from Zustand stores
     const user = useAuthStore((state) => state.user);
@@ -207,30 +210,12 @@ export default function Header({
                 </div>
 
                 {/* ── Dynamic Flex Search Bar (centered) ── */}
-                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[420px] lg:max-w-[500px] xl:max-w-[580px] 2xl:max-w-[620px] items-stretch h-11 rounded-2xl border border-sky-100 bg-slate-50/80 focus-within:bg-white focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100 focus-within:shadow-[0_16px_40px_-16px_rgba(2,132,199,0.45)] transition-all duration-300 ease-out z-20">
-                    {/* Text Input */}
-                    <input
-                        type="text"
-                        placeholder="Tìm chiếc laptop của bạn..."
-                        aria-label="Tìm kiếm laptop"
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            if (e.target.value.trim() && location.pathname !== ROUTES.products) {
-                                handleNavigate(ROUTES.products);
-                            }
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && location.pathname !== ROUTES.products) {
-                                handleNavigate(ROUTES.products);
-                            }
-                        }}
-                        className="flex-1 bg-transparent px-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none min-w-0 rounded-l-2xl"
-                    />
-
-                    {/* Divider */}
-                    <div className="w-px bg-sky-50 self-stretch" />
-
+                <SmartSearchDropdown
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    mobileOpen={mobileSearchOpen}
+                    onCloseMobile={closeMobileSearch}
+                >
                     {/* Custom Category Dropdown */}
                     <div className="relative hidden lg:flex items-center  shrink-0 h-full" ref={catDropdownRef}>
                         <button
@@ -299,20 +284,12 @@ export default function Header({
                         )}
                     </div>
 
-                    {/* Search Button */}
-                    <button
-                        onClick={() => handleNavigate(ROUTES.products)}
-                        className="flex items-center justify-center w-11 sm:w-12 bg-sky-600 hover:bg-primary-hover active:bg-primary-pressed transition-colors shrink-0 rounded-r-2xl cursor-pointer"
-                        aria-label="Tìm kiếm"
-                    >
-                        <Search className="w-5 h-5 text-white stroke-[2.5]" />
-                    </button>
-                </div>
+                </SmartSearchDropdown>
 
                 {/* ── Right Actions ── */}
                 <div className="z-10 flex items-center gap-1 sm:gap-2 shrink-0 ml-auto">
                     <ThemeToggle />
-                    <Link to={ROUTES.products} aria-label="Tìm kiếm laptop" className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-sky-50 hover:text-sky-700 md:hidden"><Search className="h-5 w-5" /></Link>
+                    <button type="button" aria-label="Mở tìm kiếm laptop" aria-expanded={mobileSearchOpen} onPointerDown={event => { event.preventDefault(); event.stopPropagation(); }} onClick={() => setMobileSearchOpen(value => !value)} className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-sky-50 hover:text-sky-700 md:hidden"><Search className="h-5 w-5" /></button>
                     {/* Cart Badge */}
                     <Link
                         to={ROUTES.cart}
@@ -496,7 +473,7 @@ export default function Header({
                     {/* Wishlist Badge */}
                     <Link
                         to={ROUTES.wishlist}
-                        className="relative p-2.5 text-sky-600 hover:text-sky-700 transition-all duration-200 rounded-xl hover:bg-sky-50 flex items-center justify-center group cursor-pointer"
+                        className="header-wishlist relative p-2.5 text-sky-600 hover:text-sky-700 transition-all duration-200 rounded-xl hover:bg-sky-50 flex items-center justify-center group cursor-pointer"
                         aria-label="Danh sách yêu thích"
                     >
                         <Heart className="w-5 h-5 text-sky-600 fill-sky-100 group-hover:scale-110 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />

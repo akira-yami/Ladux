@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronRight, Star, ShoppingBag, MessageSquare, Send, Heart, ImageOff } from "lucide-react";
 import { LaptopProduct, formatVND } from "../types";
 import { useWishlistStore } from "../stores";
 import { ROUTES } from "../app/routePaths";
+import { resolveDetailVariantId } from "../utils/smartFit";
 
 export interface ProductDetailViewProps {
     selectedProduct: LaptopProduct;
@@ -31,13 +32,15 @@ export default function ProductDetailView({
     setNewComment,
 }: ProductDetailViewProps) {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const requestedVariantId = resolveDetailVariantId(selectedProduct.variants, searchParams.get("variantId"));
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [selectedProduct?.id]);
 
     const availableVariants = selectedProduct.variants.filter((variant) => variant.isActive);
     const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-        selectedProduct.defaultVariantId ?? availableVariants[0]?.id ?? null
+        requestedVariantId ?? selectedProduct.defaultVariantId ?? availableVariants[0]?.id ?? null
     );
     const [productQuantity, setProductQuantity] = useState<number>(1);
 
@@ -71,10 +74,10 @@ export default function ProductDetailView({
     const currentImage = selectedProduct.images[activeImageIndex] || selectedProduct.images[0];
 
     useEffect(() => {
-        setSelectedVariantId(selectedProduct.defaultVariantId ?? availableVariants[0]?.id ?? null);
+        setSelectedVariantId(requestedVariantId ?? selectedProduct.defaultVariantId ?? availableVariants[0]?.id ?? null);
         setProductQuantity(1);
         setActiveImageIndex(0);
-    }, [selectedProduct.id]);
+    }, [selectedProduct.id, requestedVariantId]);
 
     return (
         <main className="container mx-auto px-6 py-12">
@@ -91,6 +94,12 @@ export default function ProductDetailView({
                     {selectedProduct.name}
                 </span>
             </div>
+
+            {searchParams.has("variantId") && requestedVariantId === undefined && (
+                <p role="status" className="mb-6 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+                    Cấu hình trong liên kết không còn được phép bán hoặc không thuộc sản phẩm này. Vui lòng chọn lại cấu hình bên dưới.
+                </p>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                 {/* Left Column: Product Gallery & Overview */}

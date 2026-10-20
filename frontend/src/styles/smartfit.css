@@ -1,0 +1,140 @@
+.smartfit-page { padding-top: 26px; padding-bottom: 30px; --sf-ink: #15324d; --sf-muted: #587084; --sf-line: #dceaf4; --sf-surface: #fff; --sf-soft: #f2f9fe; --sf-blue: #0369a1; color: var(--sf-ink); }
+.smartfit-breadcrumb { display: flex; gap: 12px; margin-bottom: 24px; font-size: 12px; color: var(--sf-muted); }
+.smartfit-breadcrumb a:hover { color: var(--sf-blue); text-decoration: underline; }
+.smartfit-hero { display: flex; justify-content: space-between; gap: 28px; padding: 35px 42px; margin-bottom: 28px; border: 1px solid var(--sf-line); border-radius: 20px; background: linear-gradient(115deg, #f1f9ff, #fff 78%); }
+.smartfit-eyebrow { display: flex; gap: 7px; align-items: center; margin: 0 0 12px; color: var(--sf-blue); font-size: 10px; font-weight: 750; letter-spacing: .1em; }
+.smartfit-hero h1 { margin: 0; font-size: clamp(30px, 3.6vw, 46px); line-height: 1.18; font-weight: 700; letter-spacing: -.04em; }
+.smartfit-hero h1 span { color: var(--sf-blue); }
+.smartfit-hero p:not(.smartfit-eyebrow) { max-width: 520px; margin-top: 18px; font-size: 13px; line-height: 1.85; color: var(--sf-muted); }
+.smartfit-hero-note { display: flex; flex-direction: column; gap: 12px; justify-content: center; min-width: 210px; padding: 4px 30px; border-left: 1px solid var(--sf-line); }
+.smartfit-hero-note > svg { color: var(--sf-blue); }
+.smartfit-hero-note strong { font-size: 17px; font-weight: 650; line-height: 1.6; }
+.smartfit-hero-note span { font-size: 11px; line-height: 1.85; color: var(--sf-muted); }
+.smartfit-layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); align-items: start; gap: 26px; }
+.smartfit-panel { border: 1px solid var(--sf-line); border-radius: 16px; background: var(--sf-surface); }
+.smartfit-form { display: flex; flex-direction: column; gap: 20px; padding: 25px; }
+.smartfit-page h2 { font-size: 19px; line-height: 1.45; font-weight: 650; letter-spacing: -.025em; }
+.smartfit-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.smartfit-field label, .smartfit-form legend { font-size: 12px; font-weight: 650; }
+.smartfit-field input, .smartfit-field select { min-width: 0; width: 100%; min-height: 42px; padding: 8px 11px; border: 1px solid #cbdde9; border-radius: 8px; background: var(--sf-surface); color: var(--sf-ink); font-size: 12px; }
+.smartfit-field > span { font-size: 10px; color: var(--sf-muted); line-height: 1.7; }
+.smartfit-field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.smartfit-form fieldset { min-width: 0; padding: 0; border: 0; }
+.smartfit-form legend span { font-weight: 400; color: var(--sf-muted); }
+.smartfit-primary { display: flex; min-height: 45px; align-items: center; justify-content: center; gap: 9px; padding: 10px 12px; border-radius: 9px; color: #fff; background: var(--sf-blue); font-size: 12px; font-weight: 650; cursor: pointer; }
+.smartfit-primary:hover { background: #075985; }
+.smartfit-primary:disabled { cursor: wait; opacity: .72; }
+.smartfit-page :is(a, button, input, select, [tabindex]):focus-visible { outline: 3px solid #38bdf8; outline-offset: 3px; }
+.smartfit-text-button { align-self: center; color: var(--sf-blue); font-size: 12px; text-decoration: underline; }
+.smartfit-error { display: flex; gap: 7px; color: #be123c; font-size: 12px; line-height: 1.75; }
+.smartfit-error svg { flex-shrink: 0; margin-top: 3px; }
+.smartfit-results { display: flex; flex-direction: column; gap: 17px; min-width: 0; }
+.smartfit-section-heading { display: flex; justify-content: space-between; align-items: end; gap: 14px; padding: 2px 0 3px; }
+.smartfit-section-heading .smartfit-eyebrow { margin-bottom: 7px; }
+.smartfit-section-heading > span { flex-shrink: 0; padding: 5px 9px; border: 1px solid var(--sf-line); border-radius: 20px; color: var(--sf-blue); background: var(--sf-soft); font-size: 10px; }
+.smartfit-empty { display: flex; min-height: 340px; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 35px; text-align: center; }
+.smartfit-empty > svg { color: #38a1cd; }
+.smartfit-empty h3 { font-size: 19px; font-weight: 600; line-height: 1.5; }
+.smartfit-empty p { max-width: 380px; color: var(--sf-muted); font-size: 12px; line-height: 1.9; }
+.smartfit-empty > span { padding-top: 9px; color: var(--sf-blue); font-size: 11px; }
+.smartfit-empty > a { display: flex; align-items: center; gap: 7px; color: var(--sf-blue); font-size: 12px; font-weight: 600; }
+.smartfit-recommendation { padding: 23px; }
+.smartfit-product-top { display: flex; gap: 19px; align-items: center; }
+.smartfit-product-top > a { width: 125px; flex-shrink: 0; }
+.smartfit-product-image { display: flex; justify-content: center; align-items: center; height: 100px; overflow: hidden; border-radius: 10px; background: #f8fafc; }
+.smartfit-product-image img { width: 100%; height: 100%; object-fit: contain; }
+.smartfit-product-image > span { display: flex; flex-direction: column; gap: 7px; align-items: center; font-size: 10px; color: var(--sf-muted); }
+.smartfit-product-copy { flex: 1; min-width: 0; }
+.smartfit-rank { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--sf-blue); font-size: 9px; font-weight: 700; letter-spacing: .035em; }
+.smartfit-rank > span { color: var(--sf-muted); font-weight: 400; }
+.smartfit-product-copy h3 { margin-top: 8px; font-size: 17px; font-weight: 650; line-height: 1.45; }
+.smartfit-product-copy h3 a:hover { color: var(--sf-blue); text-decoration: underline; }
+.smartfit-config { margin-top: 6px; font-size: 11px; color: var(--sf-muted); line-height: 1.6; }
+.smartfit-price { display: block; margin-top: 10px; font-size: 18px; font-weight: 700; color: var(--sf-blue); }
+.smartfit-score { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; min-width: 76px; min-height: 76px; padding: 10px; border: 1px solid #c6e4f6; border-radius: 12px; color: var(--sf-blue); background: var(--sf-soft); }
+.smartfit-score strong { font-size: 25px; font-weight: 700; }
+.smartfit-score span { font-size: 9px; margin-top: 4px; }
+.smartfit-analysis { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 21px; padding-top: 18px; border-top: 1px solid var(--sf-line); }
+.smartfit-analysis h4 { display: flex; gap: 6px; align-items: center; font-size: 11px; font-weight: 650; }
+.smartfit-analysis h4 svg { color: var(--sf-blue); }
+.smartfit-analysis ul, .smartfit-analysis p { margin-top: 9px; font-size: 11px; line-height: 1.9; color: var(--sf-muted); }
+.smartfit-analysis ul { padding-left: 15px; list-style: disc; }
+.smartfit-analysis li + li { margin-top: 5px; }
+.smartfit-card-actions { display: flex; gap: 14px; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 19px; padding-top: 15px; border-top: 1px solid var(--sf-line); font-size: 11px; }
+.smartfit-card-actions label { display: flex; gap: 7px; align-items: center; cursor: pointer; }
+.smartfit-card-actions input { width: 15px; height: 15px; accent-color: var(--sf-blue); }
+.smartfit-card-actions input:disabled + span { opacity: .55; }
+.smartfit-card-actions a { display: flex; gap: 7px; align-items: center; color: var(--sf-blue); font-weight: 650; }
+.smartfit-card-actions a:hover { text-decoration: underline; }
+.smartfit-method { padding: 4px 3px; font-size: 11px; line-height: 1.85; color: var(--sf-muted); }
+.smartfit-method h3 { color: var(--sf-ink); font-weight: 650; }
+.smartfit-method p { margin-top: 6px; }
+.smartfit-comparison-summary { display: flex; gap: 10px; align-items: center; padding: 17px 20px; margin-top: 25px; border: 1px solid var(--sf-line); border-radius: 12px; background: var(--sf-soft); font-size: 12px; line-height: 1.7; }
+.smartfit-comparison-summary > svg { flex-shrink: 0; color: var(--sf-blue); }
+.smartfit-comparison-summary button { margin-left: auto; color: var(--sf-blue); flex-shrink: 0; font-size: 11px; text-decoration: underline; }
+.smartfit-compare { margin-top: 22px; padding: 26px; }
+.smartfit-muted { font-size: 11px; line-height: 1.85; color: var(--sf-muted); }
+.smartfit-compare > .smartfit-muted { margin-top: 12px; }
+.smartfit-table-scroll { margin-top: 20px; width: 100%; overflow-x: auto; border: 1px solid var(--sf-line); border-radius: 10px; }
+.smartfit-compare table { width: 100%; min-width: 620px; border-collapse: collapse; table-layout: fixed; text-align: left; font-size: 12px; line-height: 1.8; }
+.smartfit-compare th, .smartfit-compare td { padding: 13px 16px; vertical-align: top; border-bottom: 1px solid var(--sf-line); overflow-wrap: anywhere; }
+.smartfit-compare th + th, .smartfit-compare td { border-left: 1px solid var(--sf-line); }
+.smartfit-compare th:first-child { width: 135px; }
+.smartfit-compare thead { background: var(--sf-soft); }
+.smartfit-compare thead th { font-weight: 650; }
+.smartfit-compare thead a { color: var(--sf-blue); }
+.smartfit-compare thead a:hover { text-decoration: underline; }
+.smartfit-compare small { display: block; margin-top: 6px; color: var(--sf-muted); font-size: 10px; font-weight: 400; }
+.smartfit-compare tbody th { font-weight: 550; }
+.smartfit-compare td { color: var(--sf-muted); }
+.smartfit-compare td ul { padding-left: 15px; list-style: disc; }
+.smartfit-compare td li + li { margin-top: 7px; }
+.smartfit-reasons-row th { color: var(--sf-blue); }
+.smartfit-compare tr:last-child > * { border-bottom: 0; }
+.smartfit-spinner { animation: smartfit-spin .8s linear infinite; }
+.smartfit-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.dark .smartfit-page { --sf-ink: #e4eff9; --sf-muted: #a4bbce; --sf-line: #30495e; --sf-surface: #182b3b; --sf-soft: #1c354a; --sf-blue: #7dd3fc; }
+.dark .smartfit-hero { background: linear-gradient(115deg, #18334a, #182b3b 78%); }
+.dark .smartfit-field input, .dark .smartfit-field select { border-color: #466176; }
+.dark .smartfit-primary { background: #0369a1; }
+.dark .smartfit-score { border-color: #385b76; }
+.dark .smartfit-error { color: #fda4af; }
+@keyframes smartfit-spin { to { transform: rotate(360deg); } }
+@media (max-width: 1000px) {
+  .smartfit-layout { grid-template-columns: 285px minmax(0, 1fr); gap: 18px; }
+  .smartfit-form, .smartfit-recommendation { padding: 20px; }
+  .smartfit-product-top { flex-wrap: wrap; gap: 12px; }
+  .smartfit-product-top > a { width: 90px; }
+  .smartfit-score { min-width: 65px; min-height: 65px; margin-left: auto; }
+  .smartfit-analysis { grid-template-columns: 1fr; gap: 17px; }
+}
+@media (max-width: 760px) {
+  .smartfit-page { padding-top: 20px; }
+  .smartfit-hero { padding: 28px 23px; }
+  .smartfit-hero-note { display: none; }
+  .smartfit-layout { grid-template-columns: 1fr; gap: 28px; }
+  .smartfit-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .smartfit-form > :is(div:first-child, fieldset, button, p), .smartfit-form > .smartfit-field:first-of-type { grid-column: 1 / -1; }
+  .smartfit-product-top { flex-wrap: nowrap; }
+  .smartfit-product-top > a { width: 100px; }
+  .smartfit-analysis { grid-template-columns: 1fr 1fr; gap: 18px; }
+  .smartfit-compare { padding: 20px 16px; }
+}
+@media (max-width: 480px) {
+  .smartfit-form { display: flex; }
+  .smartfit-hero h1 { font-size: 30px; }
+  .smartfit-section-heading { align-items: start; }
+  .smartfit-section-heading > span { max-width: 100px; text-align: center; white-space: normal; }
+  .smartfit-product-top { position: relative; flex-wrap: wrap; padding-top: 4px; }
+  .smartfit-product-top > a { width: 76px; }
+  .smartfit-product-image { height: 78px; }
+  .smartfit-product-copy h3 { padding-right: 12px; font-size: 15px; }
+  .smartfit-score { min-width: 0; min-height: 0; margin: 0; padding: 6px 10px; flex-direction: row; gap: 5px; }
+  .smartfit-score strong { font-size: 16px; }
+  .smartfit-score span { margin: 0; }
+  .smartfit-analysis { grid-template-columns: 1fr; }
+  .smartfit-comparison-summary { flex-wrap: wrap; padding: 15px; }
+  .smartfit-comparison-summary > span { flex: 1; }
+  .smartfit-empty { padding: 30px 22px; min-height: 300px; }
+}
+@media (prefers-reduced-motion: reduce) { .smartfit-spinner { animation-duration: 2s; } }
