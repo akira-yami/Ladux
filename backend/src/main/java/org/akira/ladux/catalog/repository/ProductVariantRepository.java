@@ -20,7 +20,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     boolean existsBySku(String candidate);
 
     @Query("UPDATE ProductVariant p SET p.stockQuantity = p.stockQuantity - :qty " +
-            "WHERE p.id = :id AND p.stockQuantity >= :qty")
+            "WHERE p.id = :id AND :qty > 0 AND p.stockQuantity >= :qty AND p.isActive = true " +
+            "AND EXISTS (SELECT product.id FROM Product product WHERE product.id = p.product.id AND product.isActive = true)")
     @Modifying
     int deductStockAtomically(
             @Param("id") @NotNull(message = "ProductId khong duoc de trong") @Positive(message = "ProductId phai la so duong") Integer id,
