@@ -59,6 +59,41 @@ Phần lớn các dự án e-commerce mẫu chỉ dừng lại ở các thao tá
 
 ---
 
+## SmartFit & Intelligent Discovery
+
+Ladux đã bổ sung luồng chọn laptop theo nhu cầu, với catalog và backend quyết định giá, SKU, tồn kho và điểm phù hợp:
+
+- **Smart Search:** focus hiện tối đa 5 sản phẩm bán chạy hợp lệ trong 30 ngày hoặc nhãn **nổi bật** khi chưa có dữ liệu bán chạy; autocomplete gần đúng `pg_trgm`, debounce 275 ms, bàn phím và mobile. Không gọi LLM khi nhập từ khóa.
+- **SmartFit `/smartfit`:** ngân sách, mục đích, ưu tiên và RAM/SSD tối thiểu; trả tối đa 3–5 sản phẩm với lý do và đánh đổi. Backend lọc live sản phẩm/SKU active, còn hàng và trong ngân sách.
+- **Smart Compare:** so sánh 2–3 cấu hình đúng SKU, giữ nguyên điểm và giải thích của SmartFit; liên kết chi tiết chọn đúng biến thể.
+- **Contextual Chat:** endpoint `/api/v1/chatbot/contextual-chat` nhận SKU đã chọn và trả thẻ sản phẩm do backend xác thực. Đã kiểm tra HTTP/test và giao diện fallback với đúng 2 thẻ đã chọn; chưa xác nhận toàn bộ luồng với LLM thực.
+
+Các API Discovery/SmartFit/Contextual Chat trả **DTO JSON trực tiếp**, không có envelope `data`. Trọng số SmartFit thay đổi theo ưu tiên, không phải benchmark CPU/GPU. Pin chưa được quy đổi thành thời lượng; ROM chỉ có `512GB`/`1TB` chưa xác nhận là SSD và được hiển thị **“Chưa đủ dữ liệu”**. MVP lấy tối đa 500 ứng viên trước bước parse RAM/SSD nên chưa bảo đảm tối ưu toàn bộ catalog khi mở rộng. Dropdown có cache frontend tối đa 60 giây/30 truy vấn; checkout tiếp tục kiểm tra giá/tồn kho live.
+
+Migration mới **V56** sửa tham chiếu sản phẩm/SKU trong dòng đơn lịch sử, giữ snapshot giá/số lượng. **V55 chỉ dành dev/test** tắt SKU demo còn nguyên giá cũ khi có SKU VND thay thế đã xác nhận; không quy đổi giá, xóa dữ liệu hay sửa snapshot/tồn kho. Các SKU đã được migration V54 trên `main` cập nhật sang VNĐ vẫn hoạt động. **Chưa migrate database dev hiện có của người dùng.** Sau khi đồng bộ `main`, backend `clean verify` đạt **156 tests**, không lỗi/bỏ qua; frontend đạt TypeScript, **30 tests** và production build. Local dùng JDK 25, target Java 21; CI Java 21 từ xa, một giao dịch VNPay mới và LLM thực chưa được xác nhận.
+
+Xem [hướng dẫn API, ranking và giới hạn](docs/SMARTFIT_GUIDE.md), cùng [checklist triển khai](docs/LADUX_SMARTFIT_IMPROVEMENTS.md). Đã kiểm tra giao diện thật: 3 kết quả SmartFit, so sánh 2 cấu hình giữ nguyên giá/điểm, link mở đúng SKU, tìm `thikpad` ra ThinkPad và ngân sách 1 đồng trả rỗng; Chrome mobile **390 px** không tràn ngang. [Video walkthrough 2 phút 30 giây](docs/media/smartfit-walkthrough.mp4) dựng từ ảnh chụp thực, **không phải bản ghi thao tác thời gian thực**. P2 lịch sử/cá nhân hóa và P3 ML recommender/agent được giữ cho phiên bản sau.
+
+| SmartFit — kết quả thực | Smart Compare — hai cấu hình |
+|:---:|:---:|
+| ![Ba kết quả SmartFit](docs/media/smartfit-desktop.jpg) | ![So sánh hai cấu hình](docs/media/smart-compare.jpg) |
+
+| SmartFit — form nhu cầu | SmartFit — mobile 390 px |
+|:---:|:---:|
+| ![SmartFit form nhu cầu](docs/media/smartfit-form.jpg) | ![SmartFit mobile 390 px](docs/media/smartfit-mobile.jpg) |
+
+[Chat theo ngữ cảnh ở chế độ fallback](docs/media/contextual-chat.jpg) · [Chi tiết chọn đúng SKU](docs/media/smartfit-sku-detail.jpg)
+
+Ảnh/video lưu snapshot demo trước khi đồng bộ các PR #6/#7 về giá và header; giá, điểm và bố cục có thể khác bản seed hiện tại. API luôn đọc dữ liệu catalog của môi trường đang chạy.
+
+| Smart Search — sản phẩm nổi bật | SmartFit — không có cấu hình đáp ứng |
+|:---:|:---:|
+| ![Focus search hiển thị sản phẩm nổi bật](docs/media/smart-search.jpg) | ![Ngân sách 1 đồng không có kết quả](docs/media/smartfit-empty.jpg) |
+
+[Tìm sai chính tả thikpad](docs/media/smart-search-typo.jpg) · [Chọn gợi ý bằng phím ArrowDown](docs/media/smart-search-keyboard.jpg)
+
+---
+
 ## ⚡ Engineering Challenges
 
 ### 1. Atomic Inventory Deduction & Overselling Prevention
@@ -176,6 +211,7 @@ flowchart TD
 - [Kiến trúc backend](backend/docs/architecture/README.md): module, phân tầng, transaction, cache và kiểm thử.
 - [Hướng dẫn phát triển backend](backend/AGENT.md): quy tắc tổ chức code và bảo toàn hành vi.
 - [Database migrations](backend/src/main/resources/db/migration): schema và lịch sử thay đổi dữ liệu.
+- [SmartFit & Intelligent Discovery](docs/SMARTFIT_GUIDE.md): API trực tiếp, cách tính điểm, thông số thiếu, kiểm chứng và kịch bản demo.
 
 ---
 
@@ -265,6 +301,7 @@ Ladux/
 
 - **Core Capabilities**: Hoàn thiện toàn bộ luồng Auth, Catalog, Cart, Atomic Checkout, VNPay Webhook, Order State Machine, Sổ cái kho và Distributed Rate Limiting.
 - **Testing**: Đã triển khai Unit Test và Integration Test với Testcontainers (PostgreSQL).
+- **SmartFit / Discovery**: Đã có Smart Search, form tư vấn và so sánh SKU; [checklist](docs/LADUX_SMARTFIT_IMPROVEMENTS.md#6-điều-kiện-nghiệm-thu) tách rõ triển khai, kiểm chứng và media còn lại.
 - **Active Improvements**: Đang hoàn thiện các hạng mục trong [`08-ke_hoach_production.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/08-ke_hoach_production.md) (cấu hình CDN và hoàn thiện monitoring với Prometheus/Grafana).
 
 ---
