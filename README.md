@@ -70,7 +70,9 @@ Ladux đã bổ sung luồng chọn laptop theo nhu cầu, với catalog và bac
 
 Các API Discovery/SmartFit/Contextual Chat trả **DTO JSON trực tiếp**, không có envelope `data`. Trọng số SmartFit thay đổi theo ưu tiên, không phải benchmark CPU/GPU. Pin chưa được quy đổi thành thời lượng; ROM chỉ có `512GB`/`1TB` chưa xác nhận là SSD và được hiển thị **“Chưa đủ dữ liệu”**. MVP lấy tối đa 500 ứng viên trước bước parse RAM/SSD nên chưa bảo đảm tối ưu toàn bộ catalog khi mở rộng. Dropdown có cache frontend tối đa 60 giây/30 truy vấn; checkout tiếp tục kiểm tra giá/tồn kho live.
 
-Migration mới **V56** sửa tham chiếu sản phẩm/SKU trong dòng đơn lịch sử, giữ snapshot giá/số lượng. **V55 chỉ dành dev/test** tắt SKU demo còn nguyên giá cũ khi có SKU VND thay thế đã xác nhận; không quy đổi giá, xóa dữ liệu hay sửa snapshot/tồn kho. Các SKU đã được migration V54 trên `main` cập nhật sang VNĐ vẫn hoạt động. **Chưa migrate database dev hiện có của người dùng.** Sau khi đồng bộ `main`, backend `clean verify` đạt **156 tests**, không lỗi/bỏ qua; frontend đạt TypeScript, **30 tests** và production build. Local dùng JDK 25, target Java 21; CI Java 21 từ xa, một giao dịch VNPay mới và LLM thực chưa được xác nhận.
+Migration mới **V56** sửa tham chiếu sản phẩm/SKU trong dòng đơn lịch sử, giữ snapshot giá/số lượng. **V55 chỉ dành dev/test** tắt SKU demo còn nguyên giá cũ khi có SKU VND thay thế đã xác nhận; không quy đổi giá, xóa dữ liệu hay sửa snapshot/tồn kho. Các SKU đã được migration V54 trên `main` cập nhật sang VNĐ vẫn hoạt động.
+
+Database dev hiện có đã được backup, diễn tập trên bản sao, [đối chiếu/repair dấu vết V49](backend/docs/retired-v49-recovery.md) và migrate tới **V56** ngày 20/10/2026. Backend/frontend Docker đều healthy; danh mục và snapshot đơn hàng được bảo toàn. Backend `clean verify` bằng **JDK 21 trong Docker đạt 158 tests**, không lỗi/bỏ qua. Lần kiểm tra frontend trước đó đạt TypeScript, **30 tests** và production build; đợt sửa V49 chỉ smoke test HTTP. CI Java 21 từ xa, một giao dịch VNPay mới và LLM thực chưa được xác nhận.
 
 Xem [hướng dẫn API, ranking và giới hạn](docs/SMARTFIT_GUIDE.md), cùng [checklist triển khai](docs/LADUX_SMARTFIT_IMPROVEMENTS.md). Đã kiểm tra giao diện thật: 3 kết quả SmartFit, so sánh 2 cấu hình giữ nguyên giá/điểm, link mở đúng SKU, tìm `thikpad` ra ThinkPad và ngân sách 1 đồng trả rỗng; Chrome mobile **390 px** không tràn ngang. [Video walkthrough 2 phút 30 giây](docs/media/smartfit-walkthrough.mp4) dựng từ ảnh chụp thực, **không phải bản ghi thao tác thời gian thực**. P2 lịch sử/cá nhân hóa và P3 ML recommender/agent được giữ cho phiên bản sau.
 
@@ -251,6 +253,10 @@ docker compose down
 ```
 
 Compose gốc dùng tên project `backend` để dùng chung container và volume với cách chạy cũ trong thư mục `backend/` (khi không đặt project name riêng). Không chạy đồng thời hai cấu hình bằng project name khác nhau vì chúng dùng cùng cổng. Đây là cấu hình local; triển khai production tiếp tục dùng `backend/docker-compose.prod.yml`.
+
+Nếu app dừng với `Detected applied migration not resolved locally: 49`, làm theo
+[hướng dẫn khôi phục lịch sử V49 cho database dev](backend/docs/retired-v49-recovery.md).
+Hướng dẫn có bước backup và lệnh repair giới hạn; không chạy lại migration V49 cũ.
 
 ### Phát triển với hot reload
 
