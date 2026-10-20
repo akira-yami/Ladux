@@ -87,7 +87,7 @@ export default function WishlistView({
                                 <div className="p-5">
                                     <div className="flex items-center justify-between text-xs text-slate-500 font-sans mb-2">
                                         <span>{laptop.brand}</span>
-                                        <span className="flex items-center gap-1 text-amber-600">
+                                        <span className="flex items-center gap-1 text-amber-700">
                                             <Star className="w-3.5 h-3.5 fill-amber-600" /> {laptop.rating} (
                                             {laptop.reviewCount})
                                         </span>

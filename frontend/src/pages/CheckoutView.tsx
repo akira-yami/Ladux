@@ -433,7 +433,7 @@ export default function CheckoutView({
                                 }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-blue-900/30 border border-blue-500/30 flex items-center justify-center font-semibold text-blue-600 text-xs">
+                                    <div className="w-10 h-10 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center font-semibold text-sky-700 text-xs">
                                         VNPay
                                     </div>
                                     <div>
@@ -460,7 +460,7 @@ export default function CheckoutView({
                                 }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-emerald-900/30 border border-emerald-500/30 flex items-center justify-center font-bold text-sky-700 text-xs">
+                                    <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center font-bold text-emerald-700 text-xs">
                                         COD
                                     </div>
                                     <div>

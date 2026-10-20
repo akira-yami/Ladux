@@ -41,16 +41,16 @@ function getStepIndex(status: string): number {
 
 function StatusBadge({ status }: { status: string }) {
     const map: Record<string, { label: string; cls: string }> = {
-        PENDING:          { label: "Đã đặt hàng",  cls: "bg-amber-500/20 text-amber-600 border-amber-500/30" },
-        CONFIRMED:        { label: "Đã xác nhận",  cls: "bg-sky-500/20 text-sky-600 border-sky-500/30" },
-        PAID:             { label: "Đã xác nhận",  cls: "bg-sky-500/20 text-sky-600 border-sky-500/30" },
-        PROCESSING:       { label: "Đang xử lý",   cls: "bg-sky-500/20 text-sky-600 border-sky-500/30" },
-        SHIPPED:          { label: "Đang giao",     cls: "bg-blue-500/20 text-blue-600 border-blue-500/30" },
-        DELIVERED:        { label: "Đã giao hàng", cls: "bg-emerald-500/20 text-emerald-600 border-emerald-500/30" },
-        CANCELLED:        { label: "Đã hủy",        cls: "bg-red-500/20 text-red-600 border-red-500/30" },
-        RETURN_REQUESTED: { label: "Yêu cầu hoàn", cls: "bg-orange-500/20 text-orange-600 border-orange-500/30" },
-        RETURNED:         { label: "Đã hoàn",       cls: "bg-orange-400/20 text-orange-600 border-orange-400/30" },
-        REFUNDED:         { label: "Đã hoàn tiền",  cls: "bg-teal-500/20 text-teal-600 border-teal-500/30" },
+        PENDING:          { label: "Đã đặt hàng",  cls: "bg-amber-50 text-amber-700 border-amber-200" },
+        CONFIRMED:        { label: "Đã xác nhận",  cls: "bg-sky-50 text-sky-700 border-sky-200" },
+        PAID:             { label: "Đã xác nhận",  cls: "bg-sky-50 text-sky-700 border-sky-200" },
+        PROCESSING:       { label: "Đang xử lý",   cls: "bg-sky-50 text-sky-700 border-sky-200" },
+        SHIPPED:          { label: "Đang giao",     cls: "bg-sky-50 text-sky-700 border-sky-200" },
+        DELIVERED:        { label: "Đã giao hàng", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+        CANCELLED:        { label: "Đã hủy",        cls: "bg-rose-50 text-rose-700 border-rose-200" },
+        RETURN_REQUESTED: { label: "Yêu cầu hoàn", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+        RETURNED:         { label: "Đã hoàn",       cls: "bg-amber-50 text-amber-700 border-amber-200" },
+        REFUNDED:         { label: "Đã hoàn tiền",  cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
     };
     const cfg = map[status] ?? { label: status, cls: "bg-slate-100 text-slate-500 border-slate-200" };
     return (
@@ -62,13 +62,13 @@ function StatusBadge({ status }: { status: string }) {
 
 function HistoryStatusIcon({ status }: { status: string }) {
     switch (status) {
-        case "PENDING":   return <Clock className="w-3.5 h-3.5 text-amber-600" />;
+        case "PENDING":   return <Clock className="w-3.5 h-3.5 text-amber-700" />;
         case "CONFIRMED":
         case "PAID":
         case "PROCESSING": return <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />;
         case "SHIPPED":   return <Truck className="w-3.5 h-3.5 text-blue-600" />;
         case "DELIVERED": return <CheckCircle2 className="w-3.5 h-3.5 text-sky-700" />;
-        case "CANCELLED": return <XCircle className="w-3.5 h-3.5 text-red-600" />;
+        case "CANCELLED": return <XCircle className="w-3.5 h-3.5 text-rose-700" />;
         case "RETURN_REQUESTED":
         case "RETURNED":
         case "REFUNDED":  return <RotateCcw className="w-3.5 h-3.5 text-orange-600" />;
@@ -261,7 +261,7 @@ export default function OrdersView({
             </div>
 
             {error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-600 p-4 rounded-xl text-xs font-sans text-center mb-6">
+                <div className="bg-red-500/20 border border-red-500 text-rose-700 p-4 rounded-xl text-xs font-sans text-center mb-6">
                     [Lỗi hệ thống]: {error}
                 </div>
             )}
@@ -366,7 +366,7 @@ export default function OrdersView({
                                 {/* ── Section 2: Status Stepper ── */}
                                 <div className="px-6 sm:px-8 py-6 border-b border-slate-200">
                                     {currentOrder.status === "CANCELLED" ? (
-                                        <div className="p-4 bg-red-500/[0.08] border border-red-500/25 rounded-xl text-red-600 text-xs font-semibold flex items-center gap-2.5">
+                                        <div className="p-4 bg-red-500/[0.08] border border-red-500/25 rounded-xl text-rose-700 text-xs font-semibold flex items-center gap-2.5">
                                             <AlertCircle className="w-4 h-4 shrink-0" />
                                             Đơn hàng này đã bị hủy theo yêu cầu.
                                         </div>
@@ -521,7 +521,7 @@ export default function OrdersView({
                                                     type="button"
                                                     disabled={isCancelling}
                                                     onClick={() => handleCancelOrder(Number(currentOrder.id))}
-                                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-sans font-bold text-red-600 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-all disabled:opacity-50"
+                                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-sans font-bold text-rose-700 hover:text-rose-700 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-all disabled:opacity-50"
                                                 >
                                                     <XCircle className="w-4 h-4" />
                                                     {isCancelling ? "ĐANG HỦY ĐƠN..." : "HỦY ĐƠN HÀNG"}
@@ -637,7 +637,7 @@ export default function OrdersView({
                                     {currentOrder.status === "DELIVERED" && (
                                         <button
                                             onClick={() => setShowReturnModal(true)}
-                                            className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500 hover:text-white text-amber-600 px-5 py-2.5 rounded-xl text-xs font-semibold normal-case transition shadow-md shadow-amber-500/10"
+                                            className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500 hover:text-white text-amber-700 px-5 py-2.5 rounded-xl text-xs font-semibold normal-case transition shadow-md shadow-amber-500/10"
                                         >
                                             <RotateCcw className="w-3.5 h-3.5" />
                                             Yêu cầu trả hàng
@@ -661,7 +661,7 @@ export default function OrdersView({
             {showReturnModal && currentOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/25 backdrop-blur-sm animate-fadeIn">
                     <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-md w-full shadow-xl shadow-sky-100/50 space-y-4">
-                        <div className="flex items-center gap-3 text-amber-600">
+                        <div className="flex items-center gap-3 text-amber-700">
                             <RotateCcw className="w-6 h-6" />
                             <h3 className="text-lg font-bold text-slate-800">Yêu Cầu Trả Hàng / Hoàn Tiền</h3>
                         </div>

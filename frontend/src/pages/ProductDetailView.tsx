@@ -163,7 +163,7 @@ export default function ProductDetailView({
                             )}
                             <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1">
                                 <span className="text-slate-500 block text-[10px] normal-case">Tình trạng kho</span>
-                                <span className={`font-semibold block ${selectedVariant?.stockQuantity ? "text-emerald-500" : "text-red-600"}`}>
+                                <span className={`font-semibold block ${selectedVariant?.stockQuantity ? "text-emerald-700" : "text-rose-700"}`}>
                                     {selectedVariant?.stockQuantity
                                         ? `Sẵn hàng (${selectedVariant.stockQuantity} máy)`
                                         : "Tạm hết hàng"}
@@ -178,7 +178,7 @@ export default function ProductDetailView({
                     <div>
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <span className="inline-block px-3 py-1 bg-white border border-emerald-500/30 text-emerald-500 text-xs font-sans font-bold rounded-md mb-3">
+                                <span className="inline-block px-3 py-1 bg-white border border-emerald-500/30 text-emerald-700 text-xs font-sans font-bold rounded-md mb-3">
                                     {selectedProduct.brand} • {selectedProduct.category}
                                 </span>
                                 <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800 leading-tight">
@@ -192,7 +192,7 @@ export default function ProductDetailView({
                                 className={`p-3 rounded-xl border transition ${
                                     isWishlisted
                                         ? "bg-red-500/10 border-red-500 text-red-500"
-                                        : "bg-white border-slate-200 text-slate-500 hover:text-red-600"
+                                        : "bg-white border-slate-200 text-slate-500 hover:text-rose-700"
                                 }`}
                                 title={isWishlisted ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
                             >
@@ -202,7 +202,7 @@ export default function ProductDetailView({
                         <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
                             {selectedProduct.reviewCount > 0 ? (
                                 <>
-                                    <div className="flex items-center gap-1 text-amber-600 font-bold">
+                                    <div className="flex items-center gap-1 text-amber-700 font-bold">
                                         <Star className="w-4 h-4 fill-amber-600" /> {selectedProduct.rating.toFixed(1)}
                                     </div>
                                     <span>•</span>
@@ -338,7 +338,7 @@ export default function ProductDetailView({
                                 if (added) navigate(ROUTES.checkout);
                             }}
                             disabled={!selectedVariant || selectedVariant.stockQuantity <= 0}
-                            className="w-full bg-sky-600 text-white py-3.5 rounded-xl font-semibold text-sm normal-case tracking-normal hover:bg-sky-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+                            className="w-full bg-sky-600 text-white py-3.5 rounded-xl font-semibold text-sm normal-case tracking-normal hover:bg-primary-hover transition disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Mua Ngay: {selectedVariantLabel}
                         </button>
@@ -377,7 +377,7 @@ export default function ProductDetailView({
                             >
                                 <Star
                                     className={`w-5 h-5 ${
-                                        star <= newRating ? "fill-amber-600 text-amber-600" : "text-slate-600"
+                                        star <= newRating ? "fill-amber-600 text-amber-700" : "text-slate-600"
                                     }`}
                                 />
                             </button>
@@ -429,7 +429,7 @@ export default function ProductDetailView({
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1 text-amber-600">
+                                <div className="flex items-center gap-1 text-amber-700">
                                     {[...Array(rev.rating)].map((_, i) => (
                                         <Star key={i} className="w-3.5 h-3.5 fill-amber-600" />
                                     ))}

@@ -444,7 +444,7 @@ export default function AccountView({
                 <div className="custom-scrollbar px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
                     <div>
                         <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-1.5">
-                            Họ và tên người nhận <span className="text-red-600">*</span>
+                            Họ và tên người nhận <span className="text-rose-700">*</span>
                         </label>
                         <input
                             type="text"
@@ -457,7 +457,7 @@ export default function AccountView({
 
                     <div>
                         <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-1.5">
-                            Số điện thoại nhận hàng <span className="text-red-600">*</span>
+                            Số điện thoại nhận hàng <span className="text-rose-700">*</span>
                         </label>
                         <input
                             type="tel"
@@ -470,7 +470,7 @@ export default function AccountView({
 
                     <div>
                         <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-1.5">
-                            Địa chỉ nhà / Tên đường <span className="text-red-600">*</span>
+                            Địa chỉ nhà / Tên đường <span className="text-rose-700">*</span>
                         </label>
                         <input
                             type="text"
@@ -484,7 +484,7 @@ export default function AccountView({
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-1.5">
-                                Phường / Xã <span className="text-red-600">*</span>
+                                Phường / Xã <span className="text-rose-700">*</span>
                             </label>
                             <input
                                 type="text"
@@ -496,7 +496,7 @@ export default function AccountView({
                         </div>
                         <div>
                             <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-1.5">
-                                Quận / Huyện <span className="text-red-600">*</span>
+                                Quận / Huyện <span className="text-rose-700">*</span>
                             </label>
                             <input
                                 type="text"
@@ -510,7 +510,7 @@ export default function AccountView({
 
                     <div>
                         <label className="block text-[11px] font-bold normal-case tracking-normal text-slate-500 mb-1.5">
-                            Tỉnh / Thành phố <span className="text-red-600">*</span>
+                            Tỉnh / Thành phố <span className="text-rose-700">*</span>
                         </label>
                         <input
                             type="text"
@@ -712,7 +712,7 @@ export default function AccountView({
                                             <div className="flex items-center gap-1.5">
                                                 <button
                                                     onClick={() => deleteAddr(addr.id)}
-                                                    className="rounded-xl bg-red-500/20 border border-red-500/40 px-3 py-2.5 text-[11px] font-semibold text-red-600 hover:bg-red-500/30 transition"
+                                                    className="rounded-xl bg-red-500/20 border border-red-500/40 px-3 py-2.5 text-[11px] font-semibold text-rose-700 hover:bg-red-500/30 transition"
                                                 >
                                                     Xác nhận xóa
                                                 </button>
@@ -730,7 +730,7 @@ export default function AccountView({
                                                 className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2.5 text-[11px] font-bold transition ${
                                                     addr.isDefault
                                                         ? "border-slate-200 text-slate-600 cursor-not-allowed"
-                                                        : "border-red-500/20 text-red-600 hover:bg-red-500/10 hover:border-red-500/40"
+                                                        : "border-red-500/20 text-rose-700 hover:bg-red-500/10 hover:border-red-500/40"
                                                 }`}
                                                 title={addr.isDefault ? "Không thể xóa địa chỉ mặc định" : "Xóa địa chỉ này"}
                                             >
@@ -889,7 +889,7 @@ export default function AccountView({
                     <div className="mt-6 pt-5 border-t border-sky-100">
                         <button
                             onClick={handleLogout}
-                            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-600 transition hover:bg-red-500/10 hover:text-red-300"
+                            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-rose-700 transition hover:bg-red-500/10 hover:text-rose-700"
                         >
                             <LogOut className="w-4 h-4" />
                             Đăng xuất
@@ -1426,7 +1426,7 @@ export default function AccountView({
                                     <div className="rounded-2xl border border-sky-700/40 bg-sky-50 p-4 space-y-2.5 animate-in fade-in duration-200">
                                         <div className="flex items-center justify-between font-sans text-[10px]">
                                             <span className="font-bold normal-case tracking-normal text-sky-700">
-                                                NHẬP MÃ XÁC THỰC (OTP / CODE) <span className="text-red-600">*</span>
+                                                NHẬP MÃ XÁC THỰC (OTP / CODE) <span className="text-rose-700">*</span>
                                             </span>
                                         </div>
                                         <input
