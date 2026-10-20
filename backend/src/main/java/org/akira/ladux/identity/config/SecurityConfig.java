@@ -1,15 +1,11 @@
 package org.akira.ladux.identity.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.akira.ladux.identity.security.EndpointRateLimitFilter;
 import org.akira.ladux.identity.security.JwtFilter;
 import org.akira.ladux.identity.security.OAuth2FailureHandler;
@@ -34,6 +30,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * REST API dung Bearer JWT va hoan toan stateless. OAuth2 dung mot filter chain
@@ -119,9 +122,10 @@ public class SecurityConfig {
                                 "/api/v1/products", "/api/v1/products/**",
                                 "/api/v1/brands", "/api/v1/brands/**",
                                 "/api/v1/categories", "/api/v1/categories/**",
-                                "/api/v1/reviews", "/api/v1/reviews/**"
+                                "/api/v1/reviews", "/api/v1/reviews/**",
+                                "/api/v1/discovery/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/chatbot/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/chatbot/**", "/api/v1/smartfit/recommend").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")

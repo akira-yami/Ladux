@@ -75,7 +75,7 @@ class ProductionMigrationSmokeTest {
                     .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
                     .locations("classpath:db/migration").load().migrate();
             assertTrue(result.success);
-            assertEquals(1, result.migrationsExecuted);
+            assertEquals(2, result.migrationsExecuted);
             try (var connection = DriverManager.getConnection(
                     postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
                  var statement = connection.createStatement()) {
@@ -161,6 +161,42 @@ class ProductionMigrationSmokeTest {
                 }
                 org.junit.jupiter.api.Assertions.assertThrows(java.sql.SQLException.class,
                         () -> statement.executeUpdate("DELETE FROM categories WHERE id = 99"));
+            }
+        }
+    }
+
+    @Test
+    void upgradePreservesLegacyOrderSkuWhenProductAndSkuIdsDiffer() throws Exception {
+        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17")) {
+            postgres.start();
+            Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+                    .locations("classpath:db/migration").target("52").load().migrate();
+            try (var connection = DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+                 var statement = connection.createStatement()) {
+                statement.executeUpdate("INSERT INTO users (id, username, password) VALUES (900, 'legacy-buyer', 'hash')");
+                statement.executeUpdate("INSERT INTO brands (id, name, slug) VALUES (900, 'Legacy', 'legacy')");
+                statement.executeUpdate("INSERT INTO categories (id, name, slug) VALUES (900, 'Legacy', 'legacy')");
+                statement.executeUpdate("INSERT INTO products (id, brand_id, category_id, name, slug) VALUES (901, 900, 900, 'Legacy laptop', 'legacy-laptop')");
+                statement.executeUpdate("INSERT INTO product_variants (id, product_id, sku, color_id, price, stock_quantity, is_active) VALUES (1901, 901, 'LEGACY-SKU', (SELECT id FROM colors LIMIT 1), 12000000, 5, true)");
+                statement.executeUpdate("""
+                        INSERT INTO orders (id, user_id, sub_total, final_amount, status,
+                          shipping_receiver_name, shipping_phone, shipping_street, shipping_ward, shipping_district, shipping_city)
+                        VALUES (900, 900, 24000000, 24000000, 'DELIVERED', 'Test', '0900000000', 'Test', 'Test', 'Test', 'Test')
+                        """);
+                statement.executeUpdate("INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (900, 1901, 2, 12000000)");
+            }
+            var flyway = Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+                    .locations("classpath:db/migration").load();
+            assertTrue(flyway.migrate().success);
+            flyway.validate();
+            try (var connection = DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+                 var statement = connection.createStatement();
+                 var rows = statement.executeQuery("SELECT product_id, product_variant_id, quantity, price_at_purchase FROM order_items WHERE order_id = 900")) {
+                assertTrue(rows.next());
+                assertEquals(901, rows.getInt("product_id"));
+                assertEquals(1901, rows.getInt("product_variant_id"));
+                assertEquals(2, rows.getInt("quantity"));
+                assertEquals(0, new java.math.BigDecimal("12000000").compareTo(rows.getBigDecimal("price_at_purchase")));
             }
         }
     }
