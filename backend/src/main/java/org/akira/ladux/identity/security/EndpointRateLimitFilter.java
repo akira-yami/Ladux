@@ -1,10 +1,7 @@
 package org.akira.ladux.identity.security;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
 import org.akira.ladux.identity.service.DistributedRateLimitService;
 import org.akira.ladux.shared.exception.RateLimitExceededException;
 import org.akira.ladux.shared.util.ClientIpUtils;
@@ -15,6 +12,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Applies endpoint-specific limits after JwtFilter has populated the SecurityContext.
@@ -107,6 +109,9 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
         } else if ("POST".equals(method) && path.endsWith("/otp")) {
             rateLimitService.check("otp-send-ip", clientIp, otpIpCapacity, otpIpRefillMinutes,
                     "Bạn đã yêu cầu gửi OTP quá nhiều, hãy thử lại sau");
+        } else if ("POST".equals(method) && "/api/v1/smartfit/recommend".equals(path)) {
+            rateLimitService.check("smartfit-ip", clientIp, chatbotCapacity, chatbotRefillMinutes,
+                    "Bạn đã gửi quá nhiều yêu cầu tư vấn, hãy thử lại sau");
         } else if ("POST".equals(method) && path.startsWith("/api/v1/chatbot/")) {
             rateLimitService.check("chatbot-ip", clientIp, chatbotCapacity, chatbotRefillMinutes,
                     "Bạn đã gửi quá nhiều yêu cầu chatbot, hãy thử lại sau");
@@ -124,7 +129,8 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
 
     private boolean isSearchRequest(HttpServletRequest request, String path) {
         return (request.getParameter("search") != null && !request.getParameter("search").isBlank())
-                || path.endsWith("/search");
+                || path.endsWith("/search")
+                || "/api/v1/discovery/suggestions".equals(path);
     }
 
     private String authenticatedUserOrIp(String clientIp) {
