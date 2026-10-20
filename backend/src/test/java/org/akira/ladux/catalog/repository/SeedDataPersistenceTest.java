@@ -34,6 +34,7 @@ class SeedDataPersistenceTest extends AbstractIntegrationTest {
     @Autowired BrandRepository brandRepository;
     @Autowired CategoryRepository categoryRepository;
     @Autowired ProductRepository productRepository;
+    @Autowired ProductImageRepository productImageRepository;
     @Autowired CouponRepository couponRepository;
     @Autowired UserRepository userRepository;
     @Autowired CustomerRepository customerRepository;
@@ -51,7 +52,7 @@ class SeedDataPersistenceTest extends AbstractIntegrationTest {
         assertEquals(2, roleRepository.count(), "Phai co 2 role: ADMIN, CUSTOMER");
         assertEquals(12, brandRepository.count(), "devdata co 12 brand");
         assertEquals(6, categoryRepository.count(), "devdata co 6 category");
-        assertEquals(12, productRepository.count(), "devdata co 12 product");
+        assertEquals(30, productRepository.count(), "V53 devdata co 30 product");
         assertEquals(12, couponRepository.count(), "devdata co 12 coupon");
         assertEquals(12, userRepository.count(), "devdata co 12 user");
         assertEquals(12, customerRepository.count(),
@@ -69,6 +70,23 @@ class SeedDataPersistenceTest extends AbstractIntegrationTest {
         assertEquals(3, supplierRepository.count(), "V23 seed 3 nha cung cap");
         assertEquals(13, productSupplierRepository.count(),
                 "V23 seed 13 lien ket product-supplier");
+    }
+
+    @Test
+    void expandedCatalogProductsHavePrimaryImagesAndTwoVariants() {
+        for (int id = 13; id <= 30; id++) {
+            Product product = productRepository.findById(id).orElseThrow();
+            String context = "V53 product " + id;
+            assertNotNull(product.getBrand(), context + " phai co brand");
+            assertNotNull(product.getCategory(), context + " phai co category");
+            assertEquals(2, product.getVariants().size(), context + " phai co 2 variant");
+
+            var images = productImageRepository.findByProductId(id);
+            assertEquals(1, images.size(), context + " phai co 1 image");
+            assertTrue(images.getFirst().isPrimary(), context + " image phai la primary");
+            assertEquals("/uploads/products/" + product.getSlug() + ".jpg",
+                    images.getFirst().getImageUrl(), context + " image phai khop slug");
+        }
     }
 
     @Test
