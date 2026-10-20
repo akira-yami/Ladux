@@ -287,7 +287,7 @@ export default function Header({
                 </SmartSearchDropdown>
 
                 {/* ── Right Actions ── */}
-                <div className="z-10 flex items-center gap-1 sm:gap-2 shrink-0 ml-auto">
+                <div className="z-10 flex items-center gap-1 sm:gap-2 shrink-0 md:ml-0 ml-auto">
                     <ThemeToggle />
                     <button type="button" aria-label="Mở tìm kiếm laptop" aria-expanded={mobileSearchOpen} onPointerDown={event => { event.preventDefault(); event.stopPropagation(); }} onClick={() => setMobileSearchOpen(value => !value)} className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-sky-50 hover:text-sky-700 md:hidden"><Search className="h-5 w-5" /></button>
                     {/* Cart Badge */}
