@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "uncaughtErrors": [],
+  "adminUsesBrowserFixtures": true,
+  "checks": [
+    "light/dark",
+    "theme persistence",
+    "mobile overflow",
+    "AI assistant",
+    "auth guard",
+    "login validation",
+    "admin sidebar",
+    "admin search",
+    "product editor",
+    "mobile dialog keyboard"
+  ]
+}

@@ -1,0 +1,1550 @@
+{
+  "views": 166,
+  "errors": [],
+  "results": [
+    {
+      "label": "user-home-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-products-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-products-1-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-about-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-contact-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-login-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-register-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-cart-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-checkout-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-orders-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-wishlist-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-account-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-addresses-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-dashboard-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-orders-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-orders-1048-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-payments-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-payments-1-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "\"JetBrains Mono\", monospace"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-order-histories-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-order-items-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-new-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-1-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-1-edit-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-brands-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-categories-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-colors-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-coupons-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-customers-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-users-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-user-addresses-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-reviews-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-suppliers-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-product-suppliers-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-new-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-48-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-stock-movements-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-notifications-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-chatbot-index-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "brand-dialog-light-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-primary-hover-light",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-home-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-products-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-products-1-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-about-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-contact-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-login-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-register-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-cart-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-checkout-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-orders-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-wishlist-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-account-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-addresses-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-dashboard-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-orders-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-orders-1048-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-payments-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-payments-1-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "\"JetBrains Mono\", monospace"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-order-histories-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-order-items-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-new-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-1-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-1-edit-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-brands-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-categories-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-colors-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-coupons-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-customers-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-users-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-user-addresses-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-reviews-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-suppliers-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-product-suppliers-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-new-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-48-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-stock-movements-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-notifications-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-chatbot-index-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "brand-dialog-light-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-home-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-products-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-products-1-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-about-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-contact-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-login-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-register-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-cart-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-checkout-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-orders-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-wishlist-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-account-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-addresses-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-dashboard-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-orders-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-orders-1048-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-payments-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-payments-1-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "\"JetBrains Mono\", monospace"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-order-histories-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-order-items-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-new-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-1-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-1-edit-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-brands-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-categories-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-colors-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-coupons-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-customers-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-users-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-user-addresses-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-reviews-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-suppliers-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-product-suppliers-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-new-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-48-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-stock-movements-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-notifications-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-chatbot-index-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "brand-dialog-dark-desktop",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-primary-hover-dark",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-home-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-products-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-products-1-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-about-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-contact-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-login-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-register-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-cart-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-checkout-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-orders-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-wishlist-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-account-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "user-addresses-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-dashboard-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-orders-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-orders-1048-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-payments-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-payments-1-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "\"JetBrains Mono\", monospace"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-order-histories-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-order-items-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-new-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-1-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-products-1-edit-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-brands-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-categories-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-colors-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-coupons-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-customers-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-users-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-user-addresses-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-reviews-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-suppliers-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-product-suppliers-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-new-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-purchase-orders-48-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-stock-movements-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-notifications-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "admin-admin-chatbot-index-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    },
+    {
+      "label": "brand-dialog-dark-mobile",
+      "overflow": false,
+      "fonts": [
+        "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+      ],
+      "fontLoaded": true,
+      "contrast": []
+    }
+  ]
+}
