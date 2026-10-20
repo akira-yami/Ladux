@@ -15,6 +15,18 @@ VITE_ENABLE_UNSAFE_ORDER_RETURN_TRANSITIONS=false
 
 ## Chạy dự án
 
+Chạy cả frontend, backend, PostgreSQL và Redis từ thư mục gốc `Ladux/`:
+
+```bash
+docker compose up -d
+```
+
+Mở `http://localhost:5173` hoặc `http://localhost:5173/admin`. Frontend Docker dùng bản build tĩnh qua Nginx và gọi API tại `http://localhost:8080`. Cấu hình và dữ liệu backend dùng lại từ Compose hiện có; xem hướng dẫn tại `../README.md`.
+
+Sau khi sửa source, chạy `docker compose up -d --build` tại thư mục gốc để cập nhật image. `frontend/.env` không được copy vào image; các biến `VITE_*` cần được truyền lúc build qua Dockerfile/Compose. `VITE_RECAPTCHA_SITE_KEY` có thể đặt trong `.env` gốc.
+
+Để phát triển với Vite hot reload, chạy trong thư mục `frontend/`:
+
 ```bash
 npm install
 npm run dev

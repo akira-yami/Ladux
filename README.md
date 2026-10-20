@@ -181,13 +181,52 @@ flowchart TD
 
 ## 🚀 Getting Started
 
-### 1. Khởi chạy Database & Redis (Docker Compose)
+### Chạy toàn bộ bằng Docker Compose
+
+Bật Docker Desktop, sau đó chạy tại thư mục gốc `Ladux/`:
+
+```bash
+docker compose up -d
+```
+
+Compose tự build image nếu chưa có và khởi động PostgreSQL, Redis, backend rồi frontend. Lần đầu có thể mất vài phút để tải dependency và build ứng dụng.
+
+- Storefront: `http://localhost:5173`
+- Admin Portal: `http://localhost:5173/admin`
+- Backend API: `http://localhost:8080/api/v1`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+
+PostgreSQL và Redis chỉ mở trong mạng Docker để tránh xung đột với database đang cài trên máy. Backend kết nối trực tiếp bằng tên service `postgres` và `redis`.
+
+Cấu hình backend (JWT, Google OAuth, email, thanh toán, AI) vẫn được đọc từ `backend/.env`. Đặt `DB_USERNAME` và `DB_PASSWORD` trong `.env` tại thư mục gốc để Compose truyền cùng thông tin kết nối cho backend và PostgreSQL; `DB_USERNAME` mặc định là `akira`, còn `DB_PASSWORD` bắt buộc có giá trị. Nếu dùng lại volume database cũ, giữ nguyên tài khoản và mật khẩu của database đó. File Compose gốc dùng profile `dev`, cookie HTTP và URL redirect OAuth về frontend local.
+
+Frontend được build bằng Node.js và phục vụ bằng Nginx, không cần cài Node.js/Java trên máy để chạy stack. File `frontend/.env` không được đưa vào image; API mặc định là `http://localhost:8080`. Nếu bật CAPTCHA ở backend, đặt public site key `VITE_RECAPTCHA_SITE_KEY` trong `.env` gốc trước khi build.
+
+```bash
+# Xem trạng thái và log
+docker compose ps
+docker compose logs -f app frontend
+
+# Build lại sau khi sửa source hoặc biến cấu hình frontend
+docker compose up -d --build
+
+# Dừng toàn bộ, giữ dữ liệu PostgreSQL và Redis
+docker compose down
+```
+
+Compose gốc dùng tên project `backend` để dùng chung container và volume với cách chạy cũ trong thư mục `backend/` (khi không đặt project name riêng). Không chạy đồng thời hai cấu hình bằng project name khác nhau vì chúng dùng cùng cổng. Đây là cấu hình local; triển khai production tiếp tục dùng `backend/docker-compose.prod.yml`.
+
+### Phát triển với hot reload
+
+Để sửa code frontend và thấy thay đổi ngay, chỉ chạy database/Redis bằng Docker rồi chạy backend và Vite trực tiếp như dưới đây. Frontend trong Docker dùng bản build tĩnh, cần build lại sau khi sửa source.
+
+#### 1. Khởi chạy Database & Redis (Docker Compose)
 ```bash
 cd backend
 docker compose up -d postgres redis
 ```
 
-### 2. Khởi chạy Backend (Spring Boot)
+#### 2. Khởi chạy Backend (Spring Boot)
 Tạo file cấu hình môi trường hoặc sử dụng mặc định của profile `dev`:
 ```bash
 cd backend
@@ -196,7 +235,7 @@ cd backend
 - API Documentation (Swagger UI): `http://localhost:8080/swagger-ui.html`
 - Health check: `http://localhost:8080/actuator/health`
 
-### 3. Khởi chạy Frontend (React + Vite)
+#### 3. Khởi chạy Frontend (React + Vite)
 ```bash
 cd frontend
 npm install

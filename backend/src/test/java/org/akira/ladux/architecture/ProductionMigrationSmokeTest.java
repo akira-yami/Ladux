@@ -99,6 +99,72 @@ class ProductionMigrationSmokeTest {
         }
     }
 
+    @Test
+    void upgradeFromV48PreservesExistingCategoriesAndProductReferences() throws Exception {
+        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17")) {
+            postgres.start();
+            Flyway.configure()
+                    .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+                    .locations("classpath:db/migration").target("48").load().migrate();
+            try (var connection = DriverManager.getConnection(
+                    postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+                 var statement = connection.createStatement()) {
+                statement.executeUpdate("INSERT INTO brands (id, name, slug) VALUES (99, 'Existing brand', 'existing-brand')");
+                statement.executeUpdate("""
+                        INSERT INTO categories (id, name, slug, image_url, is_active, parent_id)
+                        VALUES (1, 'Accessories', 'real-category', '/uploads/existing-1.png', true, NULL),
+                               (99, 'Custom category', 'custom-category', '/uploads/existing-99.png', false, 1)
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO products (id, brand_id, category_id, name, slug)
+                        VALUES (1, 99, 1, 'Existing product one', 'existing-product-one'),
+                               (99, 99, 99, 'Existing product ninety-nine', 'existing-product-ninety-nine')
+                        """);
+            }
+
+            var result = Flyway.configure()
+                    .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+                    .locations("classpath:db/migration").load().migrate();
+            assertTrue(result.success);
+            try (var connection = DriverManager.getConnection(
+                    postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+                 var statement = connection.createStatement()) {
+                try (var rows = statement.executeQuery("SELECT id, name, slug, image_url, is_active, parent_id FROM categories ORDER BY id")) {
+                    assertTrue(rows.next());
+                    assertEquals(1, rows.getInt("id"));
+                    assertEquals("Accessories", rows.getString("name"));
+                    assertEquals("real-category", rows.getString("slug"));
+                    assertEquals("/uploads/existing-1.png", rows.getString("image_url"));
+                    assertTrue(rows.getBoolean("is_active"));
+                    assertEquals(null, rows.getObject("parent_id"));
+                    assertTrue(rows.next());
+                    assertEquals(99, rows.getInt("id"));
+                    assertEquals("Custom category", rows.getString("name"));
+                    assertEquals("custom-category", rows.getString("slug"));
+                    assertEquals("/uploads/existing-99.png", rows.getString("image_url"));
+                    org.junit.jupiter.api.Assertions.assertFalse(rows.getBoolean("is_active"));
+                    assertEquals(1, rows.getInt("parent_id"));
+                    org.junit.jupiter.api.Assertions.assertFalse(rows.next());
+                }
+                try (var rows = statement.executeQuery("SELECT id, category_id FROM products ORDER BY id")) {
+                    assertTrue(rows.next());
+                    assertEquals(1, rows.getInt("id"));
+                    assertEquals(1, rows.getInt("category_id"));
+                    assertTrue(rows.next());
+                    assertEquals(99, rows.getInt("id"));
+                    assertEquals(99, rows.getInt("category_id"));
+                    org.junit.jupiter.api.Assertions.assertFalse(rows.next());
+                }
+                try (var rows = statement.executeQuery("SELECT COUNT(*) FROM flyway_schema_history WHERE version = '49'")) {
+                    assertTrue(rows.next());
+                    assertEquals(0L, rows.getLong(1));
+                }
+                org.junit.jupiter.api.Assertions.assertThrows(java.sql.SQLException.class,
+                        () -> statement.executeUpdate("DELETE FROM categories WHERE id = 99"));
+            }
+        }
+    }
+
     private void assertRetiredAuthenticationStorageRemoved(Statement statement) throws Exception {
         try (var rows = statement.executeQuery("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('phone_verifications', 'user_mfa_methods')")) {
             assertTrue(rows.next());

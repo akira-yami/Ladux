@@ -16,7 +16,7 @@ Flyway tự chạy `V52__remove_mfa_and_phone_verification.sql` khi backend mớ
 - Xóa cột `login_history.mfa_used` và các sự kiện audit thuộc MFA để không còn giá trị enum đã bị gỡ.
 - Giữ số điện thoại/email liên hệ, lịch sử đăng nhập và các sự kiện audit còn lại.
 
-Migration V1–V51 được giữ nguyên để bảo toàn checksum của database đang dùng. Những migration cũ vẫn có tên/nội dung của tính năng đã gỡ. Triển khai đồng bộ backend/frontend; sau V52, backend cũ không còn tương thích schema. Việc xác minh dùng database Testcontainers tạm, chưa áp dụng V52 vào database đang vận hành.
+Các migration còn lại trong V1–V51 được giữ nguyên; V49 được xóa theo yêu cầu riêng sau thay đổi xác thực. Database đã chạy V49 cần đối chiếu lịch sử Flyway trước khi triển khai. Những migration cũ vẫn có tên/nội dung của tính năng đã gỡ. Triển khai đồng bộ backend/frontend; sau V52, backend cũ không còn tương thích schema. Việc xác minh dùng database Testcontainers tạm, chưa áp dụng V52 vào database đang vận hành.
 
 ## Kiểm chứng
 

@@ -36,19 +36,15 @@ Chưa đo API p95/p99, throughput, query count trên dữ liệu lớn, Lighthou
 
 ## P0 — xử lý trước khi nhận đơn thật
 
-### 1. Migration V49 không bảo toàn danh mục đang tồn tại
+### 1. Lịch sử database đã chạy V49
 
-`backend/src/main/resources/db/migration/V49__delete_parent_in_category.sql:1` dùng `DROP TABLE categories CASCADE`, sau đó seed lại 6 danh mục cố định và gắn lại FK từ products.
+V49 đã được xóa khỏi source theo yêu cầu. Chuỗi migration mới giữ nguyên danh mục hiện có, gồm ID, tên, slug, ảnh, trạng thái, quan hệ cha/con và các tham chiếu từ sản phẩm; không seed lại sáu danh mục cố định.
 
-Tái hiện trên PostgreSQL 17:
+Lần audit trước khi xóa đã tái hiện hai lỗi của V49: danh mục ID 1 bị thay thành Laptop Gaming dù khóa ngoại vẫn hợp lệ; sản phẩm tham chiếu ID 99 khiến migration thất bại và rollback. Kiểm thử nâng cấp từ V48 hiện có fixture cho cả ID 1 và 99 để bảo vệ dữ liệu này.
 
-- Danh mục ID 1 với slug `real-category`, đang có sản phẩm tham chiếu, trở thành `laptop-gaming` sau migration. FK hợp lệ nhưng ý nghĩa dữ liệu bị thay đổi.
-- Danh mục ID 99 đang có sản phẩm tham chiếu làm bước thêm FK thất bại: `Key (category_id)=(99) is not present in table categories`.
-- Thực thi migration trong transaction cho case ID 99 đã rollback; kết quả là nâng cấp không hoàn tất. Case ID 1 vẫn là mất ý nghĩa dữ liệu khi migration commit thành công.
+**Việc cần làm trước khi triển khai vào database hiện hữu:** kiểm tra `flyway_schema_history`. Nếu V49 đã được áp dụng, Flyway sẽ báo migration đã chạy nhưng không còn trong source; cần kế hoạch đối chiếu/repair lịch sử theo môi trường. Việc xóa file không phục hồi danh mục mà V49 đã ghi đè. Cần backup hoặc nguồn đối chiếu nếu dữ liệu đã mất. Chưa thay đổi lịch sử hay dữ liệu của database đang vận hành.
 
-**Việc cần làm:** xác định môi trường nào đã áp dụng V49; lập kế hoạch nâng cấp bảo toàn danh mục/ID/FK; kiểm thử trên bản sao dữ liệu hiện hữu. Không sửa migration đã áp dụng một cách tùy tiện. Nếu bảng đã bị thay, migration mới không tự phục hồi được dữ liệu cũ; cần backup hoặc nguồn đối chiếu.
-
-Tài liệu `backend/docs/production-hardening-2026-10.md` cũng ghi nhận V23/V38 đã đổi nội dung và cần xử lý checksum cho database cũ. Test schema mới hiện tại không bao phủ các tình huống nâng cấp này.
+Tài liệu `backend/docs/production-hardening-2026-10.md` cũng ghi nhận V23/V38 đã đổi nội dung và cần xử lý checksum cho database cũ.
 
 ### 2. Kiểm tra trạng thái được phép bán ở backend
 
@@ -124,7 +120,7 @@ Các mục kinh doanh phụ thuộc phạm vi mở bán; không cần coi tất 
 
 ## Thứ tự thực hiện và điều kiện đạt
 
-1. **Đóng P0 dữ liệu và nghiệp vụ:** xử lý kế hoạch V49/checksum; chặn SKU ngừng bán; bootstrap admin; chốt luồng OTP và thao tác ghi nhận tiền. Mọi bước có test hoặc diễn tập phù hợp.
+1. **Đóng P0 dữ liệu và nghiệp vụ:** đối chiếu lịch sử V49/checksum trên database đang dùng; chặn SKU ngừng bán; bootstrap admin; chốt luồng OTP và thao tác ghi nhận tiền. Mọi bước có test hoặc diễn tập phù hợp.
 2. **Chuẩn bị vận hành:** staging giống prod, image có version, backup/restore, metrics/alert, đối soát/refund và smoke test các dịch vụ thật.
 3. **Sửa hiệu năng có bằng chứng:** phân trang/detail độc lập, rating aggregation và cache; tối ưu ảnh; đo p95/query count trên dữ liệu đại diện.
 4. **Mở pilot có giới hạn:** quy mô do load test xác định, có người trực vận hành và khả năng rollback/restore. Mở rộng sau khi thu được số liệu thực tế.
