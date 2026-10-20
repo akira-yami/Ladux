@@ -16,6 +16,7 @@ import {
     Trash2,
 } from "lucide-react";
 import BrandMark from "./BrandMark";
+import ThemeToggle from "./ThemeToggle";
 import { getAvatarUrl } from "../../types";
 import { ROUTES } from "../../app/routePaths";
 import { useAuthStore, useNotificationStore, useOrderStore, useProductStore, useWishlistStore } from "../../stores";
@@ -184,7 +185,7 @@ export default function Header({
                 : "border-sky-100 bg-white backdrop-blur-xl"
                 }`}
         >
-            <div className="container mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between gap-3 md:gap-6 relative">
+            <div className="store-header-main container mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between gap-3 md:gap-6 relative">
                 {/* ── Logo ── */}
                 <div className="z-10 flex items-center shrink-0">
                     <Link
@@ -291,7 +292,7 @@ export default function Header({
                     {/* Search Button */}
                     <button
                         onClick={() => handleNavigate(ROUTES.products)}
-                        className="flex items-center justify-center w-11 sm:w-12 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 transition-colors shrink-0 rounded-r-2xl cursor-pointer"
+                        className="flex items-center justify-center w-11 sm:w-12 bg-sky-600 hover:bg-primary-hover active:bg-primary-pressed transition-colors shrink-0 rounded-r-2xl cursor-pointer"
                         aria-label="Tìm kiếm"
                     >
                         <Search className="w-5 h-5 text-white stroke-[2.5]" />
@@ -300,6 +301,7 @@ export default function Header({
 
                 {/* ── Right Actions ── */}
                 <div className="z-10 flex items-center gap-1 sm:gap-2 shrink-0 ml-auto">
+                    <ThemeToggle />
                     <Link to={ROUTES.products} aria-label="Tìm kiếm laptop" className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-sky-50 hover:text-sky-700 md:hidden"><Search className="h-5 w-5" /></Link>
                     {/* Cart Badge */}
                     <Link
@@ -448,7 +450,7 @@ export default function Header({
                                                             e.stopPropagation();
                                                             deleteNotification(n.id);
                                                         }}
-                                                        className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition shrink-0 cursor-pointer"
+                                                        className="p-1 text-slate-400 hover:text-rose-700 hover:bg-red-50 rounded-lg transition shrink-0 cursor-pointer"
                                                     >
                                                         <X className="w-3.5 h-3.5" />
                                                     </button>
@@ -469,7 +471,7 @@ export default function Header({
                                                         await deleteAllNotifications();
                                                     }
                                                 }}
-                                                className="text-red-600 hover:text-red-700 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                                                className="text-rose-700 hover:text-red-700 font-bold hover:underline flex items-center gap-1 cursor-pointer"
                                             >
                                                 <Trash2 className="w-3 h-3" />
                                                 Xóa tất cả thông báo
@@ -586,10 +588,10 @@ export default function Header({
                                                 className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-sky-50 transition"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <Heart className="w-4 h-4 text-red-500 fill-red-500/20" />
+                                                    <Heart className="w-4 h-4 text-rose-700 fill-red-500/20" />
                                                     <span>Danh sách yêu thích</span>
                                                 </div>
-                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-red-500/20 text-red-600 rounded-md">
+                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-red-500/20 text-rose-700 rounded-md">
                                                     {displayWishlistCount}
                                                 </span>
                                             </Link>
@@ -600,9 +602,9 @@ export default function Header({
                                         {/* Logout action */}
                                         <button
                                             onClick={handleLogout}
-                                            className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition text-left"
+                                            className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-bold text-rose-700 hover:bg-red-500/10 transition text-left"
                                         >
-                                            <LogOut className="w-4 h-4 text-red-500" />
+                                            <LogOut className="w-4 h-4 text-rose-700" />
                                             <span>Đăng xuất</span>
                                         </button>
                                     </>

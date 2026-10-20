@@ -5,7 +5,9 @@ import Footer from "../components/common/Footer";
 import Header from "../components/common/Header";
 import AIChatbot from "../components/common/AIChatbot";
 import BrandMark from "../components/common/BrandMark";
-import "../styles/storefront.css";
+import ThemeToggle from "../components/common/ThemeToggle";
+import heroArtwork from "../assets/ladux/hero.webp";
+import "../styles/storefront-v2.css";
 import { authService } from "../services";
 import { productPath, ROUTES } from "./routePaths";
 import { useStorefront } from "./StorefrontProvider";
@@ -71,7 +73,7 @@ function StoreLayout() {
                 userAvatar={displayAvatar}
                 userName={userName}
             />
-            <div className="pt-[122px]">
+            <div className="store-content pt-[122px]">
                 <Suspense fallback={<RouteLoading />}>
                     <Outlet />
                 </Suspense>
@@ -87,15 +89,17 @@ function AuthLayout() {
         <div className="storefront-ui min-h-screen overflow-x-hidden selection:bg-sky-100 selection:text-sky-900">
             <NotificationToast />
             <header className="border-b border-sky-100 bg-white backdrop-blur-xl">
-                <div className="container mx-auto flex h-16 items-center px-6">
+                <div className="container mx-auto flex h-20 items-center justify-between px-6">
                     <Link to={ROUTES.home} className="flex items-center gap-3">
                         <BrandMark />
                     </Link>
+                    <ThemeToggle />
                 </div>
             </header>
-            <Suspense fallback={<RouteLoading />}>
-                <Outlet />
-            </Suspense>
+            <div className="auth-experience">
+                <aside className="auth-story"><div><p className="section-eyebrow">YOUR NEXT CHAPTER</p><h2>Những điều hay,<br /><span>bắt đầu cùng bạn.</span></h2><p>Một tài khoản, cả thế giới công nghệ.<br />Lưu điều bạn thích, theo dõi mọi hành trình.</p></div><img src={heroArtwork} alt="Laptop Ladux với dải kính hổ phách" width={1536} height={1024} /></aside>
+                <div className="auth-panel"><Suspense fallback={<RouteLoading />}><Outlet /></Suspense></div>
+            </div>
         </div>
     );
 }

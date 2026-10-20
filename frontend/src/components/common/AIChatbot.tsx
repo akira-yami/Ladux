@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Send, CheckCheck, ChevronRight, Laptop, ShoppingBag, Tag, Headphones } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import botAvatarImg from "../../assets/avatar_chatbot.png";
+import botAvatarImg from "../../assets/ladux/assistant.svg";
 import { useStorefront } from "../../app/StorefrontProvider";
 import { productPath } from "../../app/routePaths";
 import { LaptopProduct } from "../../types";
@@ -28,6 +28,11 @@ export default function AIChatbot() {
     const { allDisplayProducts } = useStorefront();
 
     const [isOpen, setIsOpen] = useState(false);
+    useEffect(() => {
+        const open = () => setIsOpen(true);
+        window.addEventListener("ladux:open-assistant", open);
+        return () => window.removeEventListener("ladux:open-assistant", open);
+    }, []);
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "msg-1",
@@ -313,7 +318,7 @@ export default function AIChatbot() {
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Hỗ trợ qua Zalo"
-                    className="flex h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#0068ff] text-slate-800 shadow-sm transition-all duration-200 hover:scale-110 hover:bg-[#0052cc] active:scale-95 transform-gpu select-none"
+                    className="hidden sm:flex h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#0068ff] text-slate-800 shadow-sm transition-all duration-200 hover:scale-110 hover:bg-[#0052cc] active:scale-95 transform-gpu select-none"
                 >
                     <svg
                         className="w-7 h-7 sm:w-8 sm:h-8 pointer-events-none select-none transform-gpu"
@@ -336,7 +341,7 @@ export default function AIChatbot() {
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Hỗ trợ qua Telegram"
-                    className="flex h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#2AABEE] shadow-sm transition-all duration-200 hover:scale-110 hover:bg-[#229edc] active:scale-95 transform-gpu select-none"
+                    className="hidden sm:flex h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#2AABEE] shadow-sm transition-all duration-200 hover:scale-110 hover:bg-[#229edc] active:scale-95 transform-gpu select-none"
                 >
                     <svg className="pointer-events-none select-none h-7 w-7 sm:h-8 sm:w-8 transform-gpu" viewBox="0 20 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M98 175c-3.887 0-3.227-1.464-4.568-5.17l-11.56-38.016 88.665-52.616c4.077-2.705.882-4.215-3.568-1.576l-109.52 69.176-35.313-11.036c-7.68-2.4-7.808-7.68 1.6-11.36l138.08-53.2c6.4-2.4 12 1.44 9.6 11.2l-23.52 110.88c-1.76 8.32-6.72 10.4-13.6 6.56l-38.88-28.64-18.72 18.08c-2.08 2.08-3.84 3.84-7.84 3.84z" fill="#ffffff" />
