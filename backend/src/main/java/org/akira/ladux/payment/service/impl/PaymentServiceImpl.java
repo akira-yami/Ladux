@@ -161,6 +161,11 @@ public class PaymentServiceImpl implements PaymentService {
                 if (request.provider() != null && request.provider() != lastPayment.getProvider()) {
                     lastPayment.setProvider(request.provider());
                 }
+                if (lastPayment.getProvider() == PaymentProvider.MOMO) {
+                    // MoMo chua tich hop cong that: khach quet ma o checkout la da thanh toan xong,
+                    // ghi nhan SUCCESS ngay va xac nhan don, khong cho admin duyet nhu COD.
+                    return succeedImmediately(order, lastPayment);
+                }
                 if (lastPayment.getProvider() == PaymentProvider.VNPAY) {
                     if (lastPayment.getMerchantTxnRef() == null || lastPayment.getMerchantTxnRef().isBlank()) {
                         lastPayment.setMerchantTxnRef(generateMerchantTxnRef(order, lastPayment));
@@ -185,12 +190,28 @@ public class PaymentServiceImpl implements PaymentService {
 
         payment = repo.save(payment);
 
+        if (provider == PaymentProvider.MOMO) {
+            return succeedImmediately(order, payment);
+        }
+
         if (provider == PaymentProvider.VNPAY) {
             payment.setMerchantTxnRef(generateMerchantTxnRef(order, payment));
             payment.setPaymentUrl(vnPayPaymentUrlService.createPaymentUrl(payment, clientIp));
             payment = repo.save(payment);
         }
 
+        return PaymentCallbackMapper.fromEntity(payment);
+    }
+
+    // Thanh toan qua vi (MoMo): khong co buoc cho duyet. Tu sinh ma giao dich,
+    // set SUCCESS va xac nhan don ngay khi khach hoan tat thanh toan.
+    private PaymentCallbackResponse succeedImmediately(Order order, Payment payment) {
+        if (payment.getTransactionNo() == null || payment.getTransactionNo().isBlank()) {
+            payment.setTransactionNo(generateTransactionNo(payment));
+        }
+        payment.setStatus(PaymentStatus.SUCCESS);
+        payment = repo.save(payment);
+        applyPaymentStatus(order, PaymentStatus.SUCCESS);
         return PaymentCallbackMapper.fromEntity(payment);
     }
 
@@ -225,10 +246,18 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessRuleException("OrderId khong khop voi payment dang cap nhat");
         }
 
-        ensureOrderCanAcceptPayment(order);
+        // Admin xu ly payment KHONG dung ensureOrderCanAcceptPayment cua phia khach:
+        // ham do tu huy don khi qua han 15 phut va chan moi thao tac tren don CANCELLED,
+        // khien admin luon nhan loi "da bi huy" va khong sua duoc provider.
+        ensureOrderCanAcceptAdminUpdate(order, payment, request);
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
             return PaymentCallbackMapper.fromEntity(payment);
+        }
+
+        // Admin da tiep nhan xu ly payment nay -> job het han khong tu huy don nua.
+        if (order.getStatus() == OrderStatus.PENDING) {
+            order.setPaymentExpiresAt(null);
         }
 
         if (request.provider() != null) {
@@ -253,6 +282,21 @@ public class PaymentServiceImpl implements PaymentService {
 
     private String generateTransactionNo(Payment payment) {
         return "PAY-" + payment.getOrder().getId() + "-" + payment.getId() + "-" + Instant.now().toEpochMilli() + UUID.randomUUID().toString().substring(0, 4);
+    }
+
+    // Guard rieng cho admin cap nhat payment:
+    // - Don da giao (SHIPPED/DELIVERED) thi khong sua gi nua.
+    // - Doi trang thai payment (SUCCESS/FAILED) tren don da huy thi chan: tien da di qua luong huy/hoan.
+    // - Chi sua provider/ma giao dich (khong doi trang thai) thi luon cho phep, ke ca don da huy
+    //   hoac da qua han thanh toan, de admin dinh chinh duoc du lieu.
+    private void ensureOrderCanAcceptAdminUpdate(Order order, Payment payment, PaymentCallbackRequest request) {
+        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
+            throw new BusinessRuleException("Don hang da duoc van chuyen, khong the cap nhat thanh toan");
+        }
+        boolean statusChange = request.status() != null && request.status() != payment.getStatus();
+        if (statusChange && order.getStatus() == OrderStatus.CANCELLED) {
+            throw new BusinessRuleException("Don hang da bi huy, khong the cap nhat trang thai thanh toan");
+        }
     }
 
     // Kiem tra don con nhan thanh toan duoc khong. Qua han -> tu huy don (hoan kho/coupon) roi nem loi.

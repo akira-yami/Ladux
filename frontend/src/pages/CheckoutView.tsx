@@ -154,6 +154,26 @@ export default function CheckoutView({
                 }
             }
 
+            // Xử lý luồng MoMo: backend ghi nhận SUCCESS ngay khi khách quét mã thanh toán,
+            // không chờ admin duyệt (chỉ COD mới chờ duyệt)
+            if (paymentProvider === "MOMO") {
+                showToast("Đang xác nhận thanh toán MoMo...");
+                try {
+                    const payRes = await paymentService.createPayment({
+                        orderId: orderRes.id,
+                        provider: "MOMO",
+                    });
+                    if (payRes.status !== "SUCCESS") {
+                        throw new Error("Thanh toán MoMo chưa được xác nhận");
+                    }
+                } catch (payErr: any) {
+                    console.error("Lỗi xác nhận thanh toán MoMo:", payErr);
+                    const errorMsg = payErr?.response?.data?.message || payErr?.message || "Không thể xác nhận thanh toán MoMo!";
+                    showToast(errorMsg);
+                    return;
+                }
+            }
+
             // Xử lý luồng COD
             if (setSelectedAddressOrderId) {
                 setSelectedAddressOrderId(orderRes.id.toString());
@@ -447,6 +467,33 @@ export default function CheckoutView({
                                     }`}
                                 >
                                     {paymentProvider === "VNPAY" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                </div>
+                            </div>
+
+                            {/* MoMo Option */}
+                            <div
+                                onClick={() => setPaymentProvider("MOMO")}
+                                className={`p-4 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+                                    paymentProvider === "MOMO"
+                                        ? "border-sky-700 bg-sky-50"
+                                        : "border-slate-200 bg-white hover:border-slate-200"
+                                }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-pink-50 border border-pink-200 flex items-center justify-center font-semibold text-pink-700 text-xs">
+                                        MoMo
+                                    </div>
+                                    <div>
+                                        <span className="font-bold text-xs text-slate-800 block">Ví MoMo</span>
+                                        <span className="text-[10px] text-slate-500">Quét mã QR / Ví điện tử</span>
+                                    </div>
+                                </div>
+                                <div
+                                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                        paymentProvider === "MOMO" ? "border-sky-700 bg-sky-600" : "border-slate-200"
+                                    }`}
+                                >
+                                    {paymentProvider === "MOMO" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                 </div>
                             </div>
 
