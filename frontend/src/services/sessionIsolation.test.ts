@@ -1,8 +1,13 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AxiosAdapter, AxiosResponse } from 'axios';
 import apiClient from './apiClient';
 import adminApiClient from '../admin/api/adminApiClient';
 import { setStorefrontAccessToken, setAdminAccessToken } from './authTokens';
+
+// These interceptor tests use in-memory adapters and must not load a developer's .env.
+vi.mock('../config/env', () => ({
+  env: { apiBaseUrl: 'https://api.ladux.test/api/v1' },
+}));
 
 const storefrontAdapter = apiClient.defaults.adapter;
 const adminAdapter = adminApiClient.defaults.adapter;
