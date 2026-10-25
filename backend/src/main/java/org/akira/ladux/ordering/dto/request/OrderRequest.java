@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import org.akira.ladux.payment.enums.PaymentProvider;
 
 public record OrderRequest(
-        String couponCode,
+        @jakarta.validation.constraints.Size(max = 50) String couponCode,
 
         @NotNull(message = "PaymentProvider khong duoc de trong")
         PaymentProvider paymentProvider,
@@ -17,10 +17,18 @@ public record OrderRequest(
 
         String carrier,
 
-        BigDecimal shippingFee
+        BigDecimal shippingFee,
+
+        @jakarta.validation.constraints.PositiveOrZero
+        @jakarta.validation.constraints.Digits(integer = 13, fraction = 0)
+        BigDecimal expectedAmount
 ) {
     public OrderRequest(String couponCode, PaymentProvider paymentProvider, ShippingAddressRequest shippingAddress) {
-        this(couponCode, paymentProvider, shippingAddress, null, null);
+        this(couponCode, paymentProvider, shippingAddress, null, null, null);
+    }
+    public OrderRequest(String couponCode, PaymentProvider paymentProvider, ShippingAddressRequest shippingAddress,
+            String carrier, BigDecimal shippingFee) {
+        this(couponCode, paymentProvider, shippingAddress, carrier, shippingFee, null);
     }
 }
 

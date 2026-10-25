@@ -46,6 +46,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CacheEvict(value = "carts", allEntries = true)
     public void addItemToCart(int userId, int productId, int quantity) {
+        validateQuantity(quantity);
         User user = userRepository.findByIdForUpdate(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay user voi id = " + userId));
         Cart cart = repo.findByUserIdForUpdate(userId)
@@ -56,6 +57,9 @@ public class CartServiceImpl implements CartService {
         // 2. Tìm sản phẩm để đảm bảo nó tồn tại
         ProductVariant productVariant = productVariantRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay san pham id = " + productId));
+        if (!productVariant.isActive() || !productVariant.getProduct().isActive()
+                || !productVariant.getProduct().getCategory().isActive())
+            throw new org.akira.ladux.shared.exception.BusinessRuleException("Sản phẩm đã ngừng bán");
 
         // 3. Logic xử lý Item: Tìm xem trong giỏ đã có món này chưa
         Optional<CartItem> existingItem = cart.getItems().stream()
@@ -64,8 +68,12 @@ public class CartServiceImpl implements CartService {
 
         if (existingItem.isPresent()) {
             // Nếu có rồi: Chỉ tăng số lượng
-            existingItem.get().incrementQuantity(quantity);
+            long nextQuantity = (long) existingItem.get().getQuantity() + quantity;
+            if (nextQuantity > 99) throw new org.akira.ladux.shared.exception.BusinessRuleException("Tối đa 99 sản phẩm cho mỗi cấu hình");
+            existingItem.get().setQuantity((int) nextQuantity);
         } else {
+            if (cart.getItems().size() >= 50)
+                throw new org.akira.ladux.shared.exception.BusinessRuleException("Giỏ hàng chỉ hỗ trợ tối đa 50 cấu hình");
             // Nếu chưa có: Tạo mới một CartItem và add vào giỏ
             CartItem newItem = CartItem.builder()
                     .cart(cart)
@@ -80,6 +88,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CacheEvict(value = "carts", allEntries = true)
     public void updateQuantity(int userId, int productId, int quantity) {
+        if (quantity > 0) validateQuantity(quantity);
         userRepository.findByIdForUpdate(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay user voi id = " + userId));
         Cart cart = repo.findByUserIdForUpdate(userId)
@@ -121,5 +130,10 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay cart voi userId = " + userId));
         cart.getItems().clear();
         repo.save(cart);
+    }
+
+    private void validateQuantity(int quantity) {
+        if (quantity < 1 || quantity > 99)
+            throw new org.akira.ladux.shared.exception.BusinessRuleException("Số lượng phải từ 1 đến 99");
     }
 }

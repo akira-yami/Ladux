@@ -28,7 +28,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "coupons", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "coupons", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<CouponResponse> getAllCoupons(Pageable pageable) {
         return PageResponse.from(repo.findAll(pageable)
                 .map(CouponMapper::fromEntity));
@@ -117,7 +117,7 @@ public class CouponServiceImpl implements CouponService {
         if (request == null || request.code() == null || request.code().isBlank()) {
             throw new BusinessRuleException("Ma coupon khong hop le");
         }
-        Coupon coupon = repo.findByCode(request.code());
+        Coupon coupon = repo.findByCode(request.code().trim());
         if (coupon == null) {
             throw new ResourceNotFoundException("Khong tim thay coupon voi code = " + request.code());
         }
@@ -127,6 +127,6 @@ public class CouponServiceImpl implements CouponService {
         if (coupon.isUsageLimitReached()) {
             throw new BusinessRuleException("Coupon da het luot su dung");
         }
-        return CouponApplyMapper.fromEntity(CouponMapper.fromEntity(coupon));
+        return CouponApplyMapper.fromEntity(coupon);
     }
 }

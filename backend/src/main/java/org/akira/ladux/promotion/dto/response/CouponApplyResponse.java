@@ -13,6 +13,7 @@ public record CouponApplyResponse(
         BigDecimal minOrderValue,
         Integer usageLimit,
         int usedCount,
-        Instant expiresAt
+        Instant expiresAt,
+        BigDecimal maxDiscountAmount
 ) implements Serializable {
 }

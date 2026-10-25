@@ -71,7 +71,7 @@ export default function CartView({
                         {cartItemsList.map((item) => {
                             if (!item.product) return null;
                             const mappedProduct = mapProductResponseToLaptopProduct(item.product, item.productVariant?.id);
-                            const itemPrice = Number(item.productVariant?.discountPrice || item.productVariant?.price || 0);
+                            const itemPrice = Number(item.productVariant?.discountPrice ?? item.productVariant?.price ?? 0);
                             const variantId = item.productVariant?.id;
 
                             return (

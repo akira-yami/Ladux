@@ -207,6 +207,8 @@ public class OrderServiceImpl implements OrderService {
         if (finalAmount.compareTo(BigDecimal.ZERO) <= 0) {
             finalAmount = BigDecimal.ZERO;
         }
+        if (request.expectedAmount() != null && finalAmount.compareTo(request.expectedAmount()) != 0)
+            throw new BusinessRuleException("Giá, giỏ hàng hoặc ưu đãi đã thay đổi. Vui lòng kiểm tra lại tổng tiền trước khi đặt hàng");
         ShippingAddress shippingAddress = ShippingAddress.builder()
                 .receiverName(request.shippingAddress().receiverName())
                 .phone(request.shippingAddress().phone())

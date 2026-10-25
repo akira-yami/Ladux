@@ -31,7 +31,7 @@ public class CouponRedemptionServiceImpl implements CouponRedemptionService {
         }
 
         // Khóa coupon để serialize các request redeem cùng mã.
-        Coupon coupon = couponRepository.findByCodeForUpdate(couponCode)
+        Coupon coupon = couponRepository.findByCodeForUpdate(couponCode.trim())
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay coupon voi code = " + couponCode));
 
         validateCoupon(coupon, subTotal);

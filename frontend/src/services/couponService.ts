@@ -15,6 +15,7 @@ export interface CouponApplyResponse {
   usageLimit: number | null;
   usedCount: number;
   expiresAt: string;
+  maxDiscountAmount: number | null;
 }
 
 export const couponService = {
