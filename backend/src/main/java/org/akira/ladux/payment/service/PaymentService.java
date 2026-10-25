@@ -13,6 +13,8 @@ public interface PaymentService {
 
     PageResponse<PaymentCallbackResponse> getAllPayments(Pageable pageable);
 
+    PageResponse<PaymentCallbackResponse> searchPayments(Integer orderId, PaymentStatus status, boolean reviewOnly, Pageable pageable);
+
     PaymentCallbackResponse getPaymentById(int id);
 
     /** Admin xem payment theo orderId (không kiểm tra user) */
@@ -23,7 +25,7 @@ public interface PaymentService {
     PaymentCallbackResponse updatePayment(int id, PaymentCallbackRequest request);
 
     /** Admin thực hiện hoàn tiền cho đơn hàng đã trả lại (RETURNED) */
-    org.akira.ladux.ordering.dto.response.OrderResponse processRefund(int orderId, java.math.BigDecimal refundAmount, String reason, int adminId);
+    org.akira.ladux.ordering.dto.response.OrderResponse processRefund(int orderId, Integer paymentId, java.math.BigDecimal refundAmount, String reason, int adminId);
 
     // ==================== USER ====================
 

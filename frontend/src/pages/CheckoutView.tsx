@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     MapPin,
@@ -18,6 +18,9 @@ import {
 import { orderService, paymentService, couponService } from "../services";
 import { useCartStore, useAddressStore, useOrderStore } from "../stores";
 import { ROUTES } from "../app/routePaths";
+import { requireVNPayUrl } from "../utils/paymentFlow";
+import { couponDiscount } from "../utils/checkoutPricing";
+import type { CouponApplyResponse } from "../services/couponService";
 
 export interface CheckoutViewProps {
     setSelectedAddressOrderId?: (id: string) => void;
@@ -29,7 +32,7 @@ export default function CheckoutView({
     showToast,
 }: CheckoutViewProps) {
     const navigate = useNavigate();
-    const { cart, clearCart } = useCartStore();
+    const { cart, fetchCart } = useCartStore();
     const { addresses, createAddress, fetchAddresses } = useAddressStore();
     const { fetchOrders } = useOrderStore();
 
@@ -37,10 +40,12 @@ export default function CheckoutView({
     const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>("COD");
     const [couponCodeInput, setCouponCodeInput] = useState<string>("");
     const [appliedCouponItem, setAppliedCouponItem] = useState<CouponItem | null>(null);
+    const [appliedCoupon, setAppliedCoupon] = useState<CouponApplyResponse | null>(null);
     const [couponErrMsg, setCouponErrMsg] = useState<string>("");
 
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const submissionLock = useRef(false);
 
     const [newAddress, setNewAddress] = useState({
         receiverName: "",
@@ -64,10 +69,10 @@ export default function CheckoutView({
     }, [addresses, selectedAddrId]);
 
     const cartItemsList = cart?.items || [];
-    const subTotal = cart?.totalPrice || 0;
+    const subTotal = Math.round(Number(cart?.totalPrice || 0));
     const shippingFee = Number(cart?.shippingFee || 0);
-    const discountAmount = appliedCouponItem?.discountAmount || 0;
-    const finalAmount = Math.max(0, subTotal - discountAmount + shippingFee);
+    const discountAmount = couponDiscount(subTotal, appliedCoupon);
+    const finalAmount = Math.round(Math.max(0, subTotal - discountAmount + shippingFee));
 
     const handleApplyCoupon = async () => {
         if (!couponCodeInput.trim()) {
@@ -83,13 +88,9 @@ export default function CheckoutView({
                 return;
             }
 
-            let calculatedDiscount = 0;
             const isPercent = res.discountType === "PERCENT" || (res.discountType as string) === "PERCENTAGE";
-            if (isPercent) {
-                calculatedDiscount = (subTotal * res.discountValue) / 100;
-            } else {
-                calculatedDiscount = res.discountValue;
-            }
+            const calculatedDiscount = couponDiscount(subTotal, res);
+            setAppliedCoupon(res);
 
             setAppliedCouponItem({
                 code: res.code || couponCodeInput.trim().toUpperCase(),
@@ -107,6 +108,8 @@ export default function CheckoutView({
     };
 
     const handlePlaceOrder = async () => {
+        if (submissionLock.current) return;
+        if (!cartItemsList.length) { showToast("Giỏ hàng đang trống. Hãy kiểm tra đơn hàng đã tạo."); return; }
         const selectedAddr = addresses.find((a) => a.id === selectedAddrId) || addresses[0];
 
         if (!selectedAddr) {
@@ -116,10 +119,12 @@ export default function CheckoutView({
 
         const cleanPhone = (selectedAddr.phone || "").trim().replace(/[\s\-\.]/g, "");
 
+        submissionLock.current = true;
         setIsSubmitting(true);
         try {
             // Bắn API Tạo Đơn Hàng Thật xuống Backend
             const orderRes = await orderService.createOrder({
+                expectedAmount: finalAmount,
                 couponCode: appliedCouponItem?.code,
                 paymentProvider: paymentProvider,
                 shippingAddress: {
@@ -132,6 +137,11 @@ export default function CheckoutView({
                 },
             });
 
+            // The order transaction already clears the server cart. Never issue another DELETE.
+            void fetchCart();
+            void fetchOrders();
+            setSelectedAddressOrderId?.(String(orderRes.id));
+
             // Xử lý luồng VNPay
             if (paymentProvider === "VNPAY") {
                 showToast("Đang tạo cổng thanh toán VNPay...");
@@ -140,36 +150,13 @@ export default function CheckoutView({
                         orderId: orderRes.id,
                         provider: "VNPAY",
                     });
-                    if (payRes.paymentUrl) {
-                        await clearCart();
-                        window.location.href = payRes.paymentUrl;
-                        return;
-                    }
-                    throw new Error("Backend không trả về URL thanh toán VNPay");
+                    window.location.assign(requireVNPayUrl(payRes.paymentUrl));
+                    return;
                 } catch (payErr: any) {
                     console.error("Lỗi khởi tạo thanh toán VNPay:", payErr);
                     const errorMsg = payErr?.response?.data?.message || payErr?.message || "Không thể tạo URL thanh toán VNPay!";
-                    showToast(errorMsg);
-                    return;
-                }
-            }
-
-            // Xử lý luồng MoMo: backend ghi nhận SUCCESS ngay khi khách quét mã thanh toán,
-            // không chờ admin duyệt (chỉ COD mới chờ duyệt)
-            if (paymentProvider === "MOMO") {
-                showToast("Đang xác nhận thanh toán MoMo...");
-                try {
-                    const payRes = await paymentService.createPayment({
-                        orderId: orderRes.id,
-                        provider: "MOMO",
-                    });
-                    if (payRes.status !== "SUCCESS") {
-                        throw new Error("Thanh toán MoMo chưa được xác nhận");
-                    }
-                } catch (payErr: any) {
-                    console.error("Lỗi xác nhận thanh toán MoMo:", payErr);
-                    const errorMsg = payErr?.response?.data?.message || payErr?.message || "Không thể xác nhận thanh toán MoMo!";
-                    showToast(errorMsg);
+                    navigate(ROUTES.orders);
+                    showToast(`Đơn #${orderRes.id} đã được tạo. ${errorMsg} Bạn có thể tiếp tục thanh toán trong đơn hàng.`);
                     return;
                 }
             }
@@ -178,16 +165,16 @@ export default function CheckoutView({
             if (setSelectedAddressOrderId) {
                 setSelectedAddressOrderId(orderRes.id.toString());
             }
-            await clearCart();
-            await fetchOrders();
             navigate(ROUTES.orders);
             showToast(`Đặt hàng thành công! Mã đơn: #${orderRes.id}`);
 
         } catch (err: any) {
             console.error("Lỗi đặt hàng:", err);
             const errorMsg = err?.response?.data?.message || "Đặt hàng thất bại. Vui lòng thử lại!";
+            void fetchCart();
             showToast(errorMsg);
         } finally {
+            submissionLock.current = false;
             setIsSubmitting(false);
         }
     };
@@ -424,6 +411,7 @@ export default function CheckoutView({
                                 <button
                                     onClick={() => {
                                         setAppliedCouponItem(null);
+                                        setAppliedCoupon(null);
                                         setCouponCodeInput("");
                                         showToast("Đã hủy mã giảm giá.");
                                     }}
@@ -470,33 +458,6 @@ export default function CheckoutView({
                                 </div>
                             </div>
 
-                            {/* MoMo Option */}
-                            <div
-                                onClick={() => setPaymentProvider("MOMO")}
-                                className={`p-4 rounded-xl border cursor-pointer transition flex items-center justify-between ${
-                                    paymentProvider === "MOMO"
-                                        ? "border-sky-700 bg-sky-50"
-                                        : "border-slate-200 bg-white hover:border-slate-200"
-                                }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-pink-50 border border-pink-200 flex items-center justify-center font-semibold text-pink-700 text-xs">
-                                        MoMo
-                                    </div>
-                                    <div>
-                                        <span className="font-bold text-xs text-slate-800 block">Ví MoMo</span>
-                                        <span className="text-[10px] text-slate-500">Quét mã QR / Ví điện tử</span>
-                                    </div>
-                                </div>
-                                <div
-                                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                        paymentProvider === "MOMO" ? "border-sky-700 bg-sky-600" : "border-slate-200"
-                                    }`}
-                                >
-                                    {paymentProvider === "MOMO" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                                </div>
-                            </div>
-
                             {/* COD Option */}
                             <div
                                 onClick={() => setPaymentProvider("COD")}
@@ -539,7 +500,7 @@ export default function CheckoutView({
                             {cartItemsList.map((item) => {
                                 if (!item.product) return null;
                                 const mapped = mapProductResponseToLaptopProduct(item.product, item.productVariant?.id);
-                                const price = Number(item.productVariant?.discountPrice || item.productVariant?.price || 0);
+                                const price = Number(item.productVariant?.discountPrice ?? item.productVariant?.price ?? 0);
                                 const imageUrl = mapped.images?.[0];
 
                                 return (
@@ -579,26 +540,26 @@ export default function CheckoutView({
                         {/* Financial Summary */}
                         <div className="space-y-2.5 font-sans text-xs pt-2 border-t border-slate-200">
                             <div className="flex justify-between text-slate-500">
-                                <span>Tạm tính (subTotal):</span>
+                                <span>Tạm tính:</span>
                                 <span className="text-slate-800 font-semibold">
                                     {formatVND(subTotal)}
                                 </span>
                             </div>
 
                             <div className="flex justify-between text-slate-500">
-                                <span>Giảm giá (discountAmount):</span>
+                                <span>Giảm giá:</span>
                                 <span className="text-sky-700 font-semibold">
                                     -{formatVND(discountAmount)}
                                 </span>
                             </div>
 
                             <div className="flex justify-between text-slate-500">
-                                <span>Phí vận chuyển (shippingFee):</span>
+                                <span>Phí vận chuyển:</span>
                                 <span className="text-slate-800 font-semibold">{formatVND(shippingFee)}</span>
                             </div>
 
                             <div className="pt-4 border-t border-slate-200 flex justify-between items-baseline">
-                                <span className="text-sm font-bold text-slate-800 normal-case">Tổng cộng (finalAmount):</span>
+                                <span className="text-sm font-bold text-slate-800 normal-case">Tổng cộng:</span>
                                 <span className="text-2xl font-semibold text-sky-700">
                                     {formatVND(finalAmount)}
                                 </span>
@@ -617,10 +578,10 @@ export default function CheckoutView({
 
                         <div className="pt-2 flex items-center justify-center gap-4 text-[10px] text-slate-500 font-sans">
                             <span className="flex items-center gap-1">
-                                <Lock className="w-3.5 h-3.5 text-sky-700" /> Thanh toán SSL 256-bit
+                                <Lock className="w-3.5 h-3.5 text-sky-700" /> Thanh toán bảo mật
                             </span>
                             <span>•</span>
-                            <span>Đổi trả 30 ngày</span>
+                            <span>Hỗ trợ đổi trả</span>
                         </div>
                     </div>
                 </div>

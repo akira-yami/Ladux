@@ -49,7 +49,7 @@ class SeedDataPersistenceTest extends AbstractIntegrationTest {
 
     @Test
     void seedDataIsLoadedForAllKeyEntities() {
-        assertEquals(2, roleRepository.count(), "Phai co 2 role: ADMIN, CUSTOMER");
+        assertEquals(3, roleRepository.count(), "Reference roles: ADMIN, STAFF, CUSTOMER");
         assertEquals(12, brandRepository.count(), "devdata co 12 brand");
         assertEquals(6, categoryRepository.count(), "devdata co 6 category");
         assertEquals(30, productRepository.count(), "V53 devdata co 30 product");

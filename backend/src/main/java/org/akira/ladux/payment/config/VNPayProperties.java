@@ -16,5 +16,6 @@ public class VNPayProperties {
     private String payUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     private String returnUrl = "http://localhost:5173/payment/vnpay/return";
     private String refundUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+    private String queryUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
     private int expireMinutes = 15;
 }

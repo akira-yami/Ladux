@@ -15,7 +15,8 @@ public record PaymentWebhookResult(Outcome outcome, String vnpResponseCode, Stri
         /** So tien Gateway khong khop don hang — tu choi va canh bao van hanh. */
         AMOUNT_MISMATCH,
         /** Khong tim thay don hang / payment tuong ung. */
-        ORDER_NOT_FOUND
+        ORDER_NOT_FOUND,
+        RETRYABLE_ERROR
     }
 
     public static PaymentWebhookResult processed() {
@@ -23,7 +24,7 @@ public record PaymentWebhookResult(Outcome outcome, String vnpResponseCode, Stri
     }
 
     public static PaymentWebhookResult idempotent() {
-        return new PaymentWebhookResult(Outcome.IDEMPOTENT, "00", "Confirm Success");
+        return new PaymentWebhookResult(Outcome.IDEMPOTENT, "02", "Order already confirmed");
     }
 
     public static PaymentWebhookResult invalidSignature() {
@@ -36,5 +37,9 @@ public record PaymentWebhookResult(Outcome outcome, String vnpResponseCode, Stri
 
     public static PaymentWebhookResult orderNotFound() {
         return new PaymentWebhookResult(Outcome.ORDER_NOT_FOUND, "01", "Order not found");
+    }
+
+    public static PaymentWebhookResult retryable() {
+        return new PaymentWebhookResult(Outcome.RETRYABLE_ERROR, "99", "Unable to confirm payment");
     }
 }

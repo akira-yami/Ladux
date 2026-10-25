@@ -19,7 +19,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "orderItems", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "orderItems", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<OrderItemResponse> getAllOrderItems(Pageable pageable) {
         return PageResponse.from(repo.findAll(pageable)
                 .map(OrderItemMapper::fromEntity));
@@ -35,7 +35,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "orderItems", key = "'order:' + #orderId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "orderItems", key = "'order:' + #orderId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<OrderItemResponse> getOrderItemsByOrderId(int orderId, Pageable pageable) {
         return PageResponse.from(repo.findByOrderId(orderId, pageable)
                 .map(OrderItemMapper::fromEntity));

@@ -5,16 +5,16 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.*;
 
-/** A permanent one-per-order guard; ambiguous results require manual reconciliation. */
+/** A permanent one-per-payment guard; ambiguous results require reconciliation. */
 @Entity
 @Table(name = "refund_attempts")
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class RefundAttempt {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "order_id", nullable = false, unique = true)
+    @Column(name = "order_id", nullable = false)
     private Integer orderId;
-    @Column(name = "payment_id", nullable = false)
+    @Column(name = "payment_id", nullable = false, unique = true)
     private Integer paymentId;
     @Column(name = "request_id", nullable = false, unique = true, length = 100)
     private String requestId;
@@ -31,6 +31,10 @@ public class RefundAttempt {
     private Instant createdAt;
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+    @Column(name = "resolution_reference", length = 1000)
+    private String resolutionReference;
+    @Column(name = "resolved_by_user_id")
+    private Integer resolvedByUserId;
 
     public enum Status { PROCESSING, SUCCEEDED, REVIEW_REQUIRED }
 }

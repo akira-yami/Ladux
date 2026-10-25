@@ -210,9 +210,22 @@ export interface PaymentResponse {
   orderId: number;
   provider: PaymentProvider;
   transactionNo: string | null;
+  requiresReview: boolean;
   amount: number;
   status: PaymentStatus;
   createdAt: string;
+}
+
+export interface RefundAttemptResponse {
+  id: number;
+  orderId: number;
+  paymentId: number;
+  requestId: string;
+  amount: number;
+  status: 'PROCESSING' | 'REVIEW_REQUIRED' | 'SUCCEEDED';
+  reason: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CouponResponse {

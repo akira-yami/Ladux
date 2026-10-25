@@ -21,40 +21,60 @@ public class ProductController {
 
     private final ProductService productService;
     private final ProductVariantService productVariantService;
+    private final org.akira.ladux.catalog.service.PublicCatalogService publicCatalog;
+
+    @GetMapping("/facets")
+    public ResponseEntity<org.akira.ladux.catalog.dto.response.CatalogFacetsResponse> facets() {
+        return ResponseEntity.ok(publicCatalog.facets());
+    }
 
     @GetMapping
     public ResponseEntity<PageResponse<ProductResponse>> getAllProducts(
             @RequestParam(value = "search", required = false) String search,
+            @Valid @ModelAttribute org.akira.ladux.catalog.dto.request.PublicCatalogFilter filter,
+            jakarta.servlet.http.HttpServletRequest request,
             Pageable pageable
     ) {
+        if (!request.getRequestURI().startsWith("/api/v1/admin/"))
+            return ResponseEntity.ok(publicCatalog.search(filter, pageable));
         return ResponseEntity.ok(search == null || search.isBlank()
                 ? productService.getAllProducts(pageable)
                 : productService.searchProducts(search, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable int id) {
-        return ResponseEntity.ok(productService.getProductById(id));
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable int id, jakarta.servlet.http.HttpServletRequest request) {
+        return ResponseEntity.ok(request.getRequestURI().startsWith("/api/v1/admin/")
+                ? productService.getProductById(id) : publicCatalog.detail(id));
     }
 
     @GetMapping("/brand/{brandId}")
     public ResponseEntity<PageResponse<ProductResponse>> getProductsByBrandId(
             @PathVariable int brandId,
+            jakarta.servlet.http.HttpServletRequest request,
             Pageable pageable) {
+        if (!request.getRequestURI().startsWith("/api/v1/admin/"))
+            return ResponseEntity.ok(publicCatalog.search(new org.akira.ladux.catalog.dto.request.PublicCatalogFilter(
+                    null, null, brandId, null, null, null, null, null), pageable));
         return ResponseEntity.ok(productService.getProductsByBrandId(brandId, pageable));
     }
 
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<PageResponse<ProductResponse>> getProductsByCategoryId(
             @PathVariable int categoryId,
+            jakarta.servlet.http.HttpServletRequest request,
             Pageable pageable) {
+        if (!request.getRequestURI().startsWith("/api/v1/admin/"))
+            return ResponseEntity.ok(publicCatalog.search(new org.akira.ladux.catalog.dto.request.PublicCatalogFilter(
+                    null, null, null, categoryId, null, null, null, null), pageable));
         return ResponseEntity.ok(productService.getProductsByCategoryId(categoryId, pageable));
     }
 
     @GetMapping("/variant/{variantId}")
     public ResponseEntity<ProductVariantResponse> getProductVariantById(
-            @PathVariable Integer variantId) {
-        return ResponseEntity.ok(productVariantService.getProductVariantById(variantId));
+            @PathVariable Integer variantId, jakarta.servlet.http.HttpServletRequest request) {
+        return ResponseEntity.ok(request.getRequestURI().startsWith("/api/v1/admin/")
+                ? productVariantService.getProductVariantById(variantId) : publicCatalog.variant(variantId));
     }
 
     @PostMapping

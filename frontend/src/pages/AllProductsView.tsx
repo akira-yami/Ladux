@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Search, X } from "lucide-react";
 import { useProductStore, useWishlistStore } from "../stores";
+import { productService, type ProductResponse } from "../services/productService";
 import ProductCard from "../components/product/ProductCard";
 import { LaptopProduct, mapProductResponseToLaptopProduct } from "../types";
 import { productPath, ROUTES } from "../app/routePaths";
@@ -45,7 +46,7 @@ export default function AllProductsView({
         brands,
         categories,
         filters,
-        isLoading,
+
         fetchProducts,
         fetchBrands,
         fetchCategories,
@@ -84,145 +85,69 @@ export default function AllProductsView({
         if (categories.length === 0) fetchCategories();
     }, []);
 
-    // Chuyển đổi dữ liệu Backend ProductResponse DTO sang LaptopProduct UI model
-    const mappedProducts = useMemo(() => {
-        if (allProducts && allProducts.length > 0) {
-            return allProducts;
-        }
-        return products.map((p) => mapProductResponseToLaptopProduct(p));
-    }, [allProducts, products]);
+    const [browseRows, setBrowseRows] = useState<ProductResponse[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [catalogError, setCatalogError] = useState<string | null>(null);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [facets, setFacets] = useState({ ram: [] as string[], rom: [] as string[], maxPrice: 0 });
 
-    const ramOptions = useMemo(
-        () => Array.from(new Set(mappedProducts.flatMap((product) => product.variants.map((variant) => variant.ram)).filter(Boolean))).sort(),
-        [mappedProducts]
-    );
-    const romOptions = useMemo(
-        () => Array.from(new Set(mappedProducts.flatMap((product) => product.variants.map((variant) => variant.rom)).filter(Boolean))).sort(),
-        [mappedProducts]
-    );
-    const catalogMaxPrice = useMemo(() => {
-        const highest = mappedProducts.reduce((max, product) => {
-            const variantMax = product.variants.reduce(
-                (current, variant) => Math.max(current, Number(variant.discountPrice || variant.price)),
-                0
-            );
-            return Math.max(max, variantMax);
-        }, 0);
-        return highest > 0 ? Math.ceil(highest / 1000000) * 1000000 : 0;
-    }, [mappedProducts]);
+    useEffect(() => {
+        let active = true;
+        productService.getFacets().then(value => { if (active) setFacets(value); }).catch(() => {});
+        return () => { active = false; };
+    }, []);
 
-    // Combined search & filter logic for Brand, Category, Header Search, Sidebar Filter Search, RAM, ROM, Price & Sorting
-    const filteredProducts = useMemo(() => {
-        let list = [...mappedProducts];
+    const activeCategoryId = selectedCategory && selectedCategory !== "All"
+        ? categories.find(category => category.name.toLowerCase() === selectedCategory.toLowerCase())?.id
+        : filters.categoryId ?? undefined;
 
-        // 1. Brand Filter
-        if (filters.brandId !== null) {
-            const foundBrand = brands.find((b) => b.id === filters.brandId);
-            list = list.filter((p) => {
-                if (p.brandId != null && p.brandId === filters.brandId) return true;
-                if (foundBrand && (p.brand || "").toLowerCase() === foundBrand.name.toLowerCase()) return true;
-                return false;
-            });
-        }
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, sidebarSearch, filters.brandId, activeCategoryId, selectedRam, selectedRom, maxPrice, sortBy]);
 
-        // 2. Category Filter
-        if (selectedCategory && selectedCategory !== "All") {
-            const catLower = selectedCategory.toLowerCase();
-            list = list.filter((p) => (p.category || "").toLowerCase() === catLower);
-        } else if (filters.categoryId !== null) {
-            const foundCat = categories.find((c) => c.id === filters.categoryId);
-            list = list.filter((p) => {
-                if (p.categoryId != null && p.categoryId === filters.categoryId) return true;
-                if (foundCat && (p.category || "").toLowerCase() === foundCat.name.toLowerCase()) return true;
-                return false;
-            });
-        }
+    useEffect(() => {
+        const controller = new AbortController();
+        setIsLoading(true);
+        setCatalogError(null);
+        const timer = window.setTimeout(() => {
+            productService.getAllProducts({
+                page: currentPage - 1, size: itemsPerPage,
+                search: searchQuery.trim() || undefined,
+                secondarySearch: sidebarSearch.trim() || undefined,
+                brandId: filters.brandId ?? undefined, categoryId: activeCategoryId,
+                ram: selectedRam === "All" ? undefined : selectedRam,
+                rom: selectedRom === "All" ? undefined : selectedRom,
+                maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined, order: sortBy,
+            }, controller.signal).then(response => {
+                if (controller.signal.aborted) return;
+                setBrowseRows(response.content);
+                setTotalElements(response.totalElements);
+                setTotalPages(Math.max(1, response.totalPages));
+            }).catch(() => {
+                if (!controller.signal.aborted) {
+                    setBrowseRows([]);
+                    setCatalogError("Không thể tải danh sách sản phẩm. Vui lòng thử lại.");
+                }
+            }).finally(() => { if (!controller.signal.aborted) setIsLoading(false); });
+        }, 275);
+        return () => { window.clearTimeout(timer); controller.abort(); };
+    }, [currentPage, searchQuery, sidebarSearch, filters.brandId, activeCategoryId, selectedRam, selectedRom, maxPrice, sortBy]);
 
-        // 3. Header Search Query filter (from Header search bar)
-        const headerQuery = (searchQuery || "").toLowerCase().trim();
-        if (headerQuery) {
-            list = list.filter((p) => {
-                if (!p) return false;
-                const name = (p.name || "").toLowerCase();
-                const brand = (p.brand || "").toLowerCase();
-                const category = (p.category || "").toLowerCase();
-                const cpu = (p.cpu || "").toLowerCase();
-                const gpu = (p.gpu || "").toLowerCase();
-                const ram = (p.ram || "").toLowerCase();
-                const rom = (p.rom || "").toLowerCase();
-                return (
-                    name.includes(headerQuery) ||
-                    brand.includes(headerQuery) ||
-                    category.includes(headerQuery) ||
-                    cpu.includes(headerQuery) ||
-                    gpu.includes(headerQuery) ||
-                    ram.includes(headerQuery) ||
-                    rom.includes(headerQuery)
-                );
-            });
-        }
-
-        // 4. Sidebar Filter Text (independent search inside sidebar filter)
-        const sidebarQuery = sidebarSearch.toLowerCase().trim();
-        if (sidebarQuery) {
-            list = list.filter((p) => {
-                if (!p) return false;
-                const name = (p.name || "").toLowerCase();
-                const brand = (p.brand || "").toLowerCase();
-                const category = (p.category || "").toLowerCase();
-                const cpu = (p.cpu || "").toLowerCase();
-                const gpu = (p.gpu || "").toLowerCase();
-                const ram = (p.ram || "").toLowerCase();
-                const rom = (p.rom || "").toLowerCase();
-                return (
-                    name.includes(sidebarQuery) ||
-                    brand.includes(sidebarQuery) ||
-                    category.includes(sidebarQuery) ||
-                    cpu.includes(sidebarQuery) ||
-                    gpu.includes(sidebarQuery) ||
-                    ram.includes(sidebarQuery) ||
-                    rom.includes(sidebarQuery)
-                );
-            });
-        }
-
-        // 5. RAM filter
-        if (selectedRam !== "All") {
-            list = list.filter((p) => p.variants.some((variant) => variant.ram === selectedRam));
-        }
-
-        // 6. ROM filter
-        if (selectedRom !== "All") {
-            list = list.filter((p) => p.variants.some((variant) => variant.rom === selectedRom));
-        }
-
-        // 7. Price filter (Safely check undefined/null)
-        list = list.filter((p) => {
-            const cost = p.discountPrice ?? p.price ?? 0;
-            return cost <= maxPrice;
-        });
-
-        // 8. Sorting
-        if (sortBy === "price-asc") {
-            list.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
-        } else if (sortBy === "price-desc") {
-            list.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
-        } else if (sortBy === "newest") {
-            list.sort((a, b) => b.id - a.id);
-        } else if (sortBy === "rating") {
-            list.sort((a, b) => b.rating - a.rating);
-        }
-
-        return list;
-    }, [mappedProducts, selectedCategory, filters.brandId, filters.categoryId, brands, categories, searchQuery, sidebarSearch, selectedRam, selectedRom, maxPrice, sortBy]);
-
-    // Pagination
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
-    const paginatedProducts = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredProducts.slice(start, start + itemsPerPage);
-    }, [filteredProducts, currentPage]);
-
+    const ramOptions = facets.ram;
+    const romOptions = facets.rom;
+    const catalogMaxPrice = Math.ceil(facets.maxPrice / 1000000) * 1000000;
+    const paginatedProducts = useMemo(() => browseRows.map(product => {
+        const matching = (product.variants ?? []).filter(variant =>
+            (selectedRam === "All" || variant.ram === selectedRam)
+            && (selectedRom === "All" || variant.rom === selectedRom)
+            && (!Number.isFinite(maxPrice) || Number(variant.discountPrice ?? variant.price) <= maxPrice));
+        const cheapest = [...matching].sort((a, b) =>
+            Number(a.discountPrice ?? a.price) - Number(b.discountPrice ?? b.price))[0];
+        return mapProductResponseToLaptopProduct(product, cheapest?.id);
+    }), [browseRows, selectedRam, selectedRom, maxPrice]);
+    const visiblePages = Array.from({ length: Math.min(totalPages, 7) }, (_, index) =>
+        Math.max(1, Math.min(currentPage - 3, totalPages - 6)) + index);
     return (
         <div className="bg-white text-slate-800 min-h-screen py-8">
             <div className="container mx-auto px-5 sm:px-6">
@@ -243,7 +168,7 @@ export default function AllProductsView({
                             Laptop phù hợp với bạn
                         </h1>
                         <p className="text-xs text-slate-500 font-sans mt-1">
-                            {filteredProducts.length} sản phẩm
+                            {totalElements} sản phẩm
                         </p>
                     </div>
 
@@ -535,10 +460,11 @@ export default function AllProductsView({
 
                     {/* Right Products Grid Column */}
                     <main className="lg:col-span-9 space-y-8">
+                        {catalogError && <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-700">{catalogError}</p>}
                         {isLoading ? (
                             <div className="text-center py-20 bg-white rounded-2xl border border-sky-100">
                                 <div className="inline-block w-8 h-8 border-2 border-sky-700 border-t-transparent rounded-full animate-spin mb-3"></div>
-                                <p className="text-slate-500 text-xs font-sans">Đang tải sản phẩm từ Database...</p>
+                                <p className="text-slate-500 text-xs font-sans">Đang tải sản phẩm...</p>
                             </div>
                         ) : paginatedProducts.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -552,7 +478,7 @@ export default function AllProductsView({
                                         }}
                                         onSelectProduct={(p) => {
                                             setSelectedProduct(p);
-                                            navigate(productPath(p.id));
+                                            navigate(productPath(p.id, p.defaultVariantId));
                                         }}
                                         onAddToCart={(p) => {
                                             const variant = p.variants.find((item) => item.id === p.defaultVariantId && item.stockQuantity > 0)
@@ -593,7 +519,7 @@ export default function AllProductsView({
                                     &larr; Trước
                                 </button>
 
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                                {visiblePages.map((pageNum) => {
                                     const isActive = currentPage === pageNum;
                                     return (
                                         <button

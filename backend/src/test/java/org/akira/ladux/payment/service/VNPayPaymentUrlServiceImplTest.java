@@ -84,5 +84,38 @@ class VNPayPaymentUrlServiceImplTest {
         assertNotNull(queryParams.get("vnp_ExpireDate"));
         assertNotNull(queryParams.get("vnp_SecureHash"));
         assertFalse(queryParams.get("vnp_SecureHash").isBlank());
+        String unsigned = queryString.substring(0, queryString.indexOf("&vnp_SecureHash="));
+        assertEquals(org.akira.ladux.payment.util.VNPayUtils.hmacSHA512("SECRET_KEY_123456789", unsigned), queryParams.get("vnp_SecureHash"));
+        assertEquals(queryParams.get("vnp_CreateDate"), payment.getVnpCreateDate());
+    }
+
+    @Test void missingMerchantConfigurationNeverUsesEmbeddedCredentials() {
+        assertThrows(org.akira.ladux.shared.exception.BusinessRuleException.class,
+                () -> vnPayPaymentUrlService.createPaymentUrl(payment, "127.0.0.1"));
+    }
+
+    private VNPayPaymentUrlServiceImpl configuredService() {
+        VNPayProperties properties = new VNPayProperties();
+        properties.setTmnCode("TESTTMN1"); properties.setHashSecret("test-secret");
+        return new VNPayPaymentUrlServiceImpl(properties);
+    }
+
+    @Test void gatewayExpiryCannotOutliveStockReservation() {
+        payment.getOrder().setPaymentExpiresAt(java.time.Instant.now().plusSeconds(90));
+        String url = configuredService().createPaymentUrl(payment, "127.0.0.1");
+        var formatter = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+                .withZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
+        assertEquals(formatter.format(payment.getOrder().getPaymentExpiresAt()),
+                org.akira.ladux.payment.util.VNPayUtils.parameterFromUrl(url, "vnp_ExpireDate"));
+    }
+
+    @Test void rejectsExpiredReservationsAndFractionalOrZeroVnd() {
+        for (String amount : java.util.List.of("0", "-1", "1.5")) {
+            payment.setAmount(new BigDecimal(amount));
+            assertThrows(RuntimeException.class, () -> configuredService().createPaymentUrl(payment, "127.0.0.1"));
+        }
+        payment.setAmount(new BigDecimal("150000"));
+        payment.getOrder().setPaymentExpiresAt(java.time.Instant.now().minusSeconds(1));
+        assertThrows(RuntimeException.class, () -> configuredService().createPaymentUrl(payment, "127.0.0.1"));
     }
 }

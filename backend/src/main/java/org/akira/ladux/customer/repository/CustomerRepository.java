@@ -12,6 +12,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("update Customer c set c.totalSpent = coalesce(c.totalSpent, 0) + :amount, "
+            + "c.loyaltyPoints = coalesce(c.loyaltyPoints, 0) + :points where c.user.id = :userId")
+    int creditLoyalty(@Param("userId") Integer userId, @Param("amount") java.math.BigDecimal amount, @Param("points") long points);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("update Customer c set c.totalSpent = greatest(coalesce(c.totalSpent, 0) - :amount, 0), "
+            + "c.loyaltyPoints = greatest(coalesce(c.loyaltyPoints, 0) - :points, 0) where c.user.id = :userId")
+    int debitLoyalty(@Param("userId") Integer userId, @Param("amount") java.math.BigDecimal amount, @Param("points") long points);
 
     // Customer chia se khoa chinh voi User nen id == userId.
     @EntityGraph(attributePaths = {"user", "user.roles"})

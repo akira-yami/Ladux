@@ -76,24 +76,24 @@ class PaymentServiceImplTest {
     }
 
     private void stubAdminUpdateLookup(Payment payment, Order order) {
+        when(repo.findOrderIdByPaymentId(payment.getId())).thenReturn(Optional.of(order.getId()));
         when(repo.findByIdForUpdate(payment.getId())).thenReturn(Optional.of(payment));
         when(orderRepository.findWithItemsByIdForUpdate(order.getId())).thenReturn(Optional.of(order));
     }
 
-    // Admin chi sua provider tren don da bi huy (job het han tu huy): phai luu duoc,
-    // khong duoc nem loi "da bi huy" va khong duoc cham vao trang thai don.
+    // The provider is part of the financial audit trail, including cancelled orders.
     @Test
-    void updatePayment_changesProviderOnCancelledOrder_whenStatusNotChanged() {
+    void updatePayment_rejectsProviderChangeOnCancelledOrder() {
         Order order = orderWithStatus(OrderStatus.CANCELLED);
         Payment payment = pendingPayment(order, PaymentProvider.VNPAY);
         stubAdminUpdateLookup(payment, order);
 
-        PaymentCallbackResponse response = paymentService.updatePayment(
+        assertThrows(BusinessRuleException.class, () -> paymentService.updatePayment(
                 payment.getId(),
-                new PaymentCallbackRequest(order.getId(), PaymentProvider.MOMO, null, PaymentStatus.PENDING));
+                new PaymentCallbackRequest(order.getId(), PaymentProvider.MOMO, null, PaymentStatus.PENDING)));
 
-        assertEquals(PaymentProvider.MOMO, response.provider());
-        assertEquals(PaymentStatus.PENDING, response.status());
+        assertEquals(PaymentProvider.VNPAY, payment.getProvider());
+        assertEquals(PaymentStatus.PENDING, payment.getStatus());
         verify(orderLifecycleService, never()).confirmAfterSuccessfulPayment(any());
         verify(orderLifecycleService, never()).cancelOrder(any(), any());
     }
@@ -105,38 +105,37 @@ class PaymentServiceImplTest {
         Payment payment = pendingPayment(order, PaymentProvider.VNPAY);
         stubAdminUpdateLookup(payment, order);
 
-        BusinessRuleException ex = assertThrows(BusinessRuleException.class, () ->
+        assertThrows(BusinessRuleException.class, () ->
                 paymentService.updatePayment(
                         payment.getId(),
                         new PaymentCallbackRequest(order.getId(), PaymentProvider.VNPAY, null, PaymentStatus.SUCCESS)));
 
-        assertTrue(ex.getMessage().contains("da bi huy"));
         assertEquals(PaymentStatus.PENDING, payment.getStatus());
         verify(orderLifecycleService, never()).confirmAfterSuccessfulPayment(any());
     }
 
-    // Regression: don da qua han 15 phut nhung chua bi job huy, admin xac nhan SUCCESS
-    // phai thanh cong thay vi tu huy don roi bao loi nhu luong khach.
+    // An expired VNPay attempt still needs verified gateway evidence, not admin success.
     @Test
-    void updatePayment_adminConfirmsSuccessAfterPaymentWindowExpired() {
+    void updatePayment_rejectsManualSuccessAfterPaymentWindowExpired() {
         Order order = orderWithStatus(OrderStatus.PENDING);
         order.setPaymentExpiresAt(Instant.now().minusSeconds(3600));
         Payment payment = pendingPayment(order, PaymentProvider.VNPAY);
         stubAdminUpdateLookup(payment, order);
 
-        PaymentCallbackResponse response = paymentService.updatePayment(
+        assertThrows(BusinessRuleException.class, () -> paymentService.updatePayment(
                 payment.getId(),
-                new PaymentCallbackRequest(order.getId(), PaymentProvider.VNPAY, null, PaymentStatus.SUCCESS));
+                new PaymentCallbackRequest(order.getId(), PaymentProvider.VNPAY, null, PaymentStatus.SUCCESS)));
 
-        assertEquals(PaymentStatus.SUCCESS, response.status());
-        assertNotNull(response.transactionNo());
-        verify(orderLifecycleService).confirmAfterSuccessfulPayment(order);
+        assertEquals(PaymentStatus.PENDING, payment.getStatus());
+        assertNull(payment.getTransactionNo());
+        assertEquals(OrderStatus.PENDING, order.getStatus());
+        verify(orderLifecycleService, never()).confirmAfterSuccessfulPayment(any());
         verify(orderLifecycleService, never()).cancelOrder(any(), any());
     }
 
-    // Don da giao thi khong cho sua payment nua, ke ca chi sua provider.
+    // A shipped COD payment may only record a receipt, never change providers.
     @Test
-    void updatePayment_rejectsShippedOrder() {
+    void updatePayment_rejectsProviderChangeOnShippedOrder() {
         Order order = orderWithStatus(OrderStatus.SHIPPED);
         Payment payment = pendingPayment(order, PaymentProvider.COD);
         stubAdminUpdateLookup(payment, order);
@@ -147,26 +146,20 @@ class PaymentServiceImplTest {
                         new PaymentCallbackRequest(order.getId(), PaymentProvider.MOMO, null, PaymentStatus.PENDING)));
     }
 
-    // MoMo: khach thanh toan xong la SUCCESS ngay, don duoc xac nhan, khong cho admin duyet.
+    // No MoMo gateway exists yet, so creating a request cannot prove money arrived.
     @Test
-    void createPayment_momoSucceedsImmediately() {
+    void createPayment_rejectsUnsupportedMomoWithoutDatabaseMutation() {
         Order order = orderWithStatus(OrderStatus.PENDING);
-        Payment payment = pendingPayment(order, PaymentProvider.MOMO);
-        when(orderRepository.findByIdForUpdate(order.getId())).thenReturn(Optional.of(order));
-        when(repo.findFirstByOrderIdOrderByCreatedAtDesc(order.getId())).thenReturn(Optional.of(payment));
-        when(repo.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PaymentCallbackResponse response = paymentService.createPayment(
-                7, new PaymentCreateRequest(order.getId(), PaymentProvider.MOMO), "127.0.0.1");
+        assertThrows(BusinessRuleException.class, () -> paymentService.createPayment(
+                7, new PaymentCreateRequest(order.getId(), PaymentProvider.MOMO), "127.0.0.1"));
 
-        assertEquals(PaymentStatus.SUCCESS, response.status());
-        assertNotNull(response.transactionNo());
-        verify(orderLifecycleService).confirmAfterSuccessfulPayment(order);
+        verifyNoInteractions(repo, orderRepository, orderLifecycleService);
     }
 
-    // COD: tao payment xong van PENDING de cho admin duyet.
+    // COD remains unpaid until a receipt is recorded during shipping.
     @Test
-    void createPayment_codStaysPendingForAdminApproval() {
+    void createPayment_codStaysPendingUntilReceipt() {
         Order order = orderWithStatus(OrderStatus.PENDING);
         Payment payment = pendingPayment(order, PaymentProvider.COD);
         when(orderRepository.findByIdForUpdate(order.getId())).thenReturn(Optional.of(order));

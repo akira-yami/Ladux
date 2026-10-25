@@ -35,7 +35,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "reviews", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "reviews", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<ReviewResponse> getAllReviews(Pageable pageable) {
         return PageResponse.from(repo.findAll(pageable)
                 .map(ReviewMapper::fromEntity));
@@ -51,7 +51,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "reviews", key = "'product:' + #productId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "reviews", key = "'product:' + #productId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<ReviewResponse> getReviewsByProductId(int productId, Pageable pageable) {
         return PageResponse.from(repo.findByProductId(productId, pageable)
                 .map(ReviewMapper::fromEntity));
@@ -59,7 +59,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "reviews", key = "'user:' + #userId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "reviews", key = "'user:' + #userId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<ReviewResponse> getReviewsByUserId(int userId, Pageable pageable) {
         return PageResponse.from(repo.findByUserId(userId, pageable)
                 .map(ReviewMapper::fromEntity));

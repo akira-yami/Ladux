@@ -46,4 +46,21 @@ class JwtFilterBearerTokenTest {
 
         verify(jwtService, never()).extractUsername("legacy-cookie-token");
     }
+
+    @Test
+    void tokenExpiringDuringValidationContinuesAsAnonymous() throws Exception {
+        JwtService jwt = mock(JwtService.class);
+        UserDetailsService users = mock(UserDetailsService.class);
+        var user = new UserPrincipal(org.akira.ladux.identity.entity.User.builder().id(2).username("customer").build());
+        when(jwt.extractUsername("token")).thenReturn("customer");
+        when(users.loadUserByUsername("customer")).thenReturn(user);
+        when(jwt.isTokenValid("token", user)).thenThrow(new JwtException("expired during validation"));
+        var request = new MockHttpServletRequest("GET", "/api/v1/cart");
+        request.addHeader("Authorization", "Bearer token");
+        var chain = new MockFilterChain();
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> new JwtFilter(jwt, users)
+                .doFilter(request, new MockHttpServletResponse(), chain));
+        org.junit.jupiter.api.Assertions.assertNull(SecurityContextHolder.getContext().getAuthentication());
+        org.junit.jupiter.api.Assertions.assertNotNull(chain.getRequest());
+    }
 }

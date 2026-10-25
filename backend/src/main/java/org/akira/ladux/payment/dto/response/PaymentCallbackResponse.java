@@ -15,6 +15,10 @@ public record PaymentCallbackResponse(
         BigDecimal amount,
         PaymentStatus status,
         String paymentUrl,
-        Instant createdAt
+        Instant createdAt,
+        org.akira.ladux.ordering.enums.OrderStatus orderStatus,
+        Instant paymentExpiresAt,
+        boolean canRetry,
+        boolean requiresReview
 ) implements Serializable {
 }

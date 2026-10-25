@@ -149,7 +149,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   getSelectedTotalAmount: () => {
     const selectedItems = get().getSelectedItems();
     return selectedItems.reduce((sum, item) => {
-      const price = Number(item.productVariant?.discountPrice || item.productVariant?.price || 0);
+      const price = Number(item.productVariant?.discountPrice ?? item.productVariant?.price ?? 0);
       return sum + price * item.quantity;
     }, 0);
   },

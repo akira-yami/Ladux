@@ -19,13 +19,21 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     boolean existsBySku(String candidate);
 
-    @Query("UPDATE ProductVariant p SET p.stockQuantity = p.stockQuantity - :qty " +
+    @Query("UPDATE ProductVariant p SET p.stockQuantity = p.stockQuantity - :qty, p.version = p.version + 1 " +
             "WHERE p.id = :id AND :qty > 0 AND p.stockQuantity >= :qty AND p.isActive = true " +
-            "AND EXISTS (SELECT product.id FROM Product product WHERE product.id = p.product.id AND product.isActive = true)")
+            "AND EXISTS (SELECT product.id FROM Product product WHERE product.id = p.product.id " +
+            "AND product.isActive = true AND product.category.isActive = true)")
     @Modifying
     int deductStockAtomically(
             @Param("id") @NotNull(message = "ProductId khong duoc de trong") @Positive(message = "ProductId phai la so duong") Integer id,
             @Param("qty") Integer quantity);
+
+    @Modifying
+    @Query(value = """
+            UPDATE product_variants SET stock_quantity = stock_quantity + :delta, version = version + 1
+            WHERE id = :id AND CAST(stock_quantity AS bigint) + :delta BETWEEN 0 AND 2147483647
+            """, nativeQuery = true)
+    int adjustStockAtomically(@Param("id") Integer id, @Param("delta") int delta);
 
     boolean existsByColorId(int id);
 

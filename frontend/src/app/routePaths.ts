@@ -16,6 +16,6 @@ export const ROUTES = {
     vnpayReturn: "/payment/vnpay/return",
 } as const;
 
-export function productPath(productId: number | string): string {
-    return `${ROUTES.products}/${productId}`;
+export function productPath(productId: number | string, variantId?: number): string {
+    return `${ROUTES.products}/${productId}${variantId == null ? '' : `?variantId=${variantId}`}`;
 }

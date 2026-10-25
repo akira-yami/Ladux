@@ -27,7 +27,6 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, In
     @Query("select po from PurchaseOrder po where po.id = :id")
     Optional<PurchaseOrder> findWithItemsById(@Param("id") Integer id);
 
-    @EntityGraph(attributePaths = {"supplier", "createdBy", "items", "items.productVariant"})
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select po from PurchaseOrder po where po.id = :id")
     Optional<PurchaseOrder> findWithItemsByIdForUpdate(@Param("id") Integer id);

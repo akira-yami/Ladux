@@ -26,6 +26,7 @@ export interface ShippingAddressResponse {
 }
 
 export interface OrderRequest {
+  expectedAmount?: number;
   couponCode?: string;
   paymentProvider: PaymentProvider;
   shippingAddress: ShippingAddressRequest;

@@ -30,6 +30,13 @@ public class GlobalExceptionHandler {
     private static final Pattern NULL_COLUMN_PATTERN = Pattern.compile("null value in column \"([^\"]+)\"");
     private static final Pattern UNIQUE_CONSTRAINT_PATTERN = Pattern.compile("unique constraint \"([^\"]+)\"");
 
+    @ExceptionHandler(org.springframework.dao.OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleConcurrentUpdate() {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(409).error("Conflict")
+                .message("Dữ liệu đã được thay đổi bởi thao tác khác. Vui lòng tải lại và thử lại").build());
+    }
+
     @ExceptionHandler({HandlerMethodValidationException.class, HttpMessageNotReadableException.class})
     public ResponseEntity<ErrorResponse> handleInvalidRequest(Exception ex) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()
@@ -46,6 +53,29 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({IllegalArgumentException.class, org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+            org.springframework.web.bind.MissingServletRequestParameterException.class,
+            org.springframework.web.multipart.support.MissingServletRequestPartException.class})
+    public ResponseEntity<ErrorResponse> handleMalformedRequest(Exception exception) {
+        return ResponseEntity.badRequest().body(ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(400).error("Bad Request")
+                .message("Tham số yêu cầu không hợp lệ").build());
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleOversizedUpload() {
+        return ResponseEntity.status(413).body(ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(413).error("Payload Too Large")
+                .message("Tệp tải lên vượt quá dung lượng cho phép").build());
+    }
+
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMissingResource() {
+        return ResponseEntity.status(404).body(ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(404).error("Not Found")
+                .message("Không tìm thấy tài nguyên").build());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -202,8 +232,7 @@ public class GlobalExceptionHandler {
         if (!matcher.find()) {
             return "Thieu truong bat buoc trong DB";
         }
-        String column = matcher.group(1);
-        return "Backend dang gui thieu cot bat buoc '" + column + "' khi luu vao DB.";
+        return "Thiếu dữ liệu bắt buộc";
     }
 
     private String resolveUniqueConstraintMessage(SQLException sqlException) {
@@ -218,7 +247,7 @@ public class GlobalExceptionHandler {
         if (constraint.contains("username")) {
             return "Username nay da ton tai trong DB. Hay dung username khac.";
         }
-        return "Du lieu bi trung voi rang buoc unique: " + constraint;
+        return "Dữ liệu đã tồn tại";
     }
 
     private SQLException findSqlException(Throwable throwable) {

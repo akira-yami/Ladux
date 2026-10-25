@@ -17,6 +17,8 @@
 
 ## 📌 Overview
 
+Đợt hoàn thiện production **25/10/2026**: đã siết checkout/stock/payment/refund, phân phiên API, catalog server-side, bootstrap admin, migration và vận hành. Java 21 đạt **212 tests**; frontend đạt TypeScript, **44 tests** và build; đã chạy stack production fixture, HTTP nghiệp vụ và backup/restore. Cấu hình `.env.production` hiện có vẫn cần hoàn thiện domain/secret/callback trước khi deploy thật. Xem [kế hoạch](docs/PRODUCTION_PLAN.md), [báo cáo và các điều kiện còn lại](docs/PRODUCTION_AUDIT.md), [runbook triển khai](docs/PRODUCTION_RUNBOOK.md). Các kết quả trong phần SmartFit bên dưới là snapshot của đợt kiểm chứng trước.
+
 **Ladux** là một hệ thống thương mại điện tử chuyên ngành thiết bị công nghệ, được xây dựng để mô phỏng chân thực quy trình vận hành của một nền tảng bán lẻ từ khâu bán hàng đến quản trị kho vận và nhà cung cấp.
 
 Hệ thống tập trung vào 3 phân hệ cốt lõi:

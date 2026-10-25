@@ -1,8 +1,11 @@
 .storefront-ui { min-height: 100vh; color: var(--ink); background: var(--page); }
 .storefront-ui .container { max-width: 1280px; }
-.storefront-ui > header { background: color-mix(in srgb, var(--surface) 78%, transparent); border-color: color-mix(in srgb, var(--line) 65%, transparent); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); transition: background-color .5s cubic-bezier(.22, 1, .36, 1), box-shadow .5s cubic-bezier(.22, 1, .36, 1), border-color .5s cubic-bezier(.22, 1, .36, 1); }
-.storefront-ui > header.header-scrolled { background: color-mix(in srgb, var(--surface) 88%, transparent); box-shadow: 0 20px 45px -24px rgb(43 39 34 / .28); }
-.storefront-ui > header > div:last-child { background: transparent; border-color: var(--line); }
+.storefront-ui > header { background: var(--surface); border-color: var(--line); }
+.storefront-ui > header.header-scrolled { box-shadow: 0 8px 20px -16px rgb(43 39 34 / .22); }
+/* Keep header geometry stable during scroll. Only the separate navigation
+   layer moves, avoiding layout animation and nested backdrop repaints. */
+.storefront-ui .store-subheader { position: absolute; inset: 100% 0 auto; z-index: -1; background: var(--surface); border-bottom: 1px solid var(--line); transform: translateY(0); opacity: 1; visibility: visible; transition: transform .2s ease, opacity .2s ease, visibility .2s; }
+.storefront-ui .store-subheader[data-visible="false"] { transform: translateY(-100%); opacity: 0; visibility: hidden; pointer-events: none; }
 .store-header-main { gap: 20px; }
 .store-header-main > .absolute { width: min(44%, 540px); border-color: var(--line); border-radius: 10px; background: var(--surface-soft); box-shadow: 0 10px 30px -18px rgb(43 39 34 / .18); }
 .store-header-main > .absolute > button:last-child { border-radius: 0 9px 9px 0; }
@@ -10,7 +13,9 @@
 .store-header-main > div:last-child { margin-left: 0; }
 .storefront-ui footer { margin-top: 64px; border-color: var(--line); background: var(--surface); }
 .storefront-ui .store-card { border-color: var(--line); background: var(--surface); box-shadow: 0 3px 6px rgb(28 23 13 / .015); }
-.storefront-ui .store-card-hover { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+/* Shadow and border switch once on hover; animating them repaints every card
+   under the pointer each frame. Keep the lift on the compositor instead. */
+.storefront-ui .store-card-hover { transition: transform .25s ease; }
 .storefront-ui .store-card-hover:hover { transform: translateY(-4px); border-color: var(--brand-200); box-shadow: 0 12px 30px rgb(58 29 10 / .06); }
 .storefront-ui .store-card__image { mix-blend-mode: multiply; transition: transform .35s ease; }
 .dark .storefront-ui .store-card__image { mix-blend-mode: normal; }

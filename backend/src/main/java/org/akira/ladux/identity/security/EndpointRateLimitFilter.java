@@ -118,7 +118,8 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
         } else if ("POST".equals(method) && "/api/v1/orders".equals(path)) {
             rateLimitService.check("order-create-user", authenticatedUserOrIp(clientIp), orderCapacity, orderRefillMinutes,
                     "Bạn đã tạo đơn hàng quá nhiều, hãy thử lại sau");
-        } else if ("POST".equals(method) && path.matches("/api/v1/orders/\\d+/payments/retry")) {
+        } else if ("POST".equals(method) && (path.matches("/api/v1/orders/\\d+/payments/retry")
+                || "/api/v1/payments".equals(path) || path.matches("/api/v1/payments/my/txn-ref/[^/]+/reconcile"))) {
             rateLimitService.check("payment-retry-user", authenticatedUserOrIp(clientIp), paymentRetryCapacity,
                     paymentRetryRefillMinutes, "Bạn đã thử thanh toán lại quá nhiều, hãy thử lại sau");
         } else if ("GET".equals(method) && isSearchRequest(request, path)) {

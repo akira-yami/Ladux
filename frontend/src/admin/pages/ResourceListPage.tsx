@@ -268,7 +268,7 @@ const definitions: Record<ResourceName, ResourceDefinition> = {
       { key: "id", header: "Giao dịch", render: (row) => <strong>#{text(row, "id")}</strong> }, { key: "order", header: "Đơn hàng", render: (row) => `#${text(row, "orderId")}` },
       { key: "provider", header: "Cổng", render: (row) => text(row, "provider") }, { key: "transaction", header: "Mã giao dịch", render: (row) => text(row, "transactionNo") },
       { key: "amount", header: "Số tiền", render: (row) => <strong>{formatCurrency(number(row, "amount"))}</strong> }, { key: "status", header: "Trạng thái", render: (row) => <StatusBadge value={text(row, "status")} /> }, createdColumn,
-    ], fetcher: (params) => params.status ? adminApi.payments.byStatus(params.status as never, params).then(asAdminPage) : adminApi.payments.list(params).then(asAdminPage),
+    ], fetcher: (params) => params.status ? adminApi.payments.byStatus(params.status as never, params).then(asAdminPage) : adminApi.payments.list({ page: params.page, size: params.size }).then(asAdminPage),
   },
 };
 

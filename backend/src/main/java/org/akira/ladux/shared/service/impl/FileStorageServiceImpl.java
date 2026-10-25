@@ -52,18 +52,39 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new BusinessRuleException("Duong dan upload khong hop le");
         }
 
-        try {
+        try (java.io.InputStream input = file.getInputStream()) {
             Files.createDirectories(directory);
-            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             throw new BusinessRuleException("Khong the luu file anh");
         }
 
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override public void afterCompletion(int status) {
+                            if (status != STATUS_COMMITTED) {
+                                try { Files.deleteIfExists(target); } catch (IOException ignored) { }
+                            }
+                        }
+                    });
+        }
         return "/uploads/" + safeSubDir + "/" + filename;
     }
 
     @Override
     public void deleteIfLocal(String publicUrl) {
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override public void afterCommit() { deleteNow(publicUrl); }
+                    });
+            return;
+        }
+        deleteNow(publicUrl);
+    }
+
+    private void deleteNow(String publicUrl) {
         if (publicUrl == null || publicUrl.isBlank() || !publicUrl.startsWith("/uploads/")) {
             return;
         }

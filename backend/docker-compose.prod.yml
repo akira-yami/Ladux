@@ -1,6 +1,6 @@
 # Production compose (run from repository root):
 # `docker compose --env-file .env.production -f backend/docker-compose.prod.yml up -d --build`.
-# `--env-file` is required because Compose interpolates ${VAR:?required} before service-level env_file is applied.
+# `--env-file` supplies the explicitly mapped runtime and build variables.
 # Caddy is the only service published to the host. App, PostgreSQL and Redis
 # communicate through Docker-only networks.
 services:
@@ -9,8 +9,6 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
-    env_file:
-      - ../.env.production
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
@@ -26,6 +24,7 @@ services:
       VNPAY_PAY_URL: ${VNPAY_PAY_URL:?VNPAY_PAY_URL required}
       VNPAY_RETURN_URL: ${VNPAY_RETURN_URL:?VNPAY_RETURN_URL required}
       VNPAY_REFUND_URL: ${VNPAY_REFUND_URL:?VNPAY_REFUND_URL required}
+      VNPAY_QUERY_URL: ${VNPAY_QUERY_URL:?VNPAY_QUERY_URL required}
       VNPAY_IPN_URL: ${VNPAY_IPN_URL:?VNPAY_IPN_URL required}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?DEEPSEEK_API_KEY required}
       GOOGLE_GENAI_API_KEY: ${GOOGLE_GENAI_API_KEY:?GOOGLE_GENAI_API_KEY required}
@@ -35,6 +34,17 @@ services:
       AUTH_COOKIE_SECURE: "true"
       AUTH_COOKIE_SAME_SITE: Strict
       UPLOAD_ROOT: /app/uploads
+      CAPTCHA_ENABLED: "true"
+      CAPTCHA_SECRET: ${CAPTCHA_SECRET:?CAPTCHA_SECRET required}
+      CAPTCHA_EXPECTED_HOSTNAME: ${LADUX_WEB_DOMAIN:?LADUX_WEB_DOMAIN required}
+      CAPTCHA_EXPECTED_ACTION: login
+      BOOTSTRAP_ADMIN_ENABLED: ${BOOTSTRAP_ADMIN_ENABLED:-false}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      ORDER_SHIPPING_FEE: ${ORDER_SHIPPING_FEE:-30000}
+      ORDER_CARRIER: ${ORDER_CARRIER:-VNPOST}
+      VNPAY_EXPIRE_MINUTES: ${VNPAY_EXPIRE_MINUTES:-15}
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,13 +54,35 @@ services:
       - proxy-network
       - data-network
     volumes:
-      - ../uploads:/app/uploads
+      - uploads-data:/app/uploads
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health/liveness" ]
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health/readiness" ]
       interval: 15s
       timeout: 5s
       retries: 5
       start_period: 60s
+    stop_grace_period: 40s
+    mem_limit: 1536m
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_API_BASE_URL: https://${LADUX_WEB_DOMAIN:?LADUX_WEB_DOMAIN required}
+        VITE_RECAPTCHA_SITE_KEY: ${VITE_RECAPTCHA_SITE_KEY:?VITE_RECAPTCHA_SITE_KEY required}
+        VITE_SITE_URL: https://${LADUX_WEB_DOMAIN:?LADUX_WEB_DOMAIN required}
+        VITE_ALLOW_INDEXING: ${LADUX_ALLOW_INDEXING:-true}
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - proxy-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
 
   postgres:
     image: pgvector/pgvector:pg17
@@ -71,10 +103,10 @@ services:
       - data-network
   caddy:
     image: caddy:2
-    container_name: ladux-caddy
     environment:
       CADDY_EMAIL: ${CADDY_EMAIL:?CADDY_EMAIL required}
       LADUX_API_DOMAIN: ${LADUX_API_DOMAIN:?LADUX_API_DOMAIN required}
+      LADUX_WEB_DOMAIN: ${LADUX_WEB_DOMAIN:?LADUX_WEB_DOMAIN required}
     ports:
       - "80:80"
       - "443:443"
@@ -83,7 +115,10 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - app
+      app:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     networks:
       - proxy-network
     restart: unless-stopped
@@ -108,6 +143,7 @@ volumes:
   redis-data:
   caddy_data:
   caddy_config:
+  uploads-data:
 
 networks:
   proxy-network:

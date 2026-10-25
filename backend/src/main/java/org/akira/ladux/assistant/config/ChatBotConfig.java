@@ -10,11 +10,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Configuration
 public class ChatBotConfig {
     @Bean
-    public VectorStore vectorStore(JdbcTemplate jdbcTemplate, EmbeddingModel embeddingModel) {
+    public VectorStore vectorStore(JdbcTemplate jdbcTemplate, EmbeddingModel embeddingModel,
+            @org.springframework.beans.factory.annotation.Value("${spring.ai.vectorstore.pgvector.initialize-schema:true}") boolean initializeSchema) {
         return PgVectorStore.builder(jdbcTemplate, embeddingModel)
                 .dimensions(3072)
                 .indexType(PgVectorStore.PgIndexType.NONE)
-                .initializeSchema(true)
+                .initializeSchema(initializeSchema)
                 .build();
     }
 }

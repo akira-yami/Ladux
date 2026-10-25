@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { OrderItemRecord, OrderStatus, formatVND, mapProductResponseToLaptopProduct } from "../types";
 import { useOrderStore } from "../stores";
 import { ROUTES } from "../app/routePaths";
+import { requireVNPayUrl } from "../utils/paymentFlow";
 
 export interface OrdersViewProps {
     selectedOrderId?: string;
@@ -618,13 +619,9 @@ export default function OrdersView({
                                             onClick={async () => {
                                                 try {
                                                     const res = await retryPayment(Number(currentOrder.id));
-                                                    if (res.paymentUrl) {
-                                                        window.location.href = res.paymentUrl;
-                                                    } else {
-                                                        showToast("Khởi tạo thanh toán lại thất bại!");
-                                                    }
-                                                } catch {
-                                                    showToast("Lỗi khi kết nối đến VNPay.");
+                                                    window.location.assign(requireVNPayUrl(res.paymentUrl));
+                                                } catch (err: any) {
+                                                    showToast(err?.response?.data?.message || err?.message || "Lỗi khi kết nối đến VNPay.");
                                                 }
                                             }}
                                             className="flex items-center gap-2 bg-sky-600 text-white px-5 py-2.5 rounded-xl text-xs font-semibold normal-case hover:bg-sky-600 transition shadow-lg shadow-sky-700/20"

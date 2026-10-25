@@ -14,6 +14,10 @@ export interface PaymentCallbackResponse {
   status: PaymentStatus;
   paymentUrl: string | null;
   createdAt: string;
+  orderStatus?: string;
+  paymentExpiresAt?: string | null;
+  canRetry?: boolean;
+  requiresReview?: boolean;
 }
 
 export interface PaymentCreateRequest {
@@ -61,4 +65,10 @@ export const paymentService = {
   getMyPaymentByTxnRef: (txnRef: string): Promise<PaymentCallbackResponse> => {
     return apiClient.get(`/payments/my/txn-ref/${encodeURIComponent(txnRef)}`);
   },
+
+  verifyVNPayReturn: (params: Record<string, string>, signal?: AbortSignal): Promise<PaymentCallbackResponse> =>
+    apiClient.post('/payments/vnpay/verify-return', params, { signal }),
+
+  reconcileVNPay: (txnRef: string, signal?: AbortSignal): Promise<PaymentCallbackResponse> =>
+    apiClient.post(`/payments/my/txn-ref/${encodeURIComponent(txnRef)}/reconcile`, undefined, { signal }),
 };

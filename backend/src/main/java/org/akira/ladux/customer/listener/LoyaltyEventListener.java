@@ -19,23 +19,13 @@ public class LoyaltyEventListener {
 
     @EventListener
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "users", allEntries = true)
     // Tổng tiền chi tiêu và điểm thưởng sau khi được tích lũy
     public void handleOrderDelivered(OrderDeliveredEvent event) {
         Order order = event.getOrder();
         if (order.getUser() == null) return;
 
-        customerRepository.findByUserId(order.getUser().getId()).ifPresent(customer -> {
-            // 1. Tích lũy tổng số tiền đã chi tiêu (totalSpent)
-            BigDecimal currentSpent = customer.getTotalSpent() != null ? customer.getTotalSpent() : BigDecimal.ZERO;
-            BigDecimal newTotalSpent = currentSpent.add(order.getFinalAmount());
-            customer.setTotalSpent(newTotalSpent);
-
-            // 2. Quy đổi điểm thưởng (Ví dụ: 10,000 VNĐ = 1 điểm loyalty)
-            Long pointsEarned = order.getFinalAmount().divideToIntegralValue(new BigDecimal("10000")).longValue();
-            Long currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
-            customer.setLoyaltyPoints(currentPoints + pointsEarned);
-
-            customerRepository.save(customer);
-        });
+        long points = order.getFinalAmount().divideToIntegralValue(new BigDecimal("10000")).longValueExact();
+        customerRepository.creditLoyalty(order.getUser().getId(), order.getFinalAmount(), points);
     }
 }

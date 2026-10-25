@@ -118,9 +118,12 @@ export const productService = {
    * Lấy tất cả sản phẩm (Có hỗ trợ tìm kiếm & phân trang)
    * GET /api/v1/products?search=...&page=0&size=10&sort=createdAt,desc
    */
-  getAllProducts: (params?: PageParams & { search?: string }): Promise<PageResponse<ProductResponse>> => {
-    return apiClient.get('/products', { params });
+  getAllProducts: (params?: PageParams & { search?: string; secondarySearch?: string; brandId?: number;
+    categoryId?: number; ram?: string; rom?: string; maxPrice?: number; order?: string }, signal?: AbortSignal): Promise<PageResponse<ProductResponse>> => {
+    return apiClient.get('/products', { params, signal });
   },
+
+  getFacets: (): Promise<{ ram: string[]; rom: string[]; maxPrice: number }> => apiClient.get('/products/facets'),
 
   /**
    * Lấy chi tiết sản phẩm theo ID

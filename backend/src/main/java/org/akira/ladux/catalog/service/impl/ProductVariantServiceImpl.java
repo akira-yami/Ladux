@@ -81,7 +81,9 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         if (ram.isBlank() || rom.isBlank()) {
             throw new IllegalArgumentException("RAM và ROM không được để trống");
         }
-        ProductVariant existingVariant = productVariantRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy ProductVariant với id: " + id));
+        ProductVariant existingVariant = productVariantRepository.findByIdForUpdate(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ProductVariant với id: " + id));
+        if (existingVariant.getStockQuantity() != stockQuantity)
+            throw new org.akira.ladux.shared.exception.BusinessRuleException("Dùng nghiệp vụ điều chỉnh kho để thay đổi tồn kho");
         Color color = colorRepository.findById(colorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy màu sắc với id: " + colorId));
         if (discountPrice != null && discountPrice.compareTo(price) > 0) {
@@ -110,7 +112,6 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         // KIểm tra xem ProductVariant có tồn tại trong OrderItem hay không, nếu có thì không được xóa
         if (orderItemRepository.existsByProductVariantId(variantId)) {
             productVariantExisting.setActive(false);
-            productVariantExisting.setStockQuantity(0);
             productVariantRepository.save(productVariantExisting);
             return;
         }

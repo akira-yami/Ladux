@@ -45,7 +45,7 @@ const productSchema = z.object({
   variants: z.array(z.object({
     colorId: z.union([z.literal(""), z.coerce.number().positive()]),
     ram: z.string(), rom: z.string(),
-    price: z.coerce.number().nonnegative("Giá phải lớn hơn hoặc bằng 0"),
+    price: z.coerce.number().positive("Giá phải lớn hơn 0"),
     discountPrice: z.union([z.literal(""), z.coerce.number().nonnegative()]),
     stockQuantity: z.coerce.number().int().nonnegative("Tồn kho không được âm"),
     isActive: z.boolean(),
@@ -146,7 +146,7 @@ export default function ProductEditorPage() {
           <div><label className="mb-1 block text-xs font-bold text-slate-600">ROM</label><input className={fieldClassName} placeholder="512GB SSD" {...form.register(`variants.${index}.rom`)} /></div>
           <div><label className="mb-1 block text-xs font-bold text-slate-600">Giá gốc *</label><input className={fieldClassName} type="number" min="0" step="1" {...form.register(`variants.${index}.price`)} /></div>
           <div><label className="mb-1 block text-xs font-bold text-slate-600">Giá giảm</label><input className={fieldClassName} type="number" min="0" step="1" {...form.register(`variants.${index}.discountPrice`)} /></div>
-          <div><label className="mb-1 block text-xs font-bold text-slate-600">Tồn kho *</label><input className={fieldClassName} type="number" min="0" step="1" {...form.register(`variants.${index}.stockQuantity`)} /></div>
+          <div><label className="mb-1 block text-xs font-bold text-slate-600">Tồn kho *</label><input className={fieldClassName} readOnly={Boolean(form.getValues(`variants.${index}.id`))} type="number" min="0" step="1" {...form.register(`variants.${index}.stockQuantity`)} />{form.getValues(`variants.${index}.id`) && <p className="mt-1 text-xs text-slate-500">Thay đổi số lượng trong mục điều chỉnh kho.</p>}</div>
           <label className="flex items-center gap-3 self-end rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700"><input type="checkbox" {...form.register(`variants.${index}.isActive`)} />Đang bán</label>
         </div></div>)}</div>
       </Panel>
