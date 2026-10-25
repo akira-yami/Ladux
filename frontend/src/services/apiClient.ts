@@ -1,9 +1,10 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { env } from "../config/env";
-import { getStorefrontAccessToken, setStorefrontAccessToken } from "./authTokens";
+import { getStorefrontAccessToken, setStorefrontAccessToken, getStorefrontSessionEpoch } from "./authTokens";
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
+  _sessionEpoch?: number;
 }
 
 interface AccessTokenResponse {
@@ -13,6 +14,7 @@ interface AccessTokenResponse {
 const apiClient = axios.create({
   baseURL: env.apiBaseUrl,
   withCredentials: true,
+  timeout: 20_000,
   headers: {
     Accept: "application/json",
   },
@@ -30,12 +32,15 @@ function redirectAfterSessionExpired(): void {
 
 function refreshSession(): Promise<string> {
   if (!refreshPromise) {
+    const epoch = getStorefrontSessionEpoch();
     refreshPromise = axios
       .post<AccessTokenResponse>(`${env.apiBaseUrl}/auth/refresh`, undefined, {
         withCredentials: true,
+        timeout: 15_000,
         headers: { Accept: "application/json" },
       })
       .then((response) => {
+        if (epoch !== getStorefrontSessionEpoch()) throw new axios.CanceledError('Session changed');
         setStorefrontAccessToken(response.data.accessToken);
         return response.data.accessToken;
       })
@@ -48,6 +53,7 @@ function refreshSession(): Promise<string> {
 }
 
 apiClient.interceptors.request.use((config) => {
+  (config as RetryableRequestConfig)._sessionEpoch = getStorefrontSessionEpoch();
   const accessToken = getStorefrontAccessToken();
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -58,9 +64,15 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    if ((response.config as RetryableRequestConfig)._sessionEpoch !== getStorefrontSessionEpoch())
+      throw new axios.CanceledError('Session changed');
+    return response.data;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableRequestConfig | undefined;
+    if (originalRequest && originalRequest._sessionEpoch !== getStorefrontSessionEpoch())
+      return Promise.reject(new axios.CanceledError('Session changed'));
     const url = originalRequest?.url ?? "";
     const isAuthEndpoint = ["/auth/login", "/auth/register", "/auth/refresh", "/auth/logout"].some(
       (endpoint) => url.includes(endpoint),
@@ -73,7 +85,8 @@ apiClient.interceptors.response.use(
         await refreshSession();
         return apiClient(originalRequest);
       } catch (refreshError) {
-        redirectAfterSessionExpired();
+        if (axios.isAxiosError(refreshError) && [401, 403].includes(refreshError.response?.status ?? 0))
+          redirectAfterSessionExpired();
         return Promise.reject(refreshError);
       }
     }

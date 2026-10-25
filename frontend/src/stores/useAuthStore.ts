@@ -10,7 +10,7 @@ import {
   PersonalInformationUpdateRequest,
   getCaptchaToken,
 } from '@/services';
-import { setStorefrontAccessToken } from '@/services/authTokens';
+import { setStorefrontAccessToken, getStorefrontSessionEpoch } from '@/services/authTokens';
 
 interface AuthState {
   user: UserResponse | null;
@@ -54,15 +54,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   clearError: () => set({ error: null }),
 
   login: async (credentials) => {
+    const epoch = getStorefrontSessionEpoch();
     set({ isLoading: true, error: null });
     try {
       const captchaToken = await getCaptchaToken('login');
       const response = await authService.login({ ...credentials, captchaToken });
       get().setAccessToken(response.accessToken);
       await get().fetchCurrentUser();
+      if (!get().isLoggedIn) throw new Error('Không thể xác nhận phiên đăng nhập. Vui lòng thử lại.');
     } catch (err: any) {
+      if (epoch !== getStorefrontSessionEpoch()) throw err;
       const message = err?.response?.data?.message || err?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!';
-      set({ error: message, isLoggedIn: false, user: null });
+      setStorefrontAccessToken(null);
+      set({ error: message, accessToken: null, isLoggedIn: false, user: null });
       throw err;
     } finally {
       set({ isLoading: false });
@@ -95,6 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   fetchCurrentUser: async () => {
+    const epoch = getStorefrontSessionEpoch();
     set({ isLoading: true, error: null });
     try {
       if (!get().accessToken) {
@@ -102,12 +107,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         get().setAccessToken(response.accessToken);
       }
       const userData = await userService.getCurrentUser();
+      if (epoch !== getStorefrontSessionEpoch()) return;
       set({ user: userData, isLoggedIn: true });
     } catch (error) {
+      if (epoch !== getStorefrontSessionEpoch()) return;
       // Nếu session không hợp lệ hoặc hết hạn thì clear session state
       get().clearSession();
     } finally {
-      set({ isLoading: false });
+      if (epoch === getStorefrontSessionEpoch()) set({ isLoading: false });
     }
   },
 

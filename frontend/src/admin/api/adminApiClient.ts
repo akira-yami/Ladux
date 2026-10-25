@@ -1,9 +1,10 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { env } from "../../config/env";
-import { getAdminAccessToken, setAdminAccessToken } from "../../services/authTokens";
+import { getAdminAccessToken, setAdminAccessToken, getAdminSessionEpoch } from "../../services/authTokens";
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _adminRetry?: boolean;
+  _sessionEpoch?: number;
 }
 
 interface AccessTokenResponse {
@@ -13,6 +14,7 @@ interface AccessTokenResponse {
 const adminApiClient = axios.create({
   baseURL: env.apiBaseUrl,
   withCredentials: true,
+  timeout: 45_000,
   headers: {
     Accept: "application/json",
   },
@@ -30,12 +32,15 @@ function expireAdminSession(): void {
 
 function refreshAdminSession(): Promise<string> {
   if (!refreshPromise) {
+    const epoch = getAdminSessionEpoch();
     refreshPromise = axios
       .post<AccessTokenResponse>(`${env.apiBaseUrl}/admin/auth/refresh`, undefined, {
         withCredentials: true,
+        timeout: 15_000,
         headers: { Accept: "application/json" },
       })
       .then((response) => {
+        if (epoch !== getAdminSessionEpoch()) throw new axios.CanceledError('Admin session changed');
         setAdminAccessToken(response.data.accessToken);
         return response.data.accessToken;
       })
@@ -47,6 +52,7 @@ function refreshAdminSession(): Promise<string> {
 }
 
 adminApiClient.interceptors.request.use((config) => {
+  (config as RetryableRequestConfig)._sessionEpoch = getAdminSessionEpoch();
   const accessToken = getAdminAccessToken();
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -57,9 +63,15 @@ adminApiClient.interceptors.request.use((config) => {
 });
 
 adminApiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    if ((response.config as RetryableRequestConfig)._sessionEpoch !== getAdminSessionEpoch())
+      throw new axios.CanceledError('Admin session changed');
+    return response.data;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableRequestConfig | undefined;
+    if (originalRequest && originalRequest._sessionEpoch !== getAdminSessionEpoch())
+      return Promise.reject(new axios.CanceledError('Admin session changed'));
     const url = originalRequest?.url ?? "";
     const isAuthEndpoint = [
       "/admin/auth/login",
@@ -73,7 +85,8 @@ adminApiClient.interceptors.response.use(
         await refreshAdminSession();
         return adminApiClient(originalRequest);
       } catch (refreshError) {
-        expireAdminSession();
+        if (axios.isAxiosError(refreshError) && [401, 403].includes(refreshError.response?.status ?? 0))
+          expireAdminSession();
         return Promise.reject(refreshError);
       }
     }
