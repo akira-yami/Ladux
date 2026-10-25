@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, type ReactElement } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactElement } from "react";
 import { Check } from "lucide-react";
 import { Link, Navigate, Outlet, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import Footer from "../components/common/Footer";
@@ -8,7 +8,8 @@ import BrandMark from "../components/common/BrandMark";
 import ThemeToggle from "../components/common/ThemeToggle";
 import heroArtwork from "../assets/ladux/hero.webp";
 import "../styles/storefront-v2.css";
-import { authService } from "../services";
+import { authService, productService } from "../services";
+import { mapProductResponseToLaptopProduct, type LaptopProduct } from "../types";
 import { productPath, ROUTES } from "./routePaths";
 import { useStorefront } from "./StorefrontProvider";
 
@@ -151,18 +152,34 @@ function ProductDetailRoute() {
         setNewComment,
     } = useStorefront();
 
-    const routeProduct = allDisplayProducts.find((product) => String(product.id) === id);
+    const [routeProduct, setRouteProduct] = useState<LaptopProduct | null>(null);
+    const [detailLoading, setDetailLoading] = useState(true);
+    const [detailError, setDetailError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (routeProduct && selectedProduct?.id !== routeProduct.id) {
-            setSelectedProduct(routeProduct);
+        let active = true;
+        setDetailLoading(true);
+        setRouteProduct(null);
+        setDetailError(null);
+        const productId = Number(id);
+        if (!Number.isSafeInteger(productId) || productId <= 0) {
+            setDetailLoading(false);
+            return;
         }
-    }, [routeProduct, selectedProduct?.id, setSelectedProduct]);
+        productService.getProductById(productId).then((response) => {
+            if (!active) return;
+            const product = mapProductResponseToLaptopProduct(response);
+            setRouteProduct(product);
+            setSelectedProduct(product);
+        }).catch(() => { if (active) setDetailError("Không thể tải sản phẩm này."); })
+            .finally(() => { if (active) setDetailLoading(false); });
+        return () => { active = false; };
+    }, [id, setSelectedProduct]);
 
-    if (!isCatalogReady) return <RouteLoading />;
+    if (detailLoading) return <RouteLoading />;
 
     if (!routeProduct) {
-        if (catalogError) {
+        if (detailError) {
             return (
                 <main className="container mx-auto flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 text-center">
                     <p className="text-sm text-slate-500">Không thể tải sản phẩm này.</p>
@@ -337,7 +354,7 @@ export default function AppRouter() {
                 <Route path={ROUTES.addresses} element={<RequireAuth><AccountRoute view="addresses" /></RequireAuth>} />
                 <Route path={ROUTES.about} element={<AboutView />} />
                 <Route path={ROUTES.contact} element={<ContactRoute />} />
-                <Route path={ROUTES.vnpayReturn} element={<VNPayReturnView />} />
+                <Route path={ROUTES.vnpayReturn} element={<RequireAuth><VNPayReturnView /></RequireAuth>} />
                 <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
             </Route>
         </Routes>

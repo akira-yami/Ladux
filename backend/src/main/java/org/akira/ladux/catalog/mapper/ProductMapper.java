@@ -48,6 +48,16 @@ public final class ProductMapper {
 
     public static ProductResponse fromEntity(Product product) {
         if (product == null) return null;
+        return response(product, false, product.getReviews() == null ? 0.0 : product.getReviews().stream()
+                .mapToInt(review -> review.getRating()).average().orElse(0.0),
+                product.getReviews() == null ? 0L : product.getReviews().size());
+    }
+
+    public static ProductResponse publicFromEntity(Product product, double rating, long reviews) {
+        return response(product, true, rating, reviews);
+    }
+
+    private static ProductResponse response(Product product, boolean publicOnly, double rating, long reviews) {
         return new ProductResponse(
                 product.getId(),
                 product.getBrand() == null ? null : BrandMapper.fromEntity(product.getBrand()),
@@ -68,13 +78,10 @@ public final class ProductMapper {
                         .map(ProductImageMapper::fromEntity)
                         .toList(),
                 product.getVariants() == null ? List.of() : product.getVariants().stream()
+                        .filter(variant -> !publicOnly || variant.isActive())
                         .map(ProductVariantMapper::fromEntity)
                         .toList(),
-                product.getReviews() == null ? 0.0 : product.getReviews().stream()
-                        .mapToInt(review -> review.getRating())
-                        .average()
-                        .orElse(0.0),
-                product.getReviews() == null ? 0L : product.getReviews().size()
+                rating, reviews
         );
     }
 

@@ -153,8 +153,8 @@ export function mapProductResponseToLaptopProduct(
     const activeVariant = availableVariants.find((variant) => variant.id === selectedVariantId)
         ?? availableVariants.reduce<ProductVariantResponse | undefined>((lowest, variant) => {
             if (!lowest) return variant;
-            const currentPrice = Number(variant.discountPrice || variant.price);
-            const lowestPrice = Number(lowest.discountPrice || lowest.price);
+            const currentPrice = Number(variant.discountPrice ?? variant.price);
+            const lowestPrice = Number(lowest.discountPrice ?? lowest.price);
             return currentPrice < lowestPrice ? variant : lowest;
         }, undefined);
 
@@ -193,7 +193,7 @@ export function mapProductResponseToLaptopProduct(
         ram: activeVariant?.ram || "",
         rom: activeVariant?.rom || "",
         price: activeVariant ? Number(activeVariant.price) : 0,
-        discountPrice: activeVariant?.discountPrice ? Number(activeVariant.discountPrice) : undefined,
+        discountPrice: activeVariant?.discountPrice != null ? Number(activeVariant.discountPrice) : undefined,
         stockQuantity: availableVariants.reduce((total, variant) => total + variant.stockQuantity, 0),
         rating: Number(product.averageRating || 0),
         reviewCount: Number(product.reviewCount || 0),

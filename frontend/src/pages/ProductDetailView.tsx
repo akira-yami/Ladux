@@ -232,7 +232,7 @@ export default function ProductDetailView({
                             <div className="flex items-baseline gap-3">
                                 <span className="text-3xl font-semibold font-sans text-sky-700">
                                     {selectedVariant
-                                        ? formatVND(selectedVariant.discountPrice || selectedVariant.price)
+                                        ? formatVND(selectedVariant.discountPrice ?? selectedVariant.price)
                                         : "Chưa có giá"}
                                 </span>
                                 {selectedVariant?.discountPrice
@@ -289,7 +289,7 @@ export default function ProductDetailView({
                                             </span>
                                         </span>
                                         <span className="font-sans font-bold">
-                                            {formatVND(variant.discountPrice || variant.price)}
+                                            {formatVND(variant.discountPrice ?? variant.price)}
                                         </span>
                                     </button>
                                 ))}

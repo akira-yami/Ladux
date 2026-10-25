@@ -11,7 +11,7 @@ export interface ProductCardProps {
 
 export default function ProductCard({ laptop, isWishlisted, onToggleWishlist, onSelectProduct, onAddToCart }: ProductCardProps) {
     const inStock = laptop.variants ? laptop.variants.some(variant => variant.stockQuantity > 0) : laptop.stockQuantity > 0;
-    const discounted = !!laptop.discountPrice && laptop.discountPrice < laptop.price;
+    const discounted = laptop.discountPrice != null && laptop.discountPrice < laptop.price;
     const finalPrice = discounted ? laptop.discountPrice! : laptop.price;
     const specs = [{ icon: Cpu, value: laptop.cpu }, { icon: Cpu, value: laptop.ram }, { icon: HardDrive, value: laptop.rom }, { icon: Monitor, value: laptop.display }];
 
