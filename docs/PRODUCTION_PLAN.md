@@ -40,7 +40,7 @@ Các mục trong báo cáo audit cũ phải đối chiếu với source hiện t
 
 Các giai đoạn 1–6 đã hoàn tất trong workspace. Bản sửa bao gồm gate CI, migration bổ sung V58–V61, công cụ preflight/bootstrap, stack production đầy đủ và backup/restore. Giữ lại các thay đổi VNPay/giao diện có sẵn; không sửa file môi trường thật hoặc deploy công khai.
 
-Kiểm chứng cuối: Java 21 `clean verify` **206 tests** không bỏ qua; frontend typecheck, **44 tests** và build; **6 tests** preflight; **32 bước HTTP nghiệp vụ**, **7 kiểm tra HTTP frontend**; backup DB/media và restore PostgreSQL tạm đạt. Npm audit 0 vulnerabilities; OSV 259 Maven packages, 0 packages có advisory tại thời điểm kiểm tra. Chi tiết và giới hạn nằm trong [báo cáo hoàn thiện](PRODUCTION_AUDIT.md).
+Kiểm chứng cuối: Java 21 `clean verify` **212 tests** không bỏ qua; frontend typecheck, **44 tests** và build; **6 tests** preflight; **32 bước HTTP nghiệp vụ**, **7 kiểm tra HTTP frontend**; backup DB/media và restore PostgreSQL tạm đạt. Npm audit 0 vulnerabilities; OSV 259 Maven packages, 0 packages có advisory tại thời điểm kiểm tra. Chi tiết và giới hạn nằm trong [báo cáo hoàn thiện](PRODUCTION_AUDIT.md).
 
 Các mục còn lại thuộc release trên môi trường thật: sửa `.env.production` cho vượt preflight; cấu hình DNS/TLS và nhà cung cấp; diễn tập dữ liệu/media hiện hữu, kiểm chứng thanh toán/email/OAuth/CAPTCHA thật; cấu hình backup ngoài host và alert. Thực hiện theo [runbook](PRODUCTION_RUNBOOK.md). Không quy các bước chưa xác minh thành kết quả đã đạt.
 

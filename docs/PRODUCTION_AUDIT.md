@@ -32,7 +32,7 @@ Kết quả tại workspace ngày 25/10/2026. Log chi tiết nằm trong `output
 
 | Gate | Kết quả thực tế | Bằng chứng trong workspace |
 | --- | --- | --- |
-| Backend Java 21 | `clean verify` đạt **206 tests**, 0 failures/errors/skipped; PostgreSQL 17 + Redis thật qua Testcontainers | `output/backend-verification.log`, `backend/target/surefire-reports/` |
+| Backend Java 21 | `clean verify` đạt **212 tests**, 0 failures/errors/skipped; PostgreSQL 17 + Redis thật qua Testcontainers | `output/backend-verification.log`, `backend/target/surefire-reports/` |
 | Frontend | TypeScript đạt; **44 tests / 11 files** đạt; Vite production build đạt | `output/frontend-verification.log` |
 | Preflight regression | **6/6 tests** đạt, gồm placeholder/secret yếu/URL refund sai/sandbox opt-in | `node --test scripts/preflight.test.mjs` |
 | Dependency frontend | `npm audit`: **0 vulnerabilities**, cả dependency phát triển | `output/frontend-audit.json` |
@@ -45,6 +45,10 @@ Kết quả tại workspace ngày 25/10/2026. Log chi tiết nằm trong `output
 | `.env.production` đang có | **Chưa đạt** preflight; giữ nguyên file thật | Xem các mục cấu hình dưới đây |
 
 Test tích hợp bao gồm tranh chấp SKU cuối, hủy song song, hoàn tiền lặp/khôi phục, migration mới/nâng cấp và rollback toàn bộ checkout. HTTP smoke chạy trong project Docker `ladux-audit-smoke` riêng, không mở host ports và dùng JWT fixture: nó kiểm tra authorization/nghiệp vụ, không chứng minh login/CAPTCHA/OAuth/SMTP/VNPay thật. Backup/restore chỉ dùng dữ liệu giả; chưa thay thế diễn tập với bản sao database thực tế. Đã dọn container/volume của riêng project fixture sau kiểm chứng.
+
+## Đồng bộ GitHub trước khi push
+
+Khi chuẩn bị push, đã đồng bộ `origin/main` tới merge PR #10 (`d1322a5`). Giữ ràng buộc provider bất biến, VNPay chỉ thành công từ kết quả xác minh và từ chối MoMo chưa tích hợp gateway; không dùng hành vi tự ghi SUCCESS từ yêu cầu client. Giữ đủ 6 tình huống test mới từ upstream, cập nhật kỳ vọng theo các ràng buộc này và chạy lại Java 21 `clean verify`: 212 tests đạt, không bỏ qua. Source ứng dụng sau giải quyết xung đột giữ đúng phiên bản đã chạy HTTP production fixture.
 
 ## Những mục đang chặn cấu hình triển khai
 
