@@ -19,7 +19,7 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "orderHistories", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "orderHistories", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<OrderHistoryResponse> getAllOrderHistories(Pageable pageable) {
         return PageResponse.from(repo.findAll(pageable)
                 .map(OrderHistoryMapper::fromEntity));
@@ -35,14 +35,14 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "orderHistories", key = "'order:' + #orderId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "orderHistories", key = "'order:' + #orderId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<OrderHistoryResponse> getOrderHistoriesByOrderId(int orderId, Pageable pageable) {
         return PageResponse.from(repo.findByOrderId(orderId, pageable)
                 .map(OrderHistoryMapper::fromEntity));
     }
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "orderHistories", key = "'user:' + #userId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "orderHistories", key = "'user:' + #userId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<OrderHistoryResponse> getOrdersHistoryByUser(Integer userId, Pageable pageable) {
         return PageResponse.from(repo.findByUserId(userId, pageable)
                 .map(OrderHistoryMapper::fromEntity));

@@ -27,7 +27,7 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "userAddresses", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "userAddresses", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<UserAddressResponse> getAllUserAddresses(Pageable pageable) {
         return PageResponse.from(repo.findAll(pageable)
                 .map(UserAddressMapper::fromEntity));
