@@ -33,6 +33,9 @@ public class StockMovementServiceImpl implements StockMovementService {
     private final ProductVariantRepository productVariantRepository;
     private final UserRepository userRepository;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     @Override
     @Transactional
     public StockMovementResponse createAdjustment(StockMovementRequest request, Integer createdByUserId) {
@@ -74,11 +77,12 @@ public class StockMovementServiceImpl implements StockMovementService {
         if (signedQuantity == 0) {
             throw new BusinessRuleException("So luong bien dong khong duoc bang 0");
         }
-        int newStock = productVariant.getStockQuantity() + signedQuantity;
-        if (newStock < 0) {
+        if (productVariantRepository.adjustStockAtomically(productVariant.getId(), signedQuantity) != 1) {
             throw new InsufficientStockException("Ton kho khong du de xuat (san pham id = " + productVariant.getId() + ")");
         }
-        productVariant.setStockQuantity(newStock);
+        // Never calculate stock from a previously loaded JPA entity: another checkout
+        // may have committed since it was read. The UPDATE owns the row until commit.
+        entityManager.refresh(productVariant);
 
         StockMovement movement = StockMovement.builder()
                 .productVariant(productVariant)

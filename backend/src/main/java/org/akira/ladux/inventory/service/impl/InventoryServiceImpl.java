@@ -28,13 +28,17 @@ public class InventoryServiceImpl implements InventoryService {
     private final ProductVariantRepository productVariantRepository;
     private final PricingService pricingService;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     @CacheEvict(value = "products", allEntries = true)
     public List<LineDraft> reserveStockAndPriceLines(List<OrderLineRequest> items) {
         List<LineDraft> drafts = new ArrayList<>();
 
-        for (OrderLineRequest item : items) {
+        for (OrderLineRequest item : items.stream()
+                .sorted(java.util.Comparator.comparing(OrderLineRequest::productId)).toList()) {
             // Bước 1: Trừ kho nguyên tử — một lệnh UPDATE, không cần giữ lock lâu.
             // SQL: UPDATE ProductVariant SET stockQuantity = stockQuantity - :qty
             //      WHERE id = :id AND stockQuantity >= :qty
@@ -47,6 +51,9 @@ public class InventoryServiceImpl implements InventoryService {
             // Giá sẽ được chốt vào OrderItem.priceAtPurchase (snapshot — không đổi sau này).
             ProductVariant productVariant = productVariantRepository.findById(item.productId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+            // The cart may already have loaded this entity before the bulk UPDATE.
+            // Refresh while our UPDATE holds the row lock, including the current price.
+            entityManager.refresh(productVariant);
 
             BigDecimal price = pricingService.sellingPrice(productVariant);
             BigDecimal lineTotal = price.multiply(BigDecimal.valueOf(item.quantity()));

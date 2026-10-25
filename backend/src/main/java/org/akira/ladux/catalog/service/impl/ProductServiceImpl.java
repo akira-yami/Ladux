@@ -152,13 +152,14 @@ public class ProductServiceImpl implements ProductService {
                 .display(request.display())
                 .battery(request.battery())
                 .weight(request.weight())
-                .numberOfFans(request.numberOfFans())
+                .numberOfFans(request.numberOfFans() == null ? 0 : request.numberOfFans())
                 .os(request.os())
                 .isActive(request.isActive() == null ? true : request.isActive())
                 .slug(SlugUtils.toSlug(request.name()))
                 .build();
         if (request.variants() != null && !request.variants().isEmpty()) {
             for (ProductVariantRequest variantRequest : request.variants()) {
+                validateProductPricing(variantRequest.price(), variantRequest.discountPrice());
                 Color color = colorRepository.findById(variantRequest.colorId()).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy màu sắc với id = " + variantRequest.colorId()));
                 String rawSku = product.getName() + " " + variantRequest.ram() + " " + variantRequest.rom() + " " + color.getName();
                 String sku = resolveSku(null, rawSku);
@@ -282,7 +283,8 @@ public class ProductServiceImpl implements ProductService {
         return candidate;
     }
     private void validateProductPricing(BigDecimal basePrice, BigDecimal discountPrice) {
-        if (discountPrice != null && discountPrice.compareTo(basePrice) > 0) {
+        if (basePrice == null || basePrice.signum() <= 0
+                || (discountPrice != null && (discountPrice.signum() < 0 || discountPrice.compareTo(basePrice) > 0))) {
             throw new BusinessRuleException("DiscountPrice khong duoc lon hon BasePrice");
         }
     }
@@ -329,6 +331,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void applyVariantFields(ProductVariant variant, ProductVariantRequest request) {
+        if (variant.getId() != null && variant.getStockQuantity() != request.stockQuantity())
+            throw new BusinessRuleException("Tồn kho đã thay đổi hoặc đang được sửa trực tiếp. Hãy tải lại và dùng nghiệp vụ điều chỉnh kho");
         variant.setColor(resolveColor(request.colorId()));
         variant.setRam(request.ram());
         variant.setRom(request.rom());

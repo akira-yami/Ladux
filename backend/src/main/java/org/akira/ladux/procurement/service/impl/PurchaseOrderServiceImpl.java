@@ -127,6 +127,9 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 && !(current == PurchaseOrderStatus.PENDING || current == PurchaseOrderStatus.CONFIRMED)) {
             throw new BusinessRuleException("Chi huy don khi dang PENDING hoac CONFIRMED");
         }
+        if (!(current == PurchaseOrderStatus.PENDING && target == PurchaseOrderStatus.CONFIRMED)
+                && target != PurchaseOrderStatus.CANCELLED && target != current)
+            throw new BusinessRuleException("Trạng thái nhận hàng chỉ được cập nhật bằng nghiệp vụ nhận hàng");
         po.setStatus(target);
         return PurchaseOrderMapper.fromEntity(po);
     }
@@ -147,7 +150,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         User receivedBy = receivedByUserId == null ? null
                 : userRepository.findById(receivedByUserId).orElse(null);
 
-        for (AdminPurchaseOrderReceiveRequest.ReceiveLine line : request.lines()) {
+        java.util.Set<Integer> receivedLines = new java.util.HashSet<>();
+        for (AdminPurchaseOrderReceiveRequest.ReceiveLine line : request.lines().stream()
+                .sorted(java.util.Comparator.comparing(line -> po.getItems().stream()
+                        .filter(item -> item.getId().equals(line.itemId())).findFirst()
+                        .orElseThrow(() -> new BusinessRuleException("Dòng nhận hàng không thuộc đơn mua"))
+                        .getProductVariant().getId())).toList()) {
+            if (!receivedLines.add(line.itemId()) || (line.receivedQuantity() != null && line.receivedQuantity() < 0))
+                throw new BusinessRuleException("Dòng nhận hàng bị lặp hoặc có số lượng âm");
             if (line.receivedQuantity() == null || line.receivedQuantity() == 0) {
                 continue;
             }
