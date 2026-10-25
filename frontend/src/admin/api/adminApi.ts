@@ -161,12 +161,14 @@ export const adminApi = {
   },
 
   payments: {
-    list: (params?: PageParams) => get<PageResponse<PaymentResponse>>("/admin/payments", { params }),
+    list: (params?: PageParams & { orderId?: number; status?: PaymentStatus; reviewOnly?: boolean }) => get<PageResponse<PaymentResponse>>("/admin/payments", { params }),
     byOrder: (orderId: number, params?: PageParams) => get<PageResponse<PaymentResponse>>(`/admin/payments/order/${orderId}`, { params }),
     detail: (id: number) => get<PaymentResponse>(`/admin/payments/${id}`),
     byStatus: (status: PaymentStatus, params?: PageParams) => get<PageResponse<PaymentResponse>>(`/admin/payments/status/${status}`, { params }),
     update: (id: number, data: PaymentUpdateRequest) => put<PaymentResponse>(`/admin/payments/${id}`, data),
-    refund: (orderId: number, data?: { amount?: number; reason?: string }) => post<OrderResponse>(`/admin/payments/order/${orderId}/refund`, data),
+    refund: (orderId: number, data?: { paymentId?: number; amount?: number; reason?: string }) => post<OrderResponse>(`/admin/payments/order/${orderId}/refund`, data),
+    refundAttention: (params?: PageParams) => get<PageResponse<import('../types').RefundAttemptResponse>>('/admin/payments/refunds/attention', { params }),
+    confirmRefund: (attemptId: number, reference: string) => post<OrderResponse>(`/admin/payments/refunds/${attemptId}/confirm`, { reference }),
   },
 
   customers: {

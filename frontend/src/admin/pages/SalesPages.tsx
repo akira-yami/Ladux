@@ -1,3 +1,4 @@
+import PaymentOperations from "../components/PaymentOperations";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, Edit3, LoaderCircle, RotateCcw, Search, X } from "lucide-react";
@@ -259,29 +260,70 @@ export function OrderDetailPage() {
 export function PaymentsPage() {
   const [params, setParams] = useSearchParams();
   const [editing, setEditing] = useState<PaymentResponse | null>(null);
-  const [form, setForm] = useState<{ provider: PaymentProvider; status: PaymentStatus } | null>(null);
-  const [searchDraft, setSearchDraft] = useState(params.get("orderId") ?? "");
+  const [receipt, setReceipt] = useState('');
+  const [searchDraft, setSearchDraft] = useState(params.get('orderId') ?? '');
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const page = Math.max(0, Number(params.get("page") ?? 0)); const size = Number(params.get("size") ?? 20); const status = (params.get("status") ?? "") as PaymentStatus | "";
-  const orderId = Number(params.get("orderId") ?? 0);
+  const page = Math.max(0, Number(params.get('page') ?? 0));
+  const size = [10, 20, 50].includes(Number(params.get('size'))) ? Number(params.get('size')) : 20;
+  const status = (params.get('status') || undefined) as PaymentStatus | undefined;
+  const orderId = Number(params.get('orderId')) || undefined;
   const query = useQuery({
-    queryKey: adminQueryKeys.resource("payments", { page, size, status, orderId }),
-    queryFn: async () => {
-      if (orderId > 0) {
-        const response = await adminApi.payments.byOrder(orderId, { page, size });
-        return status ? { ...response, content: response.content.filter((payment) => payment.status === status), totalElements: response.content.filter((payment) => payment.status === status).length } : response;
-      }
-      return status ? adminApi.payments.byStatus(status, { page, size }) : adminApi.payments.list({ page, size });
-    },
-    placeholderData: (previous) => previous,
+    queryKey: adminQueryKeys.resource('payments', { page, size, status, orderId }),
+    queryFn: () => adminApi.payments.list({ page, size, status, orderId, sort: 'createdAt,desc' }),
+    placeholderData: previous => previous,
   });
-  const updateParam = (key: string, value: string) => { const next = new URLSearchParams(params); value ? next.set(key, value) : next.delete(key); if (key !== "page") next.set("page", "0"); setParams(next); };
-  const mutation = useMutation({ mutationFn: () => adminApi.payments.update(editing!.id, { orderId: editing!.orderId, provider: form!.provider, status: form!.status }), onSuccess: (response) => { if (response.status === editing?.status) toast.info("Backend trả về payment không thay đổi"); else toast.success("Đã cập nhật thanh toán"); setEditing(null); queryClient.invalidateQueries({ queryKey: ["admin", "payments"] }); queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }); }, onError: (mutationError) => setError(getApiErrorMessage(mutationError)) });
-  const columns: AdminColumn<PaymentResponse>[] = [{ key: "id", header: "Giao dịch", render: (payment) => <Link className="font-extrabold text-indigo-600" to={`/admin/payments/${payment.id}`}>#{payment.id}</Link> }, { key: "order", header: "Đơn", render: (payment) => <Link className="font-bold text-indigo-600" to={`/admin/orders/${payment.orderId}`}>#{payment.orderId}</Link> }, { key: "provider", header: "Cổng", render: (payment) => payment.provider }, { key: "transaction", header: "Mã giao dịch", render: (payment) => payment.transactionNo || "Backend tự sinh khi SUCCESS" }, { key: "amount", header: "Số tiền", render: (payment) => <strong>{formatCurrency(payment.amount)}</strong> }, { key: "status", header: "Trạng thái", render: (payment) => <StatusBadge value={payment.status} /> }, { key: "created", header: "Ngày tạo", render: (payment) => formatBackendDateTime(payment.createdAt) }, { key: "action", header: "Thao tác", render: (payment) => <AdminButton tone="secondary" size="sm" disabled={payment.status !== "PENDING"} onClick={() => { setEditing(payment); setForm({ provider: payment.provider, status: payment.status }); setError(null); }}><Edit3 className="h-3.5 w-3.5" />Xử lý</AdminButton> }];
-  return <><PageHeader title="Thanh toán" description="Chỉ payment PENDING được phép đổi sang SUCCESS hoặc FAILED. Backend tự sinh mã giao dịch khi xác nhận thành công." /><Panel><div className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"><form className="relative flex-1 sm:max-w-sm" onSubmit={(event) => { event.preventDefault(); updateParam("orderId", searchDraft.trim()); }}><Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" /><input className={`${fieldClassName} pl-10`} inputMode="numeric" placeholder="Tìm theo mã đơn..." value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} /></form><select className={`${fieldClassName} sm:w-60`} value={status} onChange={(event) => updateParam("status", event.target.value)}><option value="">Tất cả trạng thái</option>{["PENDING", "SUCCESS", "FAILED", "REFUNDED"].map((item) => <option key={item}>{item}</option>)}</select></div><AdminTable rows={query.data?.content ?? []} columns={columns} isLoading={query.isLoading} error={query.isError ? getApiErrorMessage(query.error) : null} onRetry={() => query.refetch()} /><PaginationBar page={page} totalPages={query.data?.totalPages ?? 0} totalElements={query.data?.totalElements ?? 0} size={size} onPageChange={(value) => updateParam("page", String(value))} onSizeChange={(value) => updateParam("size", String(value))} /></Panel><Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}><DialogContent className="border-slate-200 bg-white text-slate-950"><DialogHeader><DialogTitle>Xử lý payment #{editing?.id}</DialogTitle><DialogDescription className="text-slate-500">SUCCESS có thể xác nhận đơn; FAILED có thể hủy đơn và hoàn kho/coupon.</DialogDescription></DialogHeader>{form && <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); setError(null); mutation.mutate(); }}>{error && <div role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</div>}<div><label className="mb-1.5 block text-sm font-bold text-slate-700">Nhà cung cấp thanh toán</label><select className={fieldClassName} value={form.provider} onChange={(event) => setForm((value) => value && ({ ...value, provider: event.target.value as PaymentProvider }))}>{["VNPAY", "MOMO", "COD"].map((item) => <option key={item}>{item}</option>)}</select></div><div><label className="mb-1.5 block text-sm font-bold text-slate-700">Kết quả</label><select className={fieldClassName} value={form.status} onChange={(event) => setForm((value) => value && ({ ...value, status: event.target.value as PaymentStatus }))}><option value="PENDING">PENDING</option><option value="SUCCESS">SUCCESS</option><option value="FAILED">FAILED</option></select></div><DialogFooter><AdminButton type="button" tone="secondary" onClick={() => setEditing(null)}>Đóng</AdminButton><AdminButton type="submit" disabled={mutation.isPending}>{mutation.isPending && <LoaderCircle className="h-4 w-4 animate-spin" />}Xác nhận</AdminButton></DialogFooter></form>}</DialogContent></Dialog></>;
+  const updateParam = (key: string, value: string) => {
+    const next = new URLSearchParams(params);
+    value ? next.set(key, value) : next.delete(key);
+    if (key !== 'page') next.set('page', '0');
+    setParams(next);
+  };
+  const mutation = useMutation({
+    mutationFn: () => adminApi.payments.update(editing!.id, { orderId: editing!.orderId, provider: 'COD', status: 'SUCCESS', transactionNo: receipt.trim() }),
+    onSuccess: () => {
+      toast.success('Đã xác nhận thu COD. Có thể cập nhật đơn sang giao thành công.');
+      setEditing(null);
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'payments'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+    },
+    onError: value => setError(getApiErrorMessage(value)),
+  });
+  const columns: AdminColumn<PaymentResponse>[] = [
+    { key: 'id', header: 'Giao dịch', render: payment => <Link className="font-bold text-indigo-600" to={`/admin/payments/${payment.id}`}>#{payment.id}</Link> },
+    { key: 'order', header: 'Đơn', render: payment => <Link className="text-indigo-600" to={`/admin/orders/${payment.orderId}`}>#{payment.orderId}</Link> },
+    { key: 'provider', header: 'Phương thức', render: payment => payment.provider },
+    { key: 'transaction', header: 'Mã giao dịch / chứng từ', render: payment => payment.transactionNo || '—' },
+    { key: 'amount', header: 'Số tiền', render: payment => formatCurrency(payment.amount) },
+    { key: 'status', header: 'Trạng thái', render: payment => <><StatusBadge value={payment.status} />{payment.requiresReview && <p className="text-xs text-amber-700">Cần đối soát</p>}</> },
+    { key: 'action', header: 'Thao tác', render: payment => <AdminButton tone="secondary" size="sm" disabled={payment.provider !== 'COD' || payment.status !== 'PENDING'} onClick={() => { setEditing(payment); setReceipt(''); setError(null); }}>Xác nhận thu COD</AdminButton> },
+  ];
+  return <>
+    <PageHeader title="Thanh toán" description="VNPay được xác minh qua cổng thanh toán. Thu COD cần mã chứng từ và đơn đang giao hàng." />
+    <PaymentOperations />
+    <Panel>
+      <div className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row">
+        <form onSubmit={event => { event.preventDefault(); updateParam('orderId', searchDraft.trim()); }}>
+          <input aria-label="Tìm theo mã đơn" className={fieldClassName} inputMode="numeric" placeholder="Tìm theo mã đơn..." value={searchDraft} onChange={event => setSearchDraft(event.target.value)} />
+        </form>
+        <select aria-label="Trạng thái thanh toán" className={fieldClassName} value={status ?? ''} onChange={event => updateParam('status', event.target.value)}>
+          <option value="">Tất cả trạng thái</option>{['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED'].map(value => <option key={value}>{value}</option>)}
+        </select>
+      </div>
+      <AdminTable rows={query.data?.content ?? []} columns={columns} isLoading={query.isLoading} error={query.isError ? getApiErrorMessage(query.error) : null} onRetry={() => query.refetch()} />
+      <PaginationBar page={page} totalPages={query.data?.totalPages ?? 0} totalElements={query.data?.totalElements ?? 0} size={size} onPageChange={value => updateParam('page', String(value))} onSizeChange={value => updateParam('size', String(value))} />
+    </Panel>
+    <Dialog open={Boolean(editing)} onOpenChange={open => { if (!open && !mutation.isPending) setEditing(null); }}>
+      <DialogContent><DialogHeader><DialogTitle>Xác nhận thu COD #{editing?.id}</DialogTitle><DialogDescription>Chỉ xác nhận sau khi đã nhận đủ tiền. Đơn hàng phải đang giao.</DialogDescription></DialogHeader>
+        <form className="space-y-4" onSubmit={event => { event.preventDefault(); setError(null); mutation.mutate(); }}>
+          {error && <p role="alert" className="text-rose-700">{error}</p>}
+          <label className="block text-sm font-medium">Mã chứng từ thu tiền<input className={fieldClassName} required maxLength={255} value={receipt} onChange={event => setReceipt(event.target.value)} /></label>
+          <DialogFooter><AdminButton type="submit" disabled={mutation.isPending || !receipt.trim()}>{mutation.isPending ? 'Đang xử lý...' : 'Đã thu đủ tiền'}</AdminButton></DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  </>;
 }
-
 export function PaymentDetailPage() {
   const { paymentId } = useParams<{ paymentId: string }>();
   const id = Number(paymentId);
@@ -289,5 +331,5 @@ export function PaymentDetailPage() {
   if (query.isLoading) return <LoadingScreen label="Đang tải giao dịch thanh toán..." />;
   if (!query.data) return <Panel className="p-8 text-center text-rose-600">{getApiErrorMessage(query.error)}</Panel>;
   const payment = query.data;
-  return <><PageHeader title={`Payment #${payment.id}`} description={`Giao dịch của đơn hàng #${payment.orderId}`} actions={<Link to="/admin/payments"><AdminButton tone="secondary"><ArrowLeft className="h-4 w-4" />Danh sách</AdminButton></Link>} /><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Panel className="p-5"><p className="text-xs font-bold uppercase text-slate-400">Trạng thái</p><div className="mt-3"><StatusBadge value={payment.status} /></div></Panel><Panel className="p-5"><p className="text-xs font-bold uppercase text-slate-400">Số tiền</p><p className="mt-2 text-xl font-black">{formatCurrency(payment.amount)}</p></Panel><Panel className="p-5"><p className="text-xs font-bold uppercase text-slate-400">Cổng thanh toán</p><p className="mt-2 font-black">{payment.provider}</p></Panel><Panel className="p-5"><p className="text-xs font-bold uppercase text-slate-400">Ngày tạo</p><p className="mt-2 font-bold">{formatBackendDateTime(payment.createdAt)}</p></Panel></div><Panel className="p-6"><dl className="grid gap-5 md:grid-cols-2"><div><dt className="text-xs font-bold uppercase text-slate-400">Order ID</dt><dd className="mt-2"><Link className="font-bold text-indigo-600" to={`/admin/orders/${payment.orderId}`}>#{payment.orderId}</Link></dd></div><div><dt className="text-xs font-bold uppercase text-slate-400">Transaction No</dt><dd className="mt-2 font-mono text-sm font-bold text-slate-800">{payment.transactionNo || "—"}</dd></div></dl>{payment.status !== "PENDING" && <p className="mt-6 rounded-xl bg-slate-50 p-3 text-xs font-semibold text-slate-600">Backend chỉ thực sự cập nhật payment khi trạng thái hiện tại là PENDING.</p>}</Panel></>;
+  return <><PageHeader title={`Payment #${payment.id}`} description={`Giao dịch của đơn hàng #${payment.orderId}`} actions={<Link to="/admin/payments"><AdminButton tone="secondary"><ArrowLeft className="h-4 w-4" />Danh sách</AdminButton></Link>} /><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Panel className="p-5"><p className="text-xs font-bold uppercase text-slate-400">Trạng thái</p><div className="mt-3"><StatusBadge value={payment.status} /></div></Panel><Panel className="p-5"><p className="text-xs font-bold uppercase text-slate-400">Số tiền</p><p className="mt-2 text-xl font-black">{formatCurrency(payment.amount)}</p></Panel><Panel className="p-5"><p className="text-xs font-bold uppercase text-slate-400">Cổng thanh toán</p><p className="mt-2 font-black">{payment.provider}</p></Panel><Panel className="p-5"><p className="text-xs font-bold uppercase text-slate-400">Ngày tạo</p><p className="mt-2 font-bold">{formatBackendDateTime(payment.createdAt)}</p></Panel></div><Panel className="p-6"><dl className="grid gap-5 md:grid-cols-2"><div><dt className="text-xs font-bold uppercase text-slate-400">Order ID</dt><dd className="mt-2"><Link className="font-bold text-indigo-600" to={`/admin/orders/${payment.orderId}`}>#{payment.orderId}</Link></dd></div><div><dt className="text-xs font-bold uppercase text-slate-400">Transaction No</dt><dd className="mt-2 font-mono text-sm font-bold text-slate-800">{payment.transactionNo || "—"}</dd></div></dl>{payment.status !== "PENDING" && <p className="mt-6 rounded-xl bg-slate-50 p-3 text-xs font-semibold text-slate-600">VNPay được cập nhật từ kết quả đã xác minh. Thu COD và hoàn tiền được ghi nhận theo quy trình riêng.</p>}</Panel></>;
 }

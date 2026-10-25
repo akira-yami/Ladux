@@ -1002,7 +1002,7 @@ export default function AccountView({
                 ) : (
                     <section className="space-y-5">
                         {/* Hộp Điểm Thành Viên Thật */}
-                        <div className="rounded-2xl border border-sky-100 bg-[linear-gradient(118deg,rgba(0,255,65,0.13),rgba(255,255,255,0.035)_44%,rgba(103,76,174,0.14))] p-6 sm:p-8">
+                        <div className="rounded-2xl border border-sky-100 bg-sky-50 p-6 sm:p-8">
                             <p className="font-sans text-[10px] normal-case tracking-normal text-sky-700">
                                 ĐIỂM THÀNH VIÊN
                             </p>
