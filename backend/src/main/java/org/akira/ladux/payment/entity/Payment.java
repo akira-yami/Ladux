@@ -71,6 +71,18 @@ public class Payment {
     @Column(name = "payment_url", columnDefinition = "TEXT")
     private String paymentUrl;
 
+    @Column(name = "vnp_create_date", length = 14)
+    private String vnpCreateDate;
+
+    @Column(name = "vnp_pay_date", length = 14)
+    private String vnpPayDate;
+
+    @Column(name = "vnp_queried_at")
+    private Instant vnpQueriedAt;
+
+    @Column(name = "requires_review", nullable = false)
+    private boolean requiresReview;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     private Instant createdAt;

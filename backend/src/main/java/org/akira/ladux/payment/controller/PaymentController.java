@@ -25,6 +25,21 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     private final PaymentService service;
+    private final org.akira.ladux.payment.service.RefundWorkflowService refundWorkflowService;
+
+    @GetMapping("/api/v1/admin/payments/refunds/attention")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PageResponse<org.akira.ladux.payment.dto.response.RefundAttemptResponse>> refundAttention(Pageable pageable) {
+        return ResponseEntity.ok(refundWorkflowService.attention(pageable));
+    }
+
+    @PostMapping("/api/v1/admin/payments/refunds/{attemptId}/confirm")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> confirmRefund(@PathVariable long attemptId,
+            @Valid @RequestBody org.akira.ladux.payment.dto.request.RefundResolutionRequest request,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(refundWorkflowService.confirmReconciled(attemptId, request.reference(), principal.getId()));
+    }
 
     @GetMapping("/api/v1/payments/my")
     public ResponseEntity<PageResponse<PaymentCallbackResponse>> getMyPayments(
@@ -67,8 +82,10 @@ public class PaymentController {
 
     @GetMapping("/api/v1/admin/payments")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PageResponse<PaymentCallbackResponse>> getAllPayments(Pageable pageable) {
-        return ResponseEntity.ok(service.getAllPayments(pageable));
+    public ResponseEntity<PageResponse<PaymentCallbackResponse>> getAllPayments(Pageable pageable,
+            @RequestParam(required = false) Integer orderId, @RequestParam(required = false) PaymentStatus status,
+            @RequestParam(defaultValue = "false") boolean reviewOnly) {
+        return ResponseEntity.ok(service.searchPayments(orderId, status, reviewOnly, pageable));
     }
 
     @GetMapping("/api/v1/admin/payments/order/{orderId}")
@@ -102,14 +119,10 @@ public class PaymentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> processRefund(
             @PathVariable int orderId,
-            @RequestBody(required = false) Map<String, Object> body,
+            @Valid @RequestBody(required = false) org.akira.ladux.payment.dto.request.RefundRequest body,
             @AuthenticationPrincipal UserPrincipal principal) {
-        BigDecimal amount = body != null && body.get("amount") != null
-                ? new BigDecimal(body.get("amount").toString())
-                : null;
-        String reason = body != null && body.get("reason") != null
-                ? body.get("reason").toString()
-                : "Hoàn tiền bởi Admin";
-        return ResponseEntity.ok(service.processRefund(orderId, amount, reason, principal.getId()));
+        BigDecimal amount = body == null ? null : body.amount();
+        String reason = body == null || body.reason() == null ? "Hoàn tiền bởi Admin" : body.reason();
+        return ResponseEntity.ok(service.processRefund(orderId, body == null ? null : body.paymentId(), amount, reason, principal.getId()));
     }
 }

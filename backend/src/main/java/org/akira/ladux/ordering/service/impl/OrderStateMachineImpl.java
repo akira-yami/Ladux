@@ -66,6 +66,18 @@ public class OrderStateMachineImpl implements OrderStateMachine {
         }
 
         validateTransition(current, target);
+        if ((target == OrderStatus.CONFIRMED || target == OrderStatus.SHIPPED || target == OrderStatus.DELIVERED)
+                && current != OrderStatus.RETURN_REQUESTED) {
+            boolean paid = order.getPayments().stream().anyMatch(p ->
+                    p.getStatus() == org.akira.ladux.payment.enums.PaymentStatus.SUCCESS && !p.isRequiresReview());
+            boolean cod = order.getPayments().stream().anyMatch(p ->
+                    p.getProvider() == org.akira.ladux.payment.enums.PaymentProvider.COD
+                            && p.getStatus() == org.akira.ladux.payment.enums.PaymentStatus.PENDING);
+            if (!paid && (!cod || target == OrderStatus.DELIVERED))
+                throw new BusinessRuleException("Đơn phải được thanh toán; COD cần xác nhận chứng từ thu tiền trước khi giao thành công");
+            if (order.getPaymentExpiresAt() != null && !order.getPaymentExpiresAt().isAfter(Instant.now()))
+                throw new BusinessRuleException("Đơn hàng đã quá hạn thanh toán");
+        }
         if (target == OrderStatus.CANCELLED) {
             orderLifecycleService.cancelOrder(order, "Đơn hàng đã được người dùng hủy");
             sendOrderStatusNotification(order, target);
@@ -104,12 +116,12 @@ public class OrderStateMachineImpl implements OrderStateMachine {
         order.setStatus(target);
         order.getHistories().add(OrderHistory.builder()
                 .order(order)
-                .user(order.getUser())
+                .user(admin)
                 .status(target)
                 .description("Trạng thái đơn hàng chuyển từ " + formatStatusVi(current) + " sang " + formatStatusVi(target))
                 .build());
         sendOrderStatusNotification(order, target);
-        if (target == OrderStatus.DELIVERED) {
+        if (target == OrderStatus.DELIVERED && current == OrderStatus.SHIPPED) {
             eventPublisher.publishEvent(new OrderDeliveredEvent(order));
         }
         return OrderMapper.fromEntity(order);
@@ -128,7 +140,8 @@ public class OrderStateMachineImpl implements OrderStateMachine {
     })
     // Job dinh ky (mac dinh 60s): huy don PENDING qua paymentExpiresAt. ShedLock chan chay trung khi scale ngang.
     public void expirePendingOrders() {
-        List<Order> expiredOrders = orderRepository.findExpiredOrdersForUpdate(OrderStatus.PENDING, Instant.now());
+        List<Order> expiredOrders = orderRepository.findExpiredOrdersForUpdate(OrderStatus.PENDING, Instant.now(),
+                org.springframework.data.domain.PageRequest.of(0, 50));
         for (Order order : expiredOrders) {
             orderLifecycleService.cancelOrder(order, "Payment window expired");
         }

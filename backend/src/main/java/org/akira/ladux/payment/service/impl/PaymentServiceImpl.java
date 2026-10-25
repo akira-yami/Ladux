@@ -72,10 +72,16 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "payments", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "payments", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<PaymentCallbackResponse> getAllPayments(Pageable pageable) {
         return PageResponse.from(repo.findAll(pageable)
                 .map(PaymentCallbackMapper::fromEntity));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PaymentCallbackResponse> searchPayments(Integer orderId, PaymentStatus status, boolean reviewOnly, Pageable pageable) {
+        return PageResponse.from(repo.search(orderId, status, reviewOnly, pageable).map(PaymentCallbackMapper::fromEntity));
     }
 
     @Override
@@ -88,7 +94,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "payments", key = "'my:' + #userId + ':order:' + #orderId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "payments", key = "'my:' + #userId + ':order:' + #orderId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<PaymentCallbackResponse> getMyPaymentsByOrderId(int userId, int orderId, Pageable pageable) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay order"));
@@ -103,7 +109,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "payments", key = "'my:' + #userId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "payments", key = "'my:' + #userId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<PaymentCallbackResponse> getMyPayments(int userId, Pageable pageable) {
         return PageResponse.from(repo.findByOrder_User_Id(userId, pageable)
                 .map(PaymentCallbackMapper::fromEntity));
@@ -111,7 +117,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "payments", key = "'my:' + #userId + ':status:' + #status + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "payments", key = "'my:' + #userId + ':status:' + #status + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<PaymentCallbackResponse> getMyPaymentsByStatus(int userId, PaymentStatus status, Pageable pageable) {
         return PageResponse.from(repo.findByOrder_User_IdAndStatus(userId, status, pageable)
                 .map(PaymentCallbackMapper::fromEntity));
@@ -119,7 +125,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "payments", key = "'status:' + #status + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "payments", key = "'status:' + #status + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<PaymentCallbackResponse> getPaymentsByStatus(PaymentStatus status, Pageable pageable) {
         return PageResponse.from(repo.findByStatus(status, pageable)
                 .map(PaymentCallbackMapper::fromEntity));
@@ -127,7 +133,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "payments", key = "'order:' + #orderId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "payments", key = "'order:' + #orderId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<PaymentCallbackResponse> getPaymentsByOrderId(int orderId, Pageable pageable) {
         return PageResponse.from(repo.findByOrderId(orderId, pageable)
                 .map(PaymentCallbackMapper::fromEntity));
@@ -140,6 +146,8 @@ public class PaymentServiceImpl implements PaymentService {
             @CacheEvict(value = "orders", allEntries = true)
     })
     public PaymentCallbackResponse createPayment(int userId, PaymentCreateRequest request, String clientIp) {
+        if (request.provider() != null && request.provider() != PaymentProvider.COD && request.provider() != PaymentProvider.VNPAY)
+            throw new BusinessRuleException("Phương thức thanh toán chưa được hỗ trợ");
         Order order = orderRepository.findByIdForUpdate(request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay order voi id = " + request.orderId()));
         if (!order.getUser().getId().equals(userId)) {
@@ -147,6 +155,11 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         ensureOrderCanAcceptPayment(order);
+
+        if (order.getStatus() != OrderStatus.PENDING)
+            throw new BusinessRuleException("Đơn hàng không còn chờ thanh toán");
+        if (repo.findFirstByOrderIdAndStatusOrderByCreatedAtDesc(order.getId(), PaymentStatus.SUCCESS).isPresent())
+            throw new BusinessRuleException("Đơn hàng đã được thanh toán");
 
         Optional<Payment> lastPaymentOpt = repo.findFirstByOrderIdOrderByCreatedAtDesc(order.getId());
         if (lastPaymentOpt.isPresent()) {
@@ -159,14 +172,15 @@ public class PaymentServiceImpl implements PaymentService {
             // Neu client chon provider khac thi cap nhat lai provider cho lan thanh toan dang cho.
             if (lastPayment.getStatus() == PaymentStatus.PENDING) {
                 if (request.provider() != null && request.provider() != lastPayment.getProvider()) {
-                    lastPayment.setProvider(request.provider());
+                    throw new BusinessRuleException("Không thể đổi phương thức của giao dịch đang chờ thanh toán");
                 }
                 if (lastPayment.getProvider() == PaymentProvider.VNPAY) {
                     if (lastPayment.getMerchantTxnRef() == null || lastPayment.getMerchantTxnRef().isBlank()) {
                         lastPayment.setMerchantTxnRef(generateMerchantTxnRef(order, lastPayment));
                     }
-                    String paymentUrl = vnPayPaymentUrlService.createPaymentUrl(lastPayment, clientIp);
-                    lastPayment.setPaymentUrl(paymentUrl);
+                    if (lastPayment.getPaymentUrl() == null || lastPayment.getPaymentUrl().isBlank()) {
+                        lastPayment.setPaymentUrl(vnPayPaymentUrlService.createPaymentUrl(lastPayment, clientIp));
+                    }
                     lastPayment = repo.save(lastPayment);
                 }
                 return PaymentCallbackMapper.fromEntity(lastPayment);
@@ -215,47 +229,38 @@ public class PaymentServiceImpl implements PaymentService {
             @CacheEvict(value = "orderHistories", allEntries = true)
     })
     public PaymentCallbackResponse updatePayment(int id, PaymentCallbackRequest request) {
-        Payment payment = repo.findByIdForUpdate(id)
+        Integer orderId = repo.findOrderIdByPaymentId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay payment voi id = " + id));
 
-        Order order = orderRepository.findWithItemsByIdForUpdate(payment.getOrder().getId())
+        Order order = orderRepository.findWithItemsByIdForUpdate(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay order cua payment id = " + id));
+        Payment payment = repo.findByIdForUpdate(id).orElseThrow();
 
         if (!order.getId().equals(request.orderId())) {
             throw new BusinessRuleException("OrderId khong khop voi payment dang cap nhat");
         }
 
-        ensureOrderCanAcceptPayment(order);
-
-        if (payment.getStatus() != PaymentStatus.PENDING) {
-            return PaymentCallbackMapper.fromEntity(payment);
-        }
-
-        if (request.provider() != null) {
-            payment.setProvider(request.provider());
-        }
-        if (request.transactionNo() != null) {
-            String transactionNo = request.transactionNo().trim();
-            if (!transactionNo.isBlank()) {
-                payment.setTransactionNo(transactionNo);
-            }
-        }
-        if (request.status() != null) {
-            if (request.status() == PaymentStatus.SUCCESS
-                    && (payment.getTransactionNo() == null || payment.getTransactionNo().isBlank())) {
-                payment.setTransactionNo(generateTransactionNo(payment));
-            }
-            payment.setStatus(request.status());
-            applyPaymentStatus(order, request.status());
-        }
+        if (request.provider() != payment.getProvider())
+            throw new BusinessRuleException("Không được đổi phương thức của giao dịch đã tạo");
+        if (payment.getProvider() != PaymentProvider.COD)
+            throw new BusinessRuleException("VNPay chỉ được cập nhật từ kết quả cổng thanh toán đã xác minh");
+        if (request.status() != PaymentStatus.SUCCESS)
+            throw new BusinessRuleException("Chỉ hỗ trợ xác nhận thu COD; hoàn tiền phải dùng quy trình hoàn tiền");
+        if (payment.getStatus() == PaymentStatus.SUCCESS) return PaymentCallbackMapper.fromEntity(payment);
+        if (payment.getStatus() != PaymentStatus.PENDING || order.getStatus() != OrderStatus.SHIPPED)
+            throw new BusinessRuleException("Chỉ xác nhận thu COD cho đơn đang giao hàng");
+        String receipt = request.transactionNo() == null ? "" : request.transactionNo().trim();
+        if (receipt.isBlank())
+            throw new BusinessRuleException("Cần mã chứng từ thu COD để xác nhận đã nhận tiền");
+        payment.setTransactionNo(receipt);
+        payment.setStatus(PaymentStatus.SUCCESS);
+        order.getHistories().add(OrderHistory.builder().order(order)
+                .user(userRepository.findById(org.akira.ladux.identity.security.SecurityUtils.getCurrentUserId()).orElseThrow())
+                .status(order.getStatus()).description("Đã xác nhận thu COD; chứng từ: " + receipt).build());
         return PaymentCallbackMapper.fromEntity(payment);
     }
 
-    private String generateTransactionNo(Payment payment) {
-        return "PAY-" + payment.getOrder().getId() + "-" + payment.getId() + "-" + Instant.now().toEpochMilli() + UUID.randomUUID().toString().substring(0, 4);
-    }
-
-    // Kiem tra don con nhan thanh toan duoc khong. Qua han -> tu huy don (hoan kho/coupon) roi nem loi.
+    // Reject expired payments. The expiry job owns cancellation and inventory release.
     private void ensureOrderCanAcceptPayment(Order order) {
         if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new BusinessRuleException("Don hang da bi huy, khong the cap nhat thanh toan");
@@ -264,19 +269,10 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessRuleException("Don hang da duoc van chuyen, khong the cap nhat thanh toan");
         }
         if (order.getPaymentExpiresAt() != null && !order.getPaymentExpiresAt().isAfter(Instant.now())) {
-            orderLifecycleService.cancelOrder(order, "Payment window expired");
             throw new BusinessRuleException("Don hang da qua han thanh toan");
         }
     }
 
-    private void applyPaymentStatus(Order order, PaymentStatus status) {
-        if (status == PaymentStatus.SUCCESS) {
-            orderLifecycleService.confirmAfterSuccessfulPayment(order);
-        }
-        if (status == PaymentStatus.FAILED) {
-            orderLifecycleService.cancelOrder(order, "Payment failed");
-        }
-    }
     /**
      * No outer transaction: reserve a durable refund attempt FIRST; send money
      * to the gateway OUTSIDE a DB transaction; finalize in a new transaction.
@@ -288,21 +284,21 @@ public class PaymentServiceImpl implements PaymentService {
             @CacheEvict(value = "orders", allEntries = true),
             @CacheEvict(value = "orderHistories", allEntries = true)
     })
-    public OrderResponse processRefund(int orderId, BigDecimal refundAmount, String reason, int adminId) {
+    public OrderResponse processRefund(int orderId, Integer paymentId, BigDecimal refundAmount, String reason, int adminId) {
         RefundWorkflowService.PreparedRefund prepared =
-                refundWorkflowService.prepare(orderId, refundAmount, reason, adminId);
+                refundWorkflowService.prepare(orderId, paymentId, refundAmount, reason, adminId);
 
         if (prepared.provider() == PaymentProvider.VNPAY) {
             boolean confirmed = callVNPayRefundApi(prepared);
             if (!confirmed) {
-                refundWorkflowService.markForReview(prepared.orderId(),
+                refundWorkflowService.markForReview(prepared.requestId(),
                         "VNPay refund response missing, failed or unverified; reconcile before any retry");
                 throw new BusinessRuleException(
                         "Chưa xác nhận được hoàn tiền VNPay; yêu cầu đã được giữ để đối soát, không tự gửi lại");
             }
         }
         // Non-VNPay methods represent an explicit admin acknowledgement of manual refund.
-        return refundWorkflowService.complete(prepared.orderId());
+        return refundWorkflowService.complete(prepared.requestId());
     }
 
     private boolean callVNPayRefundApi(RefundWorkflowService.PreparedRefund refund) {
@@ -317,7 +313,8 @@ public class PaymentServiceImpl implements PaymentService {
             String vnpTransactionNo = refund.transactionNo();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
             java.time.ZoneId zone = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
-            String vnpTransactionDate = refund.paymentCreatedAt().atZone(zone).format(formatter);
+            String vnpTransactionDate = refund.gatewayTransactionDate();
+            if (vnpTransactionDate == null || !vnpTransactionDate.matches("[0-9]{14}")) return false;
             String vnpCreateBy = refund.adminUsername();
             String vnpCreateDate = java.time.ZonedDateTime.now(zone).format(formatter);
             String vnpIpAddr = "127.0.0.1";
@@ -351,16 +348,14 @@ public class PaymentServiceImpl implements PaymentService {
                     "vnp_ResponseId", "vnp_Command", "vnp_ResponseCode", "vnp_Message",
                     "vnp_TmnCode", "vnp_TxnRef", "vnp_Amount", "vnp_BankCode",
                     "vnp_PayDate", "vnp_TransactionNo", "vnp_TransactionType",
-                    "vnp_TransactionStatus", "vnp_OrderInfo"
+                    "vnp_TransactionStatus", "vnp_OrderInfo", "vnp_PromotionCode", "vnp_PromotionAmount"
             };
             if (response == null || !(response.get("vnp_SecureHash") instanceof String signature)) {
                 return false;
             }
-            StringBuilder signedResponse = new StringBuilder();
-            for (String field : responseFields) {
-                if (!signedResponse.isEmpty()) signedResponse.append('|');
-                signedResponse.append(response.get(field) == null ? "" : response.get(field));
-            }
+            String signedResponse = java.util.Arrays.stream(responseFields)
+                    .map(field -> response.get(field) == null ? "" : String.valueOf(response.get(field)))
+                    .collect(java.util.stream.Collectors.joining("|"));
             String expectedSignature = VNPayUtils.hmacSHA512(
                     vnPayProperties.getHashSecret(), signedResponse.toString());
             boolean signatureValid = java.security.MessageDigest.isEqual(
@@ -374,7 +369,9 @@ public class PaymentServiceImpl implements PaymentService {
                     && vnpTxnRef.equals(response.get("vnp_TxnRef"))
                     && vnpAmount.equals(String.valueOf(response.get("vnp_Amount")))
                     && vnpTransactionType.equals(response.get("vnp_TransactionType"))
-                    && vnpTransactionNo.equals(String.valueOf(response.get("vnp_TransactionNo")));
+                    && response.get("vnp_TransactionNo") != null
+                    && String.valueOf(response.get("vnp_TransactionNo")).matches("[0-9]{1,15}")
+                    && !String.valueOf(response.get("vnp_TransactionNo")).matches("0+");
             if (!confirmed) log.warn("[REFUND] Unverified VNPay response for request {}", vnpRequestId);
             return confirmed;
         } catch (Exception ex) {

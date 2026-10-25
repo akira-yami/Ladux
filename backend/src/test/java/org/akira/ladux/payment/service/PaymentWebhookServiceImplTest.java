@@ -1,183 +1,140 @@
 package org.akira.ladux.payment.service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import org.akira.ladux.ordering.entity.Order;
+import org.akira.ladux.ordering.enums.OrderStatus;
 import org.akira.ladux.ordering.repository.OrderRepository;
 import org.akira.ladux.ordering.service.OrderLifecycleService;
 import org.akira.ladux.payment.config.VNPayProperties;
 import org.akira.ladux.payment.dto.PaymentWebhookResult;
 import org.akira.ladux.payment.entity.Payment;
-import org.akira.ladux.payment.enums.PaymentProvider;
-import org.akira.ladux.payment.enums.PaymentStatus;
+import org.akira.ladux.payment.enums.*;
 import org.akira.ladux.payment.repository.PaymentRepository;
-import org.akira.ladux.payment.service.impl.PaymentWebhookServiceImpl;
+import org.akira.ladux.payment.service.impl.*;
 import org.akira.ladux.payment.util.VNPayUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class PaymentWebhookServiceImplTest {
+    private PaymentRepository payments;
+    private OrderRepository orders;
+    private OrderLifecycleService lifecycle;
+    private PaymentWebhookServiceImpl service;
+    private Order order;
+    private Payment payment;
+    private static final String SECRET = "test-secret-not-a-real-merchant";
 
-    @Mock
-    private PaymentRepository paymentRepository;
-
-    @Mock
-    private OrderRepository orderRepository;
-
-    @Mock
-    private OrderLifecycleService orderLifecycleService;
-
-    @Mock
-    private VNPayProperties vnPayProperties;
-
-    @InjectMocks
-    private PaymentWebhookServiceImpl paymentWebhookService;
-
-    private static final String SECRET_KEY = "SECRET_HASH_KEY_123456";
-    private static final String TMN_CODE = "DEMO_TMN";
-
-    private Order sampleOrder;
-    private Payment samplePayment;
-
-    @BeforeEach
-    void setUp() {
-        sampleOrder = Order.builder()
-                .id(101)
-                .finalAmount(new BigDecimal("200000.00"))
-                .build();
-
-        samplePayment = Payment.builder()
-                .id(50)
-                .order(sampleOrder)
-                .merchantTxnRef("LDX10150")
-                .amount(new BigDecimal("200000.00"))
-                .provider(PaymentProvider.VNPAY)
-                .status(PaymentStatus.PENDING)
-                .build();
+    @BeforeEach void setup() {
+        payments = mock(PaymentRepository.class);
+        orders = mock(OrderRepository.class);
+        lifecycle = mock(OrderLifecycleService.class);
+        VNPayProperties properties = new VNPayProperties();
+        properties.setTmnCode("TESTTMN1"); properties.setHashSecret(SECRET);
+        service = new PaymentWebhookServiceImpl(properties, new VNPaySettlementService(payments, orders, lifecycle));
+        order = Order.builder().id(101).status(OrderStatus.PENDING).finalAmount(new BigDecimal("200000")).build();
+        payment = Payment.builder().id(50).order(order).merchantTxnRef("LDX10150")
+                .amount(new BigDecimal("200000")).provider(PaymentProvider.VNPAY).status(PaymentStatus.PENDING).build();
+        when(payments.findOrderIdByMerchantTxnRef("LDX10150")).thenReturn(Optional.of(101));
+        when(payments.findByMerchantTxnRefForUpdate("LDX10150")).thenReturn(Optional.of(payment));
+        when(orders.findWithItemsByIdForUpdate(101)).thenReturn(Optional.of(order));
     }
 
-    private Map<String, String> buildValidParams(String responseCode, String transactionStatus, String amountInCents) {
-        Map<String, String> params = new TreeMap<>();
-        params.put("vnp_TmnCode", TMN_CODE);
-        params.put("vnp_Amount", amountInCents);
-        params.put("vnp_TxnRef", "LDX10150");
-        params.put("vnp_TransactionNo", "14000111");
-        params.put("vnp_ResponseCode", responseCode);
-        params.put("vnp_TransactionStatus", transactionStatus);
-
-        StringBuilder sb = new StringBuilder();
-        params.forEach((k, v) -> sb.append(k).append("=").append(v).append("&"));
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
-
-        String checksum = VNPayUtils.hmacSHA512(SECRET_KEY, sb.toString());
-        params.put("vnp_SecureHash", checksum);
-        return params;
+    private Map<String, String> params(String response, String status) {
+        Map<String, String> fields = new TreeMap<>(Map.of("vnp_TmnCode", "TESTTMN1", "vnp_TxnRef", "LDX10150",
+                "vnp_Amount", "20000000", "vnp_ResponseCode", response, "vnp_TransactionStatus", status,
+                "vnp_TransactionNo", "14000111", "vnp_PayDate", "20261021180000",
+                "vnp_OrderInfo", "Thanh toan don hang: 101 + café"));
+        return sign(fields);
     }
-
-    @Test
-    void processVNPayWebhook_ValidSignatureAndSuccessCode_ShouldUpdatePaymentSuccessAndConfirmOrder() {
-        when(vnPayProperties.getTmnCode()).thenReturn(TMN_CODE);
-        when(vnPayProperties.getHashSecret()).thenReturn(SECRET_KEY);
-        when(paymentRepository.findByMerchantTxnRefForUpdate("LDX10150")).thenReturn(Optional.of(samplePayment));
-        when(orderRepository.findWithItemsByIdForUpdate(101)).thenReturn(Optional.of(sampleOrder));
-
-        Map<String, String> params = buildValidParams("00", "00", "20000000");
-
-        PaymentWebhookResult result = paymentWebhookService.processVNPayWebhook(params);
-
-        assertEquals(PaymentWebhookResult.Outcome.PROCESSED, result.outcome());
+    private Map<String, String> sign(Map<String, String> fields) {
+        fields.remove("vnp_SecureHash");
+        String data = new TreeMap<>(fields).entrySet().stream().filter(e -> e.getKey().startsWith("vnp_"))
+                .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8) + "="
+                        + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+                .collect(java.util.stream.Collectors.joining("&"));
+        fields.put("vnp_SecureHash", VNPayUtils.hmacSHA512(SECRET, data));
+        return fields;
+    }
+    @Test void encodedOrderInfoMustValidateAndConfirmExactlyOnce() {
+        var result = service.processVNPayWebhook(params("00", "00"));
         assertEquals("00", result.vnpResponseCode());
-        assertEquals(PaymentStatus.SUCCESS, samplePayment.getStatus());
-        assertEquals("14000111", samplePayment.getTransactionNo());
-
-        verify(orderLifecycleService, times(1)).confirmAfterSuccessfulPayment(sampleOrder);
-        verify(paymentRepository, times(1)).save(samplePayment);
+        assertEquals(PaymentStatus.SUCCESS, payment.getStatus());
+        assertEquals("20261021180000", payment.getVnpPayDate());
+        verify(lifecycle).confirmAfterSuccessfulPayment(order);
+        verify(payments).saveAndFlush(payment);
+        assertEquals("02", service.processVNPayWebhook(params("00", "00")).vnpResponseCode());
+        verify(lifecycle, times(1)).confirmAfterSuccessfulPayment(order);
     }
-
-    @Test
-    void processVNPayWebhook_InvalidSignature_ShouldReturnInvalidSignatureResult() {
-        Map<String, String> params = new HashMap<>();
-        params.put("vnp_SecureHash", "INVALID_HASH_123");
-
-        PaymentWebhookResult result = paymentWebhookService.processVNPayWebhook(params);
-
-        assertEquals(PaymentWebhookResult.Outcome.INVALID_SIGNATURE, result.outcome());
-        verifyNoInteractions(paymentRepository, orderRepository, orderLifecycleService);
+    @Test void tamperedSignatureCannotReadOrChangePayment() {
+        var fields = params("00", "00"); fields.put("vnp_Amount", "1");
+        assertEquals("97", service.processVNPayWebhook(fields).vnpResponseCode());
+        verify(payments, never()).findOrderIdByMerchantTxnRef(anyString());
     }
-
-    @Test
-    void processVNPayWebhook_InvalidTmnCode_ShouldReturnInvalidSignatureResult() {
-        when(vnPayProperties.getTmnCode()).thenReturn("CORRECT_TMN");
-        when(vnPayProperties.getHashSecret()).thenReturn(SECRET_KEY);
-
-        Map<String, String> params = buildValidParams("00", "00", "20000000");
-
-        PaymentWebhookResult result = paymentWebhookService.processVNPayWebhook(params);
-
-        assertEquals(PaymentWebhookResult.Outcome.INVALID_SIGNATURE, result.outcome());
-        verifyNoInteractions(paymentRepository, orderRepository, orderLifecycleService);
+    @Test void signedWrongMerchantCannotChangePayment() {
+        var fields = params("00", "00"); fields.put("vnp_TmnCode", "OTHER"); sign(fields);
+        assertEquals("97", service.processVNPayWebhook(fields).vnpResponseCode());
+        verifyNoInteractions(lifecycle);
     }
-
-    @Test
-    void processVNPayWebhook_AmountMismatch_ShouldReturnAmountMismatchResult() {
-        when(vnPayProperties.getTmnCode()).thenReturn(TMN_CODE);
-        when(vnPayProperties.getHashSecret()).thenReturn(SECRET_KEY);
-        when(paymentRepository.findByMerchantTxnRefForUpdate("LDX10150")).thenReturn(Optional.of(samplePayment));
-        when(orderRepository.findWithItemsByIdForUpdate(101)).thenReturn(Optional.of(sampleOrder));
-
-        // Send 100,000 instead of 200,000
-        Map<String, String> params = buildValidParams("00", "00", "10000000");
-
-        PaymentWebhookResult result = paymentWebhookService.processVNPayWebhook(params);
-
-        assertEquals(PaymentWebhookResult.Outcome.AMOUNT_MISMATCH, result.outcome());
-        verify(paymentRepository, never()).save(any());
-        verifyNoInteractions(orderLifecycleService);
+    @Test void amountIsCheckedEvenOnDuplicateCallback() {
+        payment.setStatus(PaymentStatus.SUCCESS);
+        var fields = params("00", "00"); fields.put("vnp_Amount", "100"); sign(fields);
+        assertEquals("04", service.processVNPayWebhook(fields).vnpResponseCode());
     }
-
-    @Test
-    void processVNPayWebhook_AlreadySuccess_ShouldReturnIdempotentResult() {
-        samplePayment.setStatus(PaymentStatus.SUCCESS);
-
-        when(vnPayProperties.getTmnCode()).thenReturn(TMN_CODE);
-        when(vnPayProperties.getHashSecret()).thenReturn(SECRET_KEY);
-        when(paymentRepository.findByMerchantTxnRefForUpdate("LDX10150")).thenReturn(Optional.of(samplePayment));
-
-        Map<String, String> params = buildValidParams("00", "00", "20000000");
-
-        PaymentWebhookResult result = paymentWebhookService.processVNPayWebhook(params);
-
-        assertEquals(PaymentWebhookResult.Outcome.IDEMPOTENT, result.outcome());
-        verifyNoInteractions(orderLifecycleService);
+    @Test void missingTransactionStatusDoesNotMarkFailed() {
+        var fields = params("00", "00"); fields.remove("vnp_TransactionStatus"); sign(fields);
+        assertEquals("99", service.processVNPayWebhook(fields).vnpResponseCode());
+        assertEquals(PaymentStatus.PENDING, payment.getStatus());
     }
-
-    @Test
-    void processVNPayWebhook_FailedResponseCode_ShouldMarkPaymentFailedWithoutCancellingOrder() {
-        when(vnPayProperties.getTmnCode()).thenReturn(TMN_CODE);
-        when(vnPayProperties.getHashSecret()).thenReturn(SECRET_KEY);
-        when(paymentRepository.findByMerchantTxnRefForUpdate("LDX10150")).thenReturn(Optional.of(samplePayment));
-        when(orderRepository.findWithItemsByIdForUpdate(101)).thenReturn(Optional.of(sampleOrder));
-
-        // Response code "24" = Transaction cancelled by customer
-        Map<String, String> params = buildValidParams("24", "02", "20000000");
-
-        PaymentWebhookResult result = paymentWebhookService.processVNPayWebhook(params);
-
-        assertEquals(PaymentWebhookResult.Outcome.PROCESSED, result.outcome());
-        assertEquals(PaymentStatus.FAILED, samplePayment.getStatus());
-        verify(paymentRepository, times(1)).save(samplePayment);
-        // Order lifecycle cancel is NOT called immediately, order stays PENDING for retry until expiration job
-        verifyNoInteractions(orderLifecycleService);
+    @Test void cancellationsDoNotStoreSharedZeroTransactionNumberOrCancelOrder() {
+        var fields = params("24", "02"); fields.put("vnp_TransactionNo", "0"); sign(fields);
+        assertEquals("00", service.processVNPayWebhook(fields).vnpResponseCode());
+        assertEquals(PaymentStatus.FAILED, payment.getStatus());
+        assertNull(payment.getTransactionNo());
+        verifyNoInteractions(lifecycle);
+        assertEquals("02", service.processVNPayWebhook(fields).vnpResponseCode());
+    }
+    @Test void transactionNumberAlreadyUsedByAnotherAttemptIsNotAcknowledgedAsSuccess() {
+        when(payments.findByTransactionNo("14000111")).thenReturn(Optional.of(Payment.builder().id(51).status(PaymentStatus.SUCCESS).build()));
+        assertEquals("99", service.processVNPayWebhook(params("00", "00")).vnpResponseCode());
+        assertEquals(PaymentStatus.PENDING, payment.getStatus());
+    }
+    @Test void lateMoneyIsRecordedWithoutResurrectingCancelledOrder() {
+        order.setStatus(OrderStatus.CANCELLED);
+        assertEquals("00", service.processVNPayWebhook(params("00", "00")).vnpResponseCode());
+        assertEquals(PaymentStatus.SUCCESS, payment.getStatus());
+        assertEquals(OrderStatus.CANCELLED, order.getStatus());
+        assertEquals(1, order.getHistories().size());
+        verifyNoInteractions(lifecycle);
+    }
+    @Test void pendingOrSuspiciousTransactionIsNotMadeRetryable() {
+        for (String status : List.of("01", "04", "05", "06", "07")) {
+            service.processVNPayWebhook(params("07", status));
+            assertEquals(PaymentStatus.PENDING, payment.getStatus());
+        }
+        verify(payments, never()).saveAndFlush(any());
+    }
+    @Test void successWithoutValidGatewayTransactionIsRejected() {
+        var fields = params("00", "00"); fields.put("vnp_TransactionNo", "0"); sign(fields);
+        assertEquals("99", service.processVNPayWebhook(fields).vnpResponseCode());
+        assertEquals(PaymentStatus.PENDING, payment.getStatus());
+    }
+    @Test void unrelatedQueryParamsDoNotBreakChecksum() {
+        var fields = params("00", "00"); fields.put("utm_source", "test");
+        assertEquals("00", service.processVNPayWebhook(fields).vnpResponseCode());
+    }
+    @Test void aLaterVerifiedReceiptIsNotLostAfterAnEarlierFailure() {
+        payment.setStatus(PaymentStatus.FAILED);
+        assertEquals("00", service.processVNPayWebhook(params("00", "00")).vnpResponseCode());
+        assertEquals(PaymentStatus.SUCCESS, payment.getStatus());
+    }
+    @Test void suspectedFraudResponseCannotOfferAnotherCharge() {
+        service.processVNPayWebhook(params("07", "02"));
+        assertEquals(PaymentStatus.PENDING, payment.getStatus());
+        verifyNoInteractions(lifecycle);
     }
 }

@@ -73,12 +73,15 @@ public class OrderLifecycleServiceImpl implements OrderLifecycleService {
         if (order.getStatus() == OrderStatus.CANCELLED) {
             return;
         }
-        if (order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.SHIPPED) {
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
             throw new BusinessRuleException("Don hang da duoc van chuyen, khong the huy");
         }
 
         releaseReservedInventory(order);
         rollbackCouponUsage(order);
+        order.getPayments().stream()
+                .filter(p -> p.getStatus() == org.akira.ladux.payment.enums.PaymentStatus.SUCCESS)
+                .forEach(p -> p.setRequiresReview(true));
         order.setStatus(OrderStatus.CANCELLED);
         order.setPaymentExpiresAt(null);
         order.getHistories().add(OrderHistory.builder()
@@ -103,13 +106,12 @@ public class OrderLifecycleServiceImpl implements OrderLifecycleService {
     // Hoan ton kho khi huy don: cong lai so luong da tru luc checkout, ghi so cai RETURN_IN (chi ghi so).
     private void releaseReservedInventory(Order order) {
         Integer orderRef = order.getId().intValue();
-        for (OrderItem item : order.getItems()) {
+        for (OrderItem item : order.getItems().stream()
+                .sorted(java.util.Comparator.comparing(i -> i.getProductVariant().getId())).toList()) {
             Integer productVariantId = item.getProductVariant().getId();
             ProductVariant productVariant = productVariantRepository.findByIdForUpdate(productVariantId)
                     .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay product variant voi id = " + productVariantId));
-            productVariant.setStockQuantity(productVariant.getStockQuantity() + item.getQuantity());
-            // Ton kho da duoc cong lai o tren -> chi GHI SO (RETURN_IN), tranh cong kep.
-            stockMovementService.recordLedgerEntry(
+            stockMovementService.recordMovement(
                     productVariant,
                     item.getQuantity(),
                     StockMovementType.RETURN_IN,
@@ -148,7 +150,8 @@ public class OrderLifecycleServiceImpl implements OrderLifecycleService {
 
         // B3: HOÀN TỒN KHO - Tăng lại stock_quantity cho từng Variant
         Integer orderRef = order.getId().intValue();
-        for (OrderItem item : order.getItems()) {
+        for (OrderItem item : order.getItems().stream()
+                .sorted(java.util.Comparator.comparing(i -> i.getProductVariant().getId())).toList()) {
             stockMovementService.recordMovement(
                     item.getProductVariant(),
                     item.getQuantity(), // Số lượng dương (+) = Nhập lại kho

@@ -42,12 +42,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("select o from Order o where o.id = :id")
     Optional<Order> findWithItemsById(@Param("id") Integer id);
 
-    @EntityGraph(attributePaths = {"user", "coupon", "payments"})
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from Order o where o.id = :id")
     Optional<Order> findByIdForUpdate(@Param("id") Integer id);
 
-    @EntityGraph(attributePaths = {"user", "items", "items.productVariant", "coupon"})
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from Order o where o.id = :id")
     Optional<Order> findWithItemsByIdForUpdate(@Param("id") Integer id);
@@ -67,12 +65,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     Optional<Order> findByUserIdAndId(int userId, int orderId);
 
-    @EntityGraph(attributePaths = {"user", "items", "items.productVariant", "coupon"})
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM Order o WHERE o.id = :orderId AND o.user.id = :userId")
     Optional<Order> findOwnedWithItemsForUpdate(@Param("userId") int userId, @Param("orderId") int orderId);
 
-    @EntityGraph(attributePaths = {"user", "items", "items.productVariant", "coupon"})
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             select o
@@ -80,6 +76,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             where o.status = :status
               and o.paymentExpiresAt is not null
               and o.paymentExpiresAt <= :now
+            order by o.id
             """)
-    List<Order> findExpiredOrdersForUpdate(@Param("status") OrderStatus status, @Param("now") Instant now);
+    List<Order> findExpiredOrdersForUpdate(@Param("status") OrderStatus status, @Param("now") Instant now, Pageable pageable);
 }

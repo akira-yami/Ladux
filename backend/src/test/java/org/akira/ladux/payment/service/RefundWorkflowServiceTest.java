@@ -25,12 +25,12 @@ class RefundWorkflowServiceTest {
         PaymentRepository payments = mock(PaymentRepository.class);
         RefundAttemptRepository attempts = mock(RefundAttemptRepository.class);
         UserRepository users = mock(UserRepository.class);
-        RefundWorkflowService service = new RefundWorkflowService(orders, payments, attempts, users);
+        RefundWorkflowService service = new RefundWorkflowService(orders, payments, attempts, users, mock(org.akira.ladux.customer.repository.CustomerRepository.class));
         Order order = Order.builder().id(12).status(OrderStatus.RETURNED)
                 .finalAmount(new BigDecimal("100000")).build();
         when(orders.findWithItemsByIdForUpdate(12)).thenReturn(Optional.of(order));
-        when(attempts.findByOrderId(12)).thenReturn(Optional.empty());
-        when(payments.findFirstByOrderIdAndStatusOrderByCreatedAtDesc(12, PaymentStatus.SUCCESS))
+        when(attempts.findByPaymentId(3)).thenReturn(Optional.empty());
+        when(payments.findFirstByOrderIdAndStatusOrderByRequiresReviewDescCreatedAtDesc(12, PaymentStatus.SUCCESS))
                 .thenReturn(Optional.of(Payment.builder().id(3).amount(new BigDecimal("100000"))
                         .provider(PaymentProvider.VNPAY).build()));
         assertThrows(BusinessRuleException.class, () ->
@@ -44,12 +44,14 @@ class RefundWorkflowServiceTest {
         OrderRepository orders = mock(OrderRepository.class);
         PaymentRepository payments = mock(PaymentRepository.class);
         RefundAttemptRepository attempts = mock(RefundAttemptRepository.class);
-        RefundWorkflowService service = new RefundWorkflowService(orders, payments, attempts, mock(UserRepository.class));
+        RefundWorkflowService service = new RefundWorkflowService(orders, payments, attempts, mock(UserRepository.class), mock(org.akira.ladux.customer.repository.CustomerRepository.class));
         when(orders.findWithItemsByIdForUpdate(12)).thenReturn(Optional.of(
                 Order.builder().id(12).status(OrderStatus.RETURNED).build()));
-        when(attempts.findByOrderId(12)).thenReturn(Optional.of(RefundAttempt.builder()
+        when(payments.findFirstByOrderIdAndStatusOrderByRequiresReviewDescCreatedAtDesc(12, PaymentStatus.SUCCESS))
+                .thenReturn(Optional.of(Payment.builder().id(3).status(PaymentStatus.SUCCESS).build()));
+        when(attempts.findByPaymentId(3)).thenReturn(Optional.of(RefundAttempt.builder()
                 .status(RefundAttempt.Status.REVIEW_REQUIRED).build()));
         assertThrows(BusinessRuleException.class, () -> service.prepare(12, null, "retry", 1));
-        verifyNoInteractions(payments);
+        verify(attempts, never()).saveAndFlush(any());
     }
 }

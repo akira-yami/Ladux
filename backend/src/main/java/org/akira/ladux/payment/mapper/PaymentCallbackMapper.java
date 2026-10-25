@@ -20,7 +20,17 @@ public final class PaymentCallbackMapper {
                 payment.getAmount(),
                 payment.getStatus(),
                 payment.getPaymentUrl(),
-                payment.getCreatedAt()
+                payment.getCreatedAt(),
+                payment.getOrder() == null ? null : payment.getOrder().getStatus(),
+                payment.getOrder() == null ? null : payment.getOrder().getPaymentExpiresAt(),
+                payment.getOrder() != null
+                        && payment.getOrder().getStatus() == org.akira.ladux.ordering.enums.OrderStatus.PENDING
+                        && payment.getStatus() == org.akira.ladux.payment.enums.PaymentStatus.FAILED
+                        && (payment.getOrder().getPaymentExpiresAt() == null
+                            || payment.getOrder().getPaymentExpiresAt().isAfter(java.time.Instant.now())),
+                payment.isRequiresReview() || payment.getStatus() == org.akira.ladux.payment.enums.PaymentStatus.SUCCESS
+                        && payment.getOrder() != null
+                        && payment.getOrder().getStatus() == org.akira.ladux.ordering.enums.OrderStatus.CANCELLED
         );
     }
 }
