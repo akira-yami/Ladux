@@ -3,16 +3,7 @@
 	email {$CADDY_EMAIL}
 }
 
-# DNS của domain này phải trỏ đến IPv4/IPv6 public của VPS trước khi khởi động.
-# Caddy tự xin, gia hạn TLS và chuyển hướng HTTP sang HTTPS.
-{$LADUX_API_DOMAIN} {
-	encode zstd gzip
-
-	log {
-		output stdout
-		format json
-	}
-
+(backend) {
 	# Caddy tự gửi các header X-Forwarded-* cần thiết cho Spring Boot.
 	reverse_proxy app:8080 {
 		# This deployment uses Caddy as the ONLY public edge proxy.
@@ -25,4 +16,30 @@
 		header_up -HTTP_CLIENT_IP
 		header_up -HTTP_X_FORWARDED_FOR
 	}
+}
+
+{$LADUX_API_DOMAIN} {
+    encode zstd gzip
+    import backend
+}
+
+{$LADUX_WEB_DOMAIN} {
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+    request_body {
+        max_size 25MB
+    }
+    @api path /api/* /oauth2/* /login/oauth2/* /uploads/*
+    handle @api {
+        import backend
+    }
+    handle {
+        reverse_proxy frontend:80
+    }
 }

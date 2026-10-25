@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ProductionMigrationSmokeTest {
     @Test
     void freshProductionSchemaMigratesWithoutDemoProductsOrSuppliers() throws Exception {
-        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17")) {
+        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17").withTmpFs(java.util.Map.of("/var/lib/postgresql/data", "rw")).withStartupTimeout(java.time.Duration.ofMinutes(3))) {
             postgres.start();
             var result = Flyway.configure()
                     .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
@@ -43,7 +43,7 @@ class ProductionMigrationSmokeTest {
 
     @Test
     void upgradeRemovesRetiredAuthenticationDataAndPreservesContactAndLoginHistory() throws Exception {
-        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17")) {
+        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17").withTmpFs(java.util.Map.of("/var/lib/postgresql/data", "rw")).withStartupTimeout(java.time.Duration.ofMinutes(3))) {
             postgres.start();
             Flyway.configure()
                     .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
@@ -75,7 +75,7 @@ class ProductionMigrationSmokeTest {
                     .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
                     .locations("classpath:db/migration").load().migrate();
             assertTrue(result.success);
-            assertEquals(2, result.migrationsExecuted);
+            assertEquals(7, result.migrationsExecuted); // V52, V56–V61
             try (var connection = DriverManager.getConnection(
                     postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
                  var statement = connection.createStatement()) {
@@ -101,7 +101,7 @@ class ProductionMigrationSmokeTest {
 
     @Test
     void upgradeFromV48PreservesExistingCategoriesAndProductReferences() throws Exception {
-        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17")) {
+        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17").withTmpFs(java.util.Map.of("/var/lib/postgresql/data", "rw")).withStartupTimeout(java.time.Duration.ofMinutes(3))) {
             postgres.start();
             Flyway.configure()
                     .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
@@ -167,7 +167,7 @@ class ProductionMigrationSmokeTest {
 
     @Test
     void upgradePreservesLegacyOrderSkuWhenProductAndSkuIdsDiffer() throws Exception {
-        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17")) {
+        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17").withTmpFs(java.util.Map.of("/var/lib/postgresql/data", "rw")).withStartupTimeout(java.time.Duration.ofMinutes(3))) {
             postgres.start();
             Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
                     .locations("classpath:db/migration").target("52").load().migrate();

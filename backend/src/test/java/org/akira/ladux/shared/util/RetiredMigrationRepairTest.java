@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class RetiredMigrationRepairTest {
     @Test
     void repairsOnlyReviewedMissingV49WithoutReplayingItOrChangingCatalog() throws Exception {
-        try (var postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17")) {
+        try (var postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17").withTmpFs(java.util.Map.of("/var/lib/postgresql/data", "rw")).withStartupTimeout(java.time.Duration.ofMinutes(3))) {
             postgres.start();
             var flyway = flyway(postgres, "48");
             flyway.migrate();
@@ -43,7 +43,7 @@ class RetiredMigrationRepairTest {
 
     @Test
     void refusesChecksumDriftUnknownV49AndAdditionalMissingMigrations() throws Exception {
-        try (var postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17")) {
+        try (var postgres = new PostgreSQLContainer<>("pgvector/pgvector:pg17").withTmpFs(java.util.Map.of("/var/lib/postgresql/data", "rw")).withStartupTimeout(java.time.Duration.ofMinutes(3))) {
             postgres.start();
             var flyway = flyway(postgres, null);
             flyway.migrate();

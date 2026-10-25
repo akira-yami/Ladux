@@ -40,5 +40,5 @@ repomix-output.xml
 
 .ua
 .agents
-.env.production.example
 output
+frontend/.test-tmp/
