@@ -18,6 +18,7 @@ import {
 import BrandMark from "./BrandMark";
 import ThemeToggle from "./ThemeToggle";
 import SmartSearchDropdown from "./SmartSearchDropdown";
+import { useHeaderScroll } from "./useHeaderScroll";
 import { getAvatarUrl } from "../../types";
 import { ROUTES } from "../../app/routePaths";
 import { useAuthStore, useNotificationStore, useOrderStore, useProductStore, useWishlistStore } from "../../stores";
@@ -117,48 +118,7 @@ export default function Header({
         setIsUserMenuOpen(false);
     }, [location.pathname]);
 
-    const [isScrolled, setIsScrolled] = React.useState<boolean>(false);
-    const [isSubHeaderVisible, setIsSubHeaderVisible] = React.useState<boolean>(true);
-    const lastScrollY = React.useRef<number>(0);
-
-    React.useEffect(() => {
-        let rafId = 0;
-
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-
-            setIsScrolled(currentScrollY > 30);
-
-            if (currentScrollY < 30) {
-                setIsSubHeaderVisible(true);
-            } else if (currentScrollY < lastScrollY.current) {
-                // Scrolling UP -> Reveal sub-header!
-                setIsSubHeaderVisible(true);
-            } else if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
-                // Scrolling DOWN -> Hide sub-header!
-                setIsSubHeaderVisible(false);
-            }
-
-            lastScrollY.current = currentScrollY;
-        };
-
-        // Throttle to animation frames so state updates stay in sync with
-        // the compositor and the header animation remains buttery smooth.
-        const onScroll = () => {
-            if (rafId) return;
-            rafId = requestAnimationFrame(() => {
-                rafId = 0;
-                handleScroll();
-            });
-        };
-
-        handleScroll();
-        window.addEventListener("scroll", onScroll, { passive: true });
-        return () => {
-            window.removeEventListener("scroll", onScroll);
-            if (rafId) cancelAnimationFrame(rafId);
-        };
-    }, []);
+    const { isScrolled, isSubHeaderVisible } = useHeaderScroll();
 
     const isLoggedIn = authIsLoggedIn || propsIsLoggedIn;
     const displayName = user?.fullName || user?.username || propsUserName || "Thành viên LADUX";
@@ -195,10 +155,10 @@ export default function Header({
 
     return (
         <header
-            className={`fixed top-0 left-0 right-0 z-50 border-b text-slate-800 backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${isScrolled ? "header-scrolled" : ""
+            className={`fixed top-0 left-0 right-0 z-50 border-b text-slate-800 ${isScrolled ? "header-scrolled" : ""
                 }`}
         >
-            <div className={`store-header-main container mx-auto px-5 sm:px-8 flex items-center justify-between gap-3 md:gap-6 relative transition-[height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${isScrolled ? "h-16" : "h-[76px]"}`}>
+            <div className="store-header-main container mx-auto px-5 sm:px-8 flex h-[76px] items-center justify-between gap-3 md:gap-6 relative">
                 {/* ── Logo ── */}
                 <div className="z-10 flex items-center shrink-0">
                     <Link
@@ -621,10 +581,10 @@ export default function Header({
 
             {/* ── Sub-header (Header phụ) ── */}
             <div
-                className={`grid backdrop-blur-md transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${!isSubHeaderVisible
-                    ? "[grid-template-rows:0fr] opacity-0 pointer-events-none"
-                    : "[grid-template-rows:1fr] opacity-100"
-                    }`}
+                className="store-subheader"
+                data-visible={isSubHeaderVisible}
+                aria-hidden={!isSubHeaderVisible}
+                {...(!isSubHeaderVisible ? { inert: "" } : {})}
             >
                 <div className="min-h-0 overflow-hidden">
                 <div className="container mx-auto px-5 sm:px-8 py-3 border-t border-sky-100/70 flex items-center justify-between gap-4 text-sm text-slate-600 font-medium">
