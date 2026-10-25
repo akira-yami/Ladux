@@ -61,13 +61,21 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (!userDetails.isEnabled() || !jwtService.isTokenValid(jwt, userDetails)) {
+            boolean valid;
+            Integer tokenVersion;
+            try {
+                valid = userDetails.isEnabled() && jwtService.isTokenValid(jwt, userDetails);
+                tokenVersion = valid ? jwtService.extractTokenVersion(jwt) : null;
+            } catch (JwtException | IllegalArgumentException exception) {
+                valid = false;
+                tokenVersion = null;
+            }
+            if (!valid) {
                 SecurityContextHolder.clearContext();
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            Integer tokenVersion = jwtService.extractTokenVersion(jwt);
             int currentVersion = userDetails instanceof UserPrincipal userPrincipal
                     ? userPrincipal.getTokenVersion()
                     : -1;

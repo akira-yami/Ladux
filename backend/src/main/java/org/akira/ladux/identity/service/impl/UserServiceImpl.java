@@ -80,15 +80,15 @@ public class UserServiceImpl implements UserService {
                 .totalSpent(BigDecimal.ZERO)
                 .build();
         user.setCustomer(customer);
-        customerRepository.save(customer);
-        User saved = repo.save(user);
+        // Persist the aggregate root first; Customer shares the generated User ID.
+        User saved = repo.saveAndFlush(user);
         cartRepository.save(Cart.builder().user(saved).build());
         return UserMapper.fromEntity(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "users", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "users", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<UserResponse> getAllUsers(Pageable pageable) {
         return PageResponse.from(repo.findAll(pageable)
                 .map(UserMapper::fromEntity));
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "users", key = "'active:' + #pageable.pageNumber + ':' + #pageable.pageSize")
+    @Cacheable(value = "users", key = "'active:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<UserResponse> getActiveUsers(Pageable pageable) {
         return PageResponse.from(repo.findByIsActiveTrue(pageable)
                 .map(UserMapper::fromEntity));
@@ -126,8 +126,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
     public UserResponse updateUser(int id, UserAdminUpdateRequest request) {
-        User user = repo.findById(id)
+        roleRepository.findByNameForUpdate(RoleName.ADMIN);
+        User user = repo.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay user voi id = " + id));
+        Set<Role> nextRoles = request.roleIds() == null ? user.getRoles() : resolveRoles(request.roleIds());
+        boolean staysAdmin = !Boolean.FALSE.equals(request.isActive())
+                && nextRoles.stream().anyMatch(role -> role.getName() == RoleName.ADMIN);
+        if (!staysAdmin) requireAnotherAdmin(user);
         if (request.fullName() != null) {
             getOrCreateCustomer(user).setFullName(request.fullName());
         }
@@ -147,6 +152,8 @@ public class UserServiceImpl implements UserService {
             }
             Set<Role> roles = resolveRoles(request.roleIds());
             user.setRoles(roles);
+            user.setTokenVersion(user.getTokenVersion() + 1);
+            refreshTokenService.revokeAllRefreshTokens(id);
         }
         return UserMapper.fromEntity(user);
     }
@@ -244,7 +251,20 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
     public void deleteUserById(int id) {
-        repo.deleteById(id);
+        roleRepository.findByNameForUpdate(RoleName.ADMIN);
+        User user = repo.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
+        requireAnotherAdmin(user);
+        // Keep financial/audit references and immediately revoke this account's sessions.
+        user.setActive(false);
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        refreshTokenService.revokeAllRefreshTokens(id);
+    }
+
+    private void requireAnotherAdmin(User user) {
+        if (user.isActive() && user.getRoles().stream().anyMatch(role -> role.getName() == RoleName.ADMIN)
+                && repo.countDistinctByIsActiveTrueAndRoles_Name(RoleName.ADMIN) <= 1)
+            throw new BusinessRuleException("Phải giữ ít nhất một tài khoản quản trị đang hoạt động");
     }
 
     /** Lay ho so Customer cua user, tao moi (gan vao user, cascade) neu chua co. */

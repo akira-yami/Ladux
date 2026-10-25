@@ -37,7 +37,10 @@ public class ProviderCaptchaService implements CaptchaService {
             @Value("${app.captcha.expected-hostname:}") String expectedHostname,
             @Value("${app.captcha.expected-action:}") String expectedAction
     ) {
-        this.restClient = restClientBuilder.baseUrl(verifyUrl).build();
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(10000);
+        this.restClient = restClientBuilder.baseUrl(verifyUrl).requestFactory(factory).build();
         this.enabled = enabled;
         this.secret = secret;
         this.expectedHostname = expectedHostname;

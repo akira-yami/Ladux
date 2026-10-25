@@ -37,6 +37,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     boolean existsByUsername(String username);
 
+    boolean existsByRoles_Name(org.akira.ladux.identity.enums.RoleName name);
+
+    long countDistinctByIsActiveTrueAndRoles_Name(org.akira.ladux.identity.enums.RoleName name);
+
     boolean existsByUsernameAndIdNot(String username, Integer id);
 
     /** Tang token_version -> vo hieu hoa tuc thi moi access token cu cua user. */
