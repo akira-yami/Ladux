@@ -1,16 +1,17 @@
 package org.akira.ladux.identity.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import org.akira.ladux.identity.service.DistributedRateLimitService;
 import org.akira.ladux.shared.exception.RateLimitExceededException;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class EndpointRateLimitFilterTest {
 
@@ -75,8 +76,30 @@ class EndpointRateLimitFilterTest {
                 15, 1,
                 5, 1,
                 3, 1,
-                60, 1
+                60, 1,
+                20, 1,
+                3, 10
         );
+    }
+
+    @Test
+    void refreshTokenIsLimitedByClientIp() throws Exception {
+        DistributedRateLimitService limiter = mock(DistributedRateLimitService.class);
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/auth/refresh/");
+        request.setRemoteAddr("203.0.113.20");
+        filter(limiter).doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+        verify(limiter).check("token-refresh-ip", "203.0.113.20", 20, 1,
+                "Bạn làm mới phiên đăng nhập quá nhiều, hãy thử lại sau");
+    }
+
+    @Test
+    void contactFormIsLimitedToProtectMailQuota() throws Exception {
+        DistributedRateLimitService limiter = mock(DistributedRateLimitService.class);
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/contact");
+        request.setRemoteAddr("203.0.113.21");
+        filter(limiter).doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+        verify(limiter).check("contact-user", "ip:203.0.113.21", 3, 10,
+                "Bạn đã gửi liên hệ quá nhiều, hãy thử lại sau");
     }
 
     @Test

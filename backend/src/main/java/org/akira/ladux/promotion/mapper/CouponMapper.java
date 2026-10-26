@@ -19,7 +19,9 @@ public final class CouponMapper {
                 coupon.getMinOrderValue(),
                 coupon.getUsageLimit(),
                 coupon.getUsedCount(),
-                coupon.getExpiresAt()
+                coupon.getExpiresAt(),
+                coupon.getMaxDiscountAmount(),
+                coupon.getPerUserLimit()
         );
     }
 }

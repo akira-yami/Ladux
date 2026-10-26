@@ -1,5 +1,13 @@
 package org.akira.ladux.ordering.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
 import org.akira.ladux.identity.entity.User;
 import org.akira.ladux.identity.repository.UserRepository;
 import org.akira.ladux.notification.repository.NotificationRepository;
@@ -14,15 +22,12 @@ import org.akira.ladux.payment.enums.PaymentStatus;
 import org.akira.ladux.shared.exception.BusinessRuleException;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
-import java.util.Optional;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class OrderStateMachinePaymentTest {
     private final OrderRepository orders = mock(OrderRepository.class);
     private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
     private final OrderStateMachineImpl service = new OrderStateMachineImpl(orders, mock(OrderLifecycleService.class),
-            events, mock(UserRepository.class), mock(NotificationRepository.class));
+            events, mock(UserRepository.class), mock(NotificationRepository.class), mock(OrderExpirationWorker.class));
 
     private Order order(OrderStatus status, PaymentProvider provider) {
         Order order = Order.builder().id(42).user(User.builder().id(2).build()).status(status).build();

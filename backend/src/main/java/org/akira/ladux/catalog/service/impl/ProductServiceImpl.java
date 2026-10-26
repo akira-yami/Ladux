@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
+
 import org.akira.ladux.catalog.dto.request.ProductRequest;
 import org.akira.ladux.catalog.dto.request.ProductVariantRequest;
 import org.akira.ladux.catalog.dto.response.ProductResponse;
@@ -23,6 +23,7 @@ import org.akira.ladux.catalog.repository.CategoryRepository;
 import org.akira.ladux.catalog.repository.ColorRepository;
 import org.akira.ladux.catalog.repository.ProductRepository;
 import org.akira.ladux.catalog.repository.ProductVariantRepository;
+import org.akira.ladux.catalog.repository.PublicCatalogRepository;
 import org.akira.ladux.catalog.service.ProductService;
 import org.akira.ladux.shared.dto.PageResponse;
 import org.akira.ladux.shared.exception.BusinessRuleException;
@@ -35,6 +36,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -43,6 +46,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductVariantRepository productVariantRepository;
     private final ColorRepository colorRepository;
+    private final PublicCatalogRepository catalogAggregates;
 
     @Override
     @Transactional(readOnly = true)
@@ -117,10 +121,15 @@ public class ProductServiceImpl implements ProductService {
         }
         Map<Integer, Product> productsById = repo.findSummariesByIdIn(idPage.getContent()).stream()
                 .collect(Collectors.toMap(product -> product.getId(), product -> product));
+        Map<Integer, double[]> ratings = catalogAggregates.ratings(idPage.getContent());
         List<ProductResponse> content = idPage.getContent().stream()
                 .map(id -> productsById.get(id))
                 .filter(product -> product != null)
-                .map(product -> ProductMapper.summaryFromEntity(product))
+                .map(product -> {
+                    // Mot truy van GROUP BY cho ca trang thay vi N truy van tai moi Review entity.
+                    double[] rating = ratings.getOrDefault(product.getId(), new double[]{0, 0});
+                    return ProductMapper.fromEntity(product, rating[0], (long) rating[1]);
+                })
                 .toList();
         return new PageResponse<>(
                 content,

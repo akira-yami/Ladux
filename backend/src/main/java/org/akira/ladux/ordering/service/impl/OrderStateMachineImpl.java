@@ -3,8 +3,7 @@ package org.akira.ladux.ordering.service.impl;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+
 import org.akira.ladux.identity.entity.User;
 import org.akira.ladux.identity.repository.UserRepository;
 import org.akira.ladux.identity.security.SecurityUtils;
@@ -19,6 +18,7 @@ import org.akira.ladux.ordering.enums.OrderStatus;
 import org.akira.ladux.ordering.event.OrderDeliveredEvent;
 import org.akira.ladux.ordering.mapper.OrderMapper;
 import org.akira.ladux.ordering.repository.OrderRepository;
+import org.akira.ladux.ordering.service.OrderExpirationWorker;
 import org.akira.ladux.ordering.service.OrderLifecycleService;
 import org.akira.ladux.ordering.service.OrderStateMachine;
 import org.akira.ladux.shared.exception.BusinessRuleException;
@@ -29,6 +29,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 // State machine quan ly vong doi don hang.
 // Chuyen trang thai hop le:
@@ -46,6 +49,12 @@ public class OrderStateMachineImpl implements OrderStateMachine {
     private final ApplicationEventPublisher eventPublisher;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
+    private final OrderExpirationWorker expirationWorker;
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(OrderStateMachineImpl.class);
+
+    @org.springframework.beans.factory.annotation.Value("${ladux.order-expiration.grace-seconds:300}")
+    private long expirationGraceSeconds = 300;
 
     @Override
     @Transactional
@@ -79,7 +88,8 @@ public class OrderStateMachineImpl implements OrderStateMachine {
                 throw new BusinessRuleException("Đơn hàng đã quá hạn thanh toán");
         }
         if (target == OrderStatus.CANCELLED) {
-            orderLifecycleService.cancelOrder(order, "Đơn hàng đã được người dùng hủy");
+            // Admin huy: audit trail ghi dung nguoi thuc hien (quan trong khi doi soat don da thanh toan).
+            orderLifecycleService.cancelOrder(order, "Quản trị viên đã hủy đơn hàng", admin);
             sendOrderStatusNotification(order, target);
             return OrderMapper.fromEntity(order);
         }
@@ -129,7 +139,6 @@ public class OrderStateMachineImpl implements OrderStateMachine {
 
     @Override
     @Scheduled(fixedDelayString = "${ladux.order-expiration.fixed-delay-ms:60000}")
-    @Transactional
     @SchedulerLock(name = "expirePendingOrdersLock", lockAtMostFor = "10m", lockAtLeastFor = "1m")
     @Caching(evict = {
 
@@ -140,10 +149,17 @@ public class OrderStateMachineImpl implements OrderStateMachine {
     })
     // Job dinh ky (mac dinh 60s): huy don PENDING qua paymentExpiresAt. ShedLock chan chay trung khi scale ngang.
     public void expirePendingOrders() {
-        List<Order> expiredOrders = orderRepository.findExpiredOrdersForUpdate(OrderStatus.PENDING, Instant.now(),
+        // Grace period: IPN VNPay co the den tre vai phut sau han; huy ngay se ep hoan tien thu cong.
+        Instant cutoff = Instant.now().minusSeconds(Math.max(0, expirationGraceSeconds));
+        List<Integer> expiredIds = orderRepository.findExpiredOrderIds(OrderStatus.PENDING, cutoff,
                 org.springframework.data.domain.PageRequest.of(0, 50));
-        for (Order order : expiredOrders) {
-            orderLifecycleService.cancelOrder(order, "Payment window expired");
+        for (Integer orderId : expiredIds) {
+            try {
+                expirationWorker.expireIfStillPending(orderId, cutoff);
+            } catch (RuntimeException exception) {
+                // Mot don loi (vd: du lieu kho bat thuong) khong duoc chan viec giai phong kho cua cac don khac.
+                log.error("Failed to expire order {} ({})", orderId, exception.getClass().getSimpleName(), exception);
+            }
         }
     }
 

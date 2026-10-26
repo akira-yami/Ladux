@@ -1,3 +1,18 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './design-system.css';
+
+/*
+ * Base full-height reset. Truoc day nam inline trong index.html; da chuyen vao day vi plugin
+ * transformIndexHtml (ladux-public-indexing) lam Vite khong resolve duoc CSS inline khi build
+ * (loi vite:html-inline-proxy "No matching HTML proxy module found").
+ */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+#root {
+  height: 100%;
+}

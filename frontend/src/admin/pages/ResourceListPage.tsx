@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Edit3, LoaderCircle, Plus, Search, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../app/components/ui/dialog";
+import { env } from "../../config/env";
 import { adminApi } from "../api/adminApi";
 import { AdminButton, AdminTable, ConfirmDialog, fieldClassName, PageHeader, PaginationBar, Panel, StatusBadge, type AdminColumn } from "../components/AdminUI";
 import { adminQueryKeys } from "../queryKeys";
-import { env } from "../../config/env";
 import type { AdminRow, PageResponse, RoleResponse } from "../types";
 import { formatBackendDateTime, formatCurrency, getApiErrorMessage, resolveImageUrl } from "../utils";
 
@@ -143,11 +143,14 @@ const definitions: Record<ResourceName, ResourceDefinition> = {
         { key: "code", label: "Mã coupon" },
         { key: "discountType", label: "Loại giảm", type: "select", options: [{ value: "PERCENT", label: "Phần trăm" }, { value: "FIXED_AMOUNT", label: "Số tiền cố định" }] },
         { key: "discountValue", label: "Giá trị giảm", type: "number" }, { key: "minOrderValue", label: "Đơn tối thiểu", type: "number" },
-        { key: "usageLimit", label: "Giới hạn lượt dùng", type: "number" }, { key: "expiresAt", label: "Ngày hết hạn", type: "date" },
+        { key: "usageLimit", label: "Giới hạn lượt dùng", type: "number" },
+        { key: "perUserLimit", label: "Lượt dùng tối đa mỗi khách", type: "number" },
+        { key: "maxDiscountAmount", label: "Giảm tối đa (VND, cho loại %)", type: "number" },
+        { key: "expiresAt", label: "Ngày hết hạn", type: "date" },
       ],
-      schema: z.object({ code: z.string().trim().min(1).max(50), discountType: z.enum(["PERCENT", "FIXED_AMOUNT"]), discountValue: z.coerce.number().positive(), minOrderValue: z.union([z.coerce.number().nonnegative(), z.literal("")]), usageLimit: z.union([z.coerce.number().positive(), z.literal("")]), expiresAt: z.string().min(1) }).passthrough(),
-      defaults: { code: "", discountType: "PERCENT", discountValue: "", minOrderValue: "", usageLimit: "", expiresAt: "" },
-      normalize: (values) => ({ code: String(values.code).trim().toUpperCase(), discountType: values.discountType, discountValue: Number(values.discountValue), minOrderValue: values.minOrderValue === "" ? null : Number(values.minOrderValue), usageLimit: values.usageLimit === "" ? null : Number(values.usageLimit), expiresAt: dateInputToEndOfDayIso(values.expiresAt) }),
+      schema: z.object({ code: z.string().trim().min(1).max(50), discountType: z.enum(["PERCENT", "FIXED_AMOUNT"]), discountValue: z.coerce.number().positive(), minOrderValue: z.union([z.coerce.number().nonnegative(), z.literal("")]), usageLimit: z.union([z.coerce.number().int().positive(), z.literal("")]), perUserLimit: z.union([z.coerce.number().int().positive(), z.literal("")]), maxDiscountAmount: z.union([z.coerce.number().positive(), z.literal("")]), expiresAt: z.string().min(1) }).passthrough(),
+      defaults: { code: "", discountType: "PERCENT", discountValue: "", minOrderValue: "", usageLimit: "", perUserLimit: "", maxDiscountAmount: "", expiresAt: "" },
+      normalize: (values) => ({ code: String(values.code).trim().toUpperCase(), discountType: values.discountType, discountValue: Number(values.discountValue), minOrderValue: values.minOrderValue === "" ? null : Number(values.minOrderValue), usageLimit: values.usageLimit === "" ? null : Number(values.usageLimit), perUserLimit: values.perUserLimit === "" || values.perUserLimit == null ? null : Number(values.perUserLimit), maxDiscountAmount: values.maxDiscountAmount === "" || values.maxDiscountAmount == null ? null : Number(values.maxDiscountAmount), expiresAt: dateInputToEndOfDayIso(values.expiresAt) }),
       submit: (id, values) => id ? adminApi.coupons.update(id, values as never) : adminApi.coupons.create(values as never), remove: adminApi.coupons.delete, name: (row) => text(row, "code"),
     },
   },
