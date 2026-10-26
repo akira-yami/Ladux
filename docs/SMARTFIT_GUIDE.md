@@ -1,6 +1,6 @@
 # SmartFit & Intelligent Discovery — hướng dẫn triển khai
 
-Cập nhật ngày **20/10/2026**. Smart Search, SmartFit và Smart Compare đã triển khai; backend `clean verify` đạt **156 tests** sau khi đồng bộ `main`, frontend **30 tests** cùng typecheck/build đạt. Có 10 ảnh giao diện thật, video walkthrough 150 giây và kiểm tra Chrome mobile 390 px. Contextual Chat có API/UI, HTTP/test và kiểm chứng fallback; chưa xác nhận toàn bộ luồng với nhà cung cấp LLM thực. Kế hoạch gốc và checklist nằm trong [LADUX_SMARTFIT_IMPROVEMENTS.md](LADUX_SMARTFIT_IMPROVEMENTS.md).
+Cập nhật theo snapshot portfolio **27/10/2026**. Smart Search, SmartFit và Smart Compare đã triển khai; hợp đồng API và các giới hạn bên dưới mô tả code hiện tại. Kết quả kiểm thử tổng thể xem [Project status](PROJECT_STATUS.md), không dùng số test của các đợt cũ làm trạng thái mới nhất. Contextual Chat có API/UI và phản hồi dự phòng; chưa xác nhận toàn bộ luồng với nhà cung cấp LLM thực. [Kế hoạch gốc](LADUX_SMARTFIT_IMPROVEMENTS.md) được giữ làm lịch sử, không phải roadmap đang chạy.
 
 ## 1. Trải nghiệm và kiến trúc
 

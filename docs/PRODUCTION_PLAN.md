@@ -1,5 +1,7 @@
 # Kế hoạch hoàn thiện Ladux trước triển khai
 
+> **Kế hoạch lịch sử ngày 25/10, giữ để đối chiếu phạm vi đã làm.** Dự án hiện đóng băng tính năng cho portfolio; xem [Project status](PROJECT_STATUS.md) và [runbook hiện tại](PRODUCTION_RUNBOOK.md).
+
 Ngày: 25/10/2026. Phạm vi: workspace hiện tại, bao gồm các sửa đổi VNPay và giao diện đã có trước lần làm việc này. Không sửa migration đã áp dụng, không thay dữ liệu/secret đang dùng và không tự triển khai lên máy chủ thật.
 
 ## Tiêu chí hoàn thành

@@ -1,5 +1,7 @@
 # Kết quả hoàn thiện Ladux — 25/10/2026
 
+> **Báo cáo lịch sử ngày 25/10.** Số test, cấu hình môi trường và các điều kiện trong tài liệu là snapshot của đợt đó. Trạng thái mới nhất được tổng hợp tại [Project status](PROJECT_STATUS.md); hướng dẫn đang dùng nằm ở [Production runbook](PRODUCTION_RUNBOOK.md).
+
 Đây là báo cáo cho workspace hiện tại, không phải chứng nhận 10/10 hoặc bằng chứng đã triển khai lên Internet. Các thay đổi VNPay/header/Wishlist có sẵn trước audit được giữ lại. Không sửa `.env` thật, database đang dùng hoặc migration đã áp dụng; không tạo commit/deploy công khai.
 
 ## Lỗi đã xử lý

@@ -1,6 +1,8 @@
 # Triển khai và vận hành Ladux
 
-Áp dụng cho source sau audit 25/10/2026. Stack: frontend Nginx, backend Java 21, PostgreSQL 17/pgvector, Redis và Caddy. Chỉ Caddy mở cổng 80/443. Storefront gọi API cùng origin; một hostname API riêng phục vụ IPN và kiểm tra vận hành.
+Áp dụng cho snapshot portfolio 27/10/2026, schema tới V62. Phát triển tính năng đang tạm dừng; runbook này chuẩn bị cho một lần triển khai sau, không chứng minh hệ thống đang vận hành production. Xem [trạng thái và bằng chứng](PROJECT_STATUS.md).
+
+Stack: frontend Nginx, backend Java 21, PostgreSQL 17/pgvector, Redis và Caddy. Chỉ Caddy mở cổng 80/443. Storefront gọi API cùng origin; một hostname API riêng phục vụ IPN và kiểm tra vận hành.
 
 ## 1. Chuẩn bị cấu hình
 
@@ -12,6 +14,8 @@ chmod 600 .env.production
 ```
 
 Điền các giá trị thật theo template. Không dùng credential từ `output/.env.production.smoke`; đây là dữ liệu giả cho test. Không commit `.env.production`.
+
+Chép credential từ `backend/.env` chỉ tái sử dụng bộ môi trường nguồn. Nếu nguồn là Sandbox/local, các URL và credential đó vẫn là Sandbox/local; cần đồng bộ lại toàn bộ callback/CORS theo domain triển khai và dùng merchant production trước mở bán. Đổi `DB_PASSWORD` trong file không tự đổi password của database đã có volume.
 
 - Trỏ DNS của `LADUX_WEB_DOMAIN` và `LADUX_API_DOMAIN` về máy triển khai, mở 80/443 và đặt `CADDY_EMAIL`.
 - `JWT_SECRET`: Base64 của ít nhất 32 byte ngẫu nhiên. Sinh bằng công cụ quản lý secret hoặc `openssl rand -base64 48`.
@@ -43,14 +47,13 @@ Preflight không in giá trị secret. Nó kiểm tra placeholder, độ dài ke
 Các gate source được CI chạy:
 
 ```bash
-cd backend
-./mvnw clean verify
-cd ../frontend
+mvn -B -f backend/pom.xml clean verify
+cd frontend
 npm ci
 npm run check
 npm audit --audit-level=moderate
 cd ..
-node --test scripts/preflight.test.mjs
+node --test scripts/preflight.test.mjs scripts/check-vnpay.test.mjs
 ```
 
 Backend audit dùng dependency đã resolve:
@@ -64,7 +67,9 @@ OSV chỉ nhận tên/phiên bản dependency công khai. Kết quả có thời
 
 ## 3. Database và media hiện hữu
 
-Không sửa hoặc chạy lại migration đã áp dụng. Bản này thêm V58–V61, cùng V57 của đợt VNPay đã có trong workspace. V58 giữ guard hoàn tiền theo từng payment, V59 thêm optimistic version cho tồn kho, V60 tạo role tham chiếu, V61 quản lý bảng vector store bằng Flyway.
+Không sửa hoặc chạy lại migration đã áp dụng. V57 giữ các ngày gateway, V58 đặt guard hoàn tiền theo từng payment, V59 thêm optimistic version cho tồn kho, V60 tạo role tham chiếu và V61 quản lý VectorStore bằng Flyway. V62 thêm giới hạn coupon theo khách, CHECK tiền/số lượng và index cho các truy vấn nóng.
+
+Các CHECK `NOT VALID` của V62 áp dụng cho INSERT/UPDATE mới nhưng chưa chứng minh dữ liệu lịch sử đều hợp lệ. Đối chiếu dữ liệu cũ, xử lý bất thường và validate constraint trong kế hoạch nâng cấp; diễn tập CREATE INDEX trên bản sao đủ lớn để đo thời gian/ảnh hưởng khóa.
 
 Trước nâng cấp, backup DB/media và chạy migration trên bản sao. Kiểm tra lịch sử/checksum, đặc biệt database từng dùng V49 đã bị bỏ hoặc các migration cũ đã sửa trước đây. Dùng [runbook V49 hiện có](../backend/docs/retired-v49-recovery.md); không tự `repair`, xóa bảng lịch sử hoặc bật `baseline-on-migrate` để vượt lỗi.
 

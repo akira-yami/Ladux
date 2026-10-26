@@ -1,5 +1,7 @@
 # LADUX — Kế hoạch cải tiến SmartFit & Intelligent Discovery
 
+> **Kế hoạch và checklist lịch sử.** Phạm vi tính năng đã đóng băng ngày 27/10/2026; các ý tưởng P2/P3 chưa triển khai không phải cam kết phát triển tiếp. Xem [hợp đồng thực tế](SMARTFIT_GUIDE.md) và [Project status](PROJECT_STATUS.md).
+
 > **Mục tiêu:** Biến Ladux từ website thương mại điện tử laptop thành nền tảng **Intelligent Laptop Commerce**, giúp khách hàng tìm kiếm, chọn và so sánh laptop theo nhu cầu thực tế.
 >
 > **Phạm vi:** MVP phục vụ demo/portfolio, ưu tiên hoàn thiện trong **20–25/10/2026**. Không mở rộng kiến trúc hoặc xây thêm quá nhiều tính năng.

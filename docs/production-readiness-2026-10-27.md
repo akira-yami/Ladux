@@ -1,5 +1,7 @@
 # Đánh giá production readiness — 27/10/2026
 
+> **Audit ban đầu, không phải trạng thái CI hiện tại.** Hai lỗi test V62 mô tả dưới đây đã được sửa trong `b670ca3`; CI trên `main` sau đó đạt cả backend/frontend. DB/JWT cũng đã được hoàn thiện trong cấu hình local riêng. Các mục cấu hình trong báo cáo phản ánh thời điểm kiểm tra ban đầu. Xem [Project status](PROJECT_STATUS.md) để biết trạng thái snapshot và các điều kiện production vẫn còn.
+
 **Kết luận: NO-GO cho mở bán production ở trạng thái hiện tại.** Ladux có nền tảng nghiệp vụ và cấu hình vận hành đủ tốt để tiếp tục kiểm chứng trên staging, nhưng còn hai gate đang thất bại trực tiếp: bộ test backend và cấu hình production. Ngoài ra, chưa có đủ bằng chứng về tích hợp, khôi phục và tải trên môi trường triển khai thật.
 
 Không quy đổi thành phần trăm readiness hoặc số người dùng đồng thời: các con số đó cần tiêu chí và phép đo cụ thể.

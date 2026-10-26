@@ -1,38 +1,37 @@
-# Kiến trúc monolith chia module
+# Kiến trúc backend Ladux
 
-Ladux là **một ứng dụng Spring Boot duy nhất**, chia mã nguồn theo nghiệp vụ.
-Trong mỗi module, luồng chính là **Controller → Service → Repository**;
-mapper chịu trách nhiệm chuyển entity sang DTO. Dự án không dùng Hexagonal/Clean,
-port/adapter hoặc các lớp use case trung gian.
+**Một Spring Boot application chia module theo nghiệp vụ**, dùng chung PostgreSQL và Redis. Trong mỗi module, luồng chính là `Controller → Service → Repository`; mapper chuyển entity thành DTO trước khi trả HTTP.
 
-## Cấu trúc
+Thiết kế ưu tiên transaction rõ cho order/kho/coupon/payment và một stack có thể chạy local. Các module chưa phải service triển khai độc lập. [Engineering notes](../../../docs/ENGINEERING.md) giải thích các quyết định và trade-off; [trạng thái snapshot](../../../docs/PROJECT_STATUS.md) ghi phạm vi kiểm chứng.
 
-```text
-backend/src/main/java/org/akira/ladux/
-├── LaduxApplication.java
-├── identity/       # tài khoản, xác thực, OTP email, OAuth2, bảo mật
-├── customer/       # hồ sơ, địa chỉ, hạng và điểm khách hàng
-├── catalog/        # sản phẩm, biến thể, thương hiệu, danh mục, đánh giá, yêu thích
-├── ordering/       # giỏ hàng, đơn hàng, lịch sử, vòng đời đơn
-├── payment/        # giao dịch, VNPay, webhook, hoàn tiền
-├── inventory/      # giữ/hoàn tồn kho, sổ cái biến động kho
-├── procurement/    # nhà cung cấp, đơn nhập, nhận hàng
-├── promotion/      # coupon, sử dụng và hoàn lượt khuyến mãi
-├── notification/   # thông báo, liên hệ
-├── assistant/      # chatbot, embedding và tài liệu sản phẩm
-└── shared/         # cấu hình chung, exception, pagination, file storage, tiện ích
-```
+## Bản đồ module
 
-Ví dụ module `catalog`:
+Tất cả nằm trong `backend/src/main/java/org/akira/ladux/`:
+
+| Module | Sở hữu |
+| --- | --- |
+| `identity` | User/role, login, JWT/refresh, Google OAuth, OTP email, CAPTCHA, rate limit và bootstrap admin |
+| `customer` | Hồ sơ, địa chỉ, điểm/hạng và thông tin liên hệ |
+| `catalog` | Product/SKU, brand/category/color, ảnh, reviews/wishlist, tìm kiếm và catalog query |
+| `ordering` | Cart, checkout, order/item/history, state machine, hủy/trả và expiration |
+| `payment` | Payment attempts, VNPay URL/IPN/query, settlement, refund và đối soát |
+| `inventory` | Reserve/release stock, điều chỉnh và stock ledger |
+| `procurement` | Supplier, purchase order và nhận hàng từng phần |
+| `promotion` | Coupon, kiểm tra điều kiện, dùng/hoàn lượt và giới hạn theo khách |
+| `notification` | Thông báo và liên hệ |
+| `assistant` | SmartFit, contextual chat, embedding và product documents |
+| `shared` | Cấu hình chung, lỗi HTTP, pagination, file storage và tiện ích |
+
+`assistant` dùng catalog/VectorStore nên không có entity/repository nghiệp vụ riêng. `LaduxApplication` nằm ở package gốc để quét các module.
+
+## Cấu trúc bên trong một module
+
+Ví dụ `catalog/` hiện có:
 
 ```text
 catalog/
-├── controller/
-│   ├── admin/
-│   └── user/
-├── service/
-│   ├── CatalogQueryService.java
-│   ├── ProductService.java
+├── controller/    # ProductController, DiscoveryController, ...
+├── service/       # CatalogQueryService, ProductService, ...
 │   └── impl/
 ├── repository/
 ├── mapper/
@@ -43,94 +42,50 @@ catalog/
 └── util/
 ```
 
-Các package chỉ tồn tại khi có code thực sự. Module có thể bổ sung `enums`,
-`config`, `security`, `event`, `listener`, `scheduling` hoặc `service.result`.
-`assistant` dùng dữ liệu Catalog và VectorStore nên không cần entity/repository riêng.
-Test nằm dưới `src/test/java/org/akira/ladux/<module>/<layer>`.
+Module có thể thêm `enums`, `config`, `security`, `event`, `listener`, `scheduling` và `service.result` khi có code cần chúng. Không tạo layer/interface rỗng chỉ để khớp một sơ đồ kiến trúc.
 
-## Trách nhiệm và phụ thuộc
-
-| Thành phần | Trách nhiệm |
+| Thành phần | Trách nhiệm và giới hạn |
 | --- | --- |
-| Controller | HTTP, validation, principal; gọi service và trả DTO |
-| Service | Nghiệp vụ, phân quyền, transaction, cache, điều phối |
-| Repository | Spring Data JPA, JPQL, locking; trả entity hoặc DTO projection |
-| Mapper | Chuyển entity sang DTO, không truy cập DB hoặc gọi service |
-| DTO | Request/response và dữ liệu trao đổi, không chứa entity HTTP |
-| Entity | Ánh xạ JPA, quan hệ và dữ liệu lưu trữ |
-| `service.result` | Kết quả xử lý nội bộ có thể giữ entity trong transaction |
-| Shared | Tiện ích/cấu hình dùng chung, không phụ thuộc module nghiệp vụ |
+| Controller | HTTP/validation/principal; gọi service; không gọi repository/JPA/JDBC |
+| Service | Nghiệp vụ, ownership, transaction, cache và điều phối |
+| Repository | JPA/JPQL/native query, locking; có thể trả DTO projection cho truy vấn đọc |
+| Mapper | Ánh xạ entity → DTO; không đọc DB/gọi service |
+| DTO | Hợp đồng request/response; không chứa entity HTTP hoặc logic persistence |
+| Entity | Mapping JPA và quan hệ dữ liệu; không gọi tầng nghiệp vụ |
+| `service.result` | Kết quả nội bộ được phép giữ entity trong transaction |
+| Shared | Tiện ích chung, không phụ thuộc module nghiệp vụ |
 
-Service gọi trực tiếp repository; có thể gọi service/repository của module khác
-khi luồng nghiệp vụ cần. Không bắt buộc API module, không tạo domain model/JPA model
-trùng lặp. Các liên kết entity chéo module hiện có được giữ nguyên vì đây là monolith
-chung database. Ranh giới module thể hiện nơi sở hữu code và dữ liệu, không phải
-các dịch vụ có thể triển khai độc lập.
+Service gọi trực tiếp repository. Khi một nghiệp vụ cần, service có thể phối hợp service/repository của module khác; entity vẫn có association chéo module. Không có bản sao domain/JPA model hoặc lớp port/adapter chỉ để nối các tầng.
 
-Các luồng chính:
+## Các đường đi tiêu biểu
 
-- Sản phẩm: `ProductController → CatalogQueryService → ProductRepository`,
-  dữ liệu ra HTTP đi qua `ProductMapper`. Truy vấn phân trang lấy ID trước, sau đó
-  lấy chi tiết và giữ lại thứ tự ID của trang.
-- Checkout: `OrderServiceImpl` phối hợp Inventory, Promotion và Payment trong
-  transaction hiện có; các bước ghi bắt buộc không được chuyển sang event bất đồng bộ.
-- Nhập hàng: Procurement quản lý đơn nhập và nhận hàng; Inventory xử lý stock/ledger.
-- Thanh toán: Payment xác minh callback và gọi xử lý vòng đời đơn; controller hoàn tiền
-  truyền ID quản trị viên, việc đọc DB nằm ở service.
-- Vai trò: `AdminRoleController → RoleService → RoleRepository`.
+- **Catalog:** `ProductController → CatalogQueryService → ProductRepository`; các mapper tạo DTO. Danh sách dùng page ID rồi fetch summary, detail tải riêng.
+- **Checkout:** `OrderServiceImpl` điều phối Inventory/Promotion/Payment trong transaction; các bước ghi kho/coupon/order bắt buộc cùng rollback.
+- **Nhận hàng:** Procurement kiểm tra đơn nhập và số lượng; Inventory cập nhật stock/ledger theo thứ tự SKU.
+- **Thanh toán:** webhook/query xác minh đầu vào trước `VNPaySettlementService`; order lock trước payment lock.
+- **Refund:** lưu attempt, gọi gateway ngoài transaction khóa DB, hoàn tất hoặc giữ review trong transaction riêng.
+- **Vai trò:** `RoleController → RoleService → RoleRepository`.
 
-## Thay đổi từ cấu trúc cũ
+Các luồng này được mô tả sâu hơn cùng code/test tại [Engineering notes](../../../docs/ENGINEERING.md).
 
-- Đã chuyển các package chung `controller`, `service`, `repository`, `dto`, `model`,
-  `config`, `event`, `exception`, `utils` về module sở hữu hoặc `shared`.
-- Đã bỏ các khung rỗng, `workflow`, thư mục sai tên `recurement`, cùng cấu trúc
-  `api/application/domain/infrastructure`.
-- Đã bỏ `ProductReadPort`, `ProductRepositoryAdapter`, các repository `SpringData*`
-  trùng lặp và các lớp `GetProductUseCase`/`SearchProductsUseCase`;
-  nghiệp vụ đọc được gom vào `CatalogQueryService`.
-- Đã tách phương thức ánh xạ khỏi response DTO sang các lớp mapper trong module.
-- Đã bỏ vòng phụ thuộc giữa hai service refresh token: service xử lý reuse gọi
-  repository trực tiếp, giữ propagation `REQUIRES_NEW` hiện có.
-- Tài liệu kế hoạch Hexagonal cũ được hợp nhất và thay thế bởi tài liệu này.
+## Cache và schema
 
-Không thay REST URL, cấu trúc JSON, bảng database hoặc lịch sử Flyway khi di chuyển.
-Các thay đổi truy vấn sản phẩm đang có trong workspace trước refactor được giữ lại,
-bao gồm snapshot sản phẩm/biến thể và thứ tự phân trang.
+Spring Cache dùng namespace **`ladux:modules:v2:`**, TTL hữu hạn và cache manager `transactionAware()`. TTL mặc định dev là 10 phút, prod là 5 phút; có thể cấu hình theo môi trường. Key phân trang có sort; một số luồng ghi vẫn invalidate toàn cache.
 
-## Cache và triển khai
+Đổi package DTO được serialize trong cache cần namespace mới hoặc quy trình dọn đúng prefix. Không dùng `FLUSHALL`/`FLUSHDB` vì Redis còn giữ bucket rate limit và các key khác. Không chạy lẫn nhiều phiên bản có namespace/invalidation không tương thích mà không có kế hoạch chuyển traffic.
 
-Spring Cache có thể lưu tên đầy đủ của DTO trong dữ liệu serialization. Vì DTO đã
-đổi package, namespace Redis cache được đổi thành `ladux:modules:v1:` trong
-`application.properties`. Lần chạy đầu sẽ tạo lại cache qua truy vấn DB. Tên cache,
-key nghiệp vụ và thời gian sống hiện có được giữ nguyên.
+Schema do Flyway quản lý tới V62 tại snapshot. Dev/test thêm `db/devdata`; prod chỉ nạp `db/migration`, `ddl-auto=validate` và tắt schema initialization tự động của VectorStore. [ERD](../../../database/ladux_erd.png) hỗ trợ đọc; migration trong source là nguồn xác định schema.
 
-Namespace này chỉ áp dụng Spring Cache. Refresh token, OTP email và
-rate-limit bucket không bị xóa hoặc đổi key. Không cần chạy `FLUSHDB`/`FLUSHALL`.
-Không chạy lẫn phiên bản cũ và mới: cache eviction của hai namespace độc lập;
-khi triển khai hoặc rollback, thay toàn bộ instance và làm mới riêng cache của
-phiên bản được đưa vào phục vụ để tránh dữ liệu cũ. Không có migration mới cần rollback.
+## ArchUnit và integration tests
 
-## Kiểm thử kiến trúc và hành vi
+`ArchitectureRuleTest` kiểm tra module/layer, hướng phụ thuộc controller/service/repository, trách nhiệm DTO/entity/mapper và sự độc lập của `shared`. Fixture cố ý vi phạm phải bị phát hiện; rule không được xanh vì không quét class nào.
 
-`ArchitectureRuleTest` kiểm tra:
+Test đặt dưới `src/test/java/org/akira/ladux/<module>/<layer>`. Integration tests khởi động PostgreSQL/pgvector và Redis riêng bằng Testcontainers; không dùng DB local hiện có.
 
-1. Mọi class sản xuất nằm trong module/layer hợp lệ; tất cả module phải được quét.
-2. Controller/entity/repository nằm đúng package; controller không truy cập repository/JPA/JDBC.
-3. Service không phụ thuộc controller; repository không phụ thuộc service/controller/mapper.
-4. DTO không chứa entity/service/repository; entity và mapper không gọi các tầng nghiệp vụ.
-5. `shared` không phụ thuộc các module nghiệp vụ.
-6. Fixture cố ý sai chứng minh rule bắt được repository kể cả khi không có hậu tố `Repository`.
-
-Repository được phép dùng DTO projection cho truy vấn đọc; đây là Spring Data JPA
-thông thường. Không áp dụng rule cấm entity association chéo module hoặc ma trận
-API của kiến trúc cũ.
+Từ thư mục gốc repository, dùng **JDK 21, Maven 3.9+ và Docker đang chạy**:
 
 ```bash
-cd backend
-./mvnw clean verify
+mvn -B -f backend/pom.xml clean verify
 ```
 
-Dùng JDK 21 và Docker đang chạy. Integration test sử dụng PostgreSQL có pgvector
-và Redis qua Testcontainers; test đơn vị kiểm tra xác thực, thanh toán, mapper,
-truy vấn sản phẩm và các hành vi hiện có. Xem báo cáo thực tế trong
-`target/surefire-reports`; tài liệu này không thay thế kết quả chạy test.
+Xem `backend/target/surefire-reports` cho lần chạy thực tế và [CI](../../../.github/workflows/ci.yml) cho gate từ xa. Không thay invariant nghiệp vụ hoặc bỏ test để làm build xanh.

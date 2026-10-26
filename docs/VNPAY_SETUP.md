@@ -1,124 +1,108 @@
-# Cấu hình và xử lý lỗi VNPAY
+# VNPay — cấu hình và troubleshooting
 
-**Cập nhật 27/10/2026:** đã chuyển backend dev sang merchant Sandbox mới `34U1GIZM` do chủ dự án cung cấp. Container đã được tạo lại và healthy. Probe có giữ cookie phiên nhận `PAYMENT_PAGE_REACHED`, mở được trang “Chọn phương thức thanh toán (Test)”. Chưa thực hiện bước ngân hàng hoặc xác minh giao dịch hoàn tất/IPN. Các thông báo chưa được duyệt bên dưới thuộc merchant trước khi thay cấu hình.
+Hướng dẫn dùng bộ merchant của bạn với Ladux. Luồng xác minh/settlement nằm trong [VNPay flow](VNPAY_FLOW.md); trạng thái kiểm chứng hiện tại nằm trong [Project status](PROJECT_STATUS.md).
 
-**Môi trường thử hiện tại:** dùng `http://localhost:5173` cho phiên đăng nhập và Return VNPAY. URL ngrok vẫn dùng cho đăng ký merchant; khi mở UI ngrok trên máy này, chế độ dev chuyển trình duyệt về cùng origin local để không tách cookie. Cấu hình và kiểm thử Google/phiên đăng nhập ở phần dưới.
+## 1. Bộ credential và môi trường
 
-## Lỗi của merchant cũ: website chưa được phê duyệt
+Cần cặp **TmnCode + HashSecret do VNPay cấp**, cùng PAY/query/refund URL thuộc đúng môi trường. HashSecret là khóa ký của merchant, không phải mật khẩu đăng nhập và không tự sinh để thay thế khóa của gateway.
 
-Ngày 27/10/2026 (Asia/Bangkok), kiểm tra trực tiếp VNPAY Sandbox bằng cặp thông tin merchant đang dùng nhận được `MERCHANT_NOT_APPROVED` — cùng thông báo trong ảnh: **Website này chưa được phê duyệt**. Backend đang chạy có mã và secret khớp `backend/.env`; không phải thiếu biến secret. Thông báo này không chứng minh secret đúng, vì gateway có thể kiểm tra trạng thái merchant trước chữ ký.
-
-Chủ tài khoản cần yêu cầu VNPAY kiểm tra/kích hoạt **đúng TmnCode trên Sandbox**. Gửi cho đầu mối hỗ trợ trong email VNPAY: TmnCode, môi trường Sandbox, địa chỉ website đã đăng ký, ảnh thông báo, mã tra cứu và thời gian trong ảnh. Không gửi HashSecret trong yêu cầu hỗ trợ thông thường. Mã nguồn không thể tự phê duyệt merchant trên hệ thống VNPAY.
-
-## Lấy mã và secret ở đâu?
-
-1. Đăng ký merchant kiểm thử tại [VNPAY Sandbox](https://sandbox.vnpayment.vn/devreg/), dùng email bạn quản lý và thông tin website của bạn.
-2. Kiểm tra email, cả mục spam, và làm các bước kích hoạt VNPAY yêu cầu. Theo [tài liệu tích hợp chính thức](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html), hệ thống gửi thông tin kết nối về email đăng ký.
-3. Lấy **cùng một cặp** `vnp_TmnCode` và `vnp_HashSecret` (có thể ghi là Secret Key) của merchant Sandbox được cấp. HashSecret là khóa ký do VNPAY cấp, không phải mật khẩu đăng nhập và không tự tạo ngẫu nhiên để thay thế.
-4. Nếu đã có tài khoản nhưng gặp lỗi trong ảnh, yêu cầu VNPAY kiểm tra việc phê duyệt merchant hiện có trước khi thử lại. Không lấy cặp mã/secret demo chia sẻ trên mạng.
-
-## Chạy local bằng Docker hiện tại
-
-Chỉnh **`backend/.env`**. Đây là file `env_file` mà `backend/docker-compose.yml` nạp cho app; toàn bộ biến `VNPAY_*` trong cấu hình dev lấy từ file này. File `.env` ở thư mục gốc và `.env.production` không thay thế cấu hình VNPAY dev đó.
+Chỉnh `backend/.env` cho local. Template `backend/.env.example` chỉ có merchant giả; thay nguyên bộ để thử Sandbox:
 
 ```dotenv
-VNPAY_TMN_CODE=MA_SANDBOX_VNPAY_CAP
-VNPAY_HASH_SECRET=SECRET_SANDBOX_VNPAY_CAP
+VNPAY_TMN_CODE=REPLACE_WITH_YOUR_SANDBOX_MERCHANT
+VNPAY_HASH_SECRET=REPLACE_WITH_YOUR_SANDBOX_HASH_SECRET
 VNPAY_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 VNPAY_QUERY_URL=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 VNPAY_REFUND_URL=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 VNPAY_RETURN_URL=http://localhost:5173/payment/vnpay/return
 VNPAY_IPN_URL=http://localhost:8080/api/v1/payments/vnpay-webhook
 VNPAY_EXPIRE_MINUTES=15
+PAYMENT_VNPAY_RECONCILIATIONENABLED=true
 ```
 
-Thay hai giá trị đầu bằng thông tin thật VNPAY cấp. Dán nguyên giá trị, tránh khoảng trắng thừa. Không đưa HashSecret vào frontend, biến `VITE_*`, Git hoặc tin nhắn chat. Frontend hiện gọi API tại `http://localhost:8080/api/v1` và không cần secret thanh toán.
+Không đưa HashSecret vào frontend hoặc biến `VITE_*`. Bộ Sandbox không thay thế merchant production.
 
-Từ thư mục gốc dự án, kiểm tra file và gateway:
+Compose gốc nạp runtime app từ `backend/.env`; `.env` gốc cung cấp biến thay thế cho Compose. `.env.production` chỉ được dùng khi gọi stack production với `--env-file .env.production`.
 
-```powershell
+## 2. Kiểm tra trước khi mở một đơn thử
+
+Từ thư mục gốc:
+
+```bash
 node scripts/check-vnpay.mjs
 node scripts/check-vnpay.mjs --gateway
 ```
 
-Lệnh đầu chỉ kiểm tra cấu hình file. Lệnh `--gateway` tạo một URL chẩn đoán riêng gửi tới Sandbox, không tạo đơn trong Ladux, không nhập thẻ/OTP, không thực hiện thanh toán hoặc hoàn tiền. Không in secret hoặc URL đã ký. Nó báo rõ lỗi chưa được duyệt/sai chữ ký khi nhận diện được; phản hồi khác hoặc lỗi kết nối là **chưa xác nhận**, không coi là thanh toán thành công. Công cụ không kiểm tra cấu hình của container đang chạy.
+Lệnh đầu đọc cấu hình file. `--gateway` gửi chẩn đoán tới Sandbox và có thể nhận diện trang chọn phương thức thanh toán, lỗi merchant chưa duyệt hoặc chữ ký sai. Nó không tạo order trong Ladux, không nhập thông tin ngân hàng và không xác nhận một thanh toán/refund đã hoàn tất. Công cụ không chứng minh container đang dùng đúng bộ env đó.
 
-Sau khi cập nhật file, **tạo lại container app** để nạp biến mới:
+Sau khi đổi env, tạo lại app để nạp cấu hình:
 
-```powershell
+```bash
+docker compose up -d --no-deps --force-recreate app
+```
+
+Nếu dùng Compose backend riêng, lệnh tương ứng từ root là:
+
+```bash
 docker compose --env-file backend/.env -f backend/docker-compose.yml up -d --no-deps --force-recreate app
-docker compose --env-file backend/.env -f backend/docker-compose.yml ps app
 ```
 
-Chỉ `docker restart` không nạp lại `.env`. Các lệnh trên dùng image hiện có vì thay credential không cần build mã. Sau khi thay cặp mã/secret, thử một đơn và URL thanh toán mới; URL PENDING đã lưu có thể vẫn mang mã/chữ ký cũ và không được tự thay để tránh tạo thanh toán trùng. Không sửa trạng thái payment để ép thành công.
+Chỉ chọn stack đang sử dụng. `docker restart` không nạp lại env. Spring chạy trực tiếp từ IDE/Maven cũng cần nạp env vào tiến trình Java.
 
-Nếu chạy Spring trực tiếp từ IDE/Maven, Spring không tự đọc `backend/.env` trong dự án này: cần nạp các biến tương ứng vào cấu hình Run/Debug của IDE hoặc môi trường tiến trình Java rồi chạy lại. Công cụ có thể kiểm tra file khác bằng `--config PATH`.
+URL payment đã lưu giữ nguyên merchant/ref/ngày/chữ ký ban đầu. Sau khi đổi bộ credential, dùng một lần checkout thử mới; không sửa URL đã lưu hay ép payment sang SUCCESS.
 
-## Return URL và IPN khác nhau thế nào?
+## 3. Phân biệt callback
 
-### Frontend qua ngrok và lỗi Vite chặn hostname
+| Cấu hình | Người gọi / nơi nhận | Mục đích |
+| --- | --- | --- |
+| Return URL | Browser về frontend `/payment/vnpay/return` | Kiểm tra dữ liệu hiển thị và đọc trạng thái backend |
+| IPN URL | VNPay gọi backend `/api/v1/payments/vnpay-webhook` | Thông báo server-to-server để settlement xác minh |
+| Query/refund URL | Backend gọi API VNPay | Truy vấn/hoàn tiền theo hợp đồng gateway |
 
-Nếu Return báo `Blocked request. This host ... is not allowed`, cấu hình trong `frontend/.env`:
+VNPay không truy cập được localhost của máy bạn. Muốn thử IPN, public backend bằng HTTPS/tunnel và đăng ký URL đầy đủ với VNPay. Đặt `VNPAY_IPN_URL` trong dotenv không tự đăng ký callback; request PAY không gửi biến này.
 
-```dotenv
-VITE_API_BASE_URL=/api/v1
-LADUX_DEV_PUBLIC_URL=https://tidy-filth-sprinkled.ngrok-free.dev
-```
+Local có thể kiểm tra QueryDR khi người mua quay lại và qua worker đối soát. Production vẫn cần IPN công khai được đăng ký; không dùng browser Return làm bằng chứng đã nhận tiền.
 
-Thay URL bằng tunnel frontend đang dùng. Vite chỉ cho phép hostname khai báo này, không bật `allowedHosts: true`. Dev server proxy `/api` và `/uploads` tới backend cổng 8080, nên trình duyệt không phải gọi API ở origin khác. Thêm origin ngrok vào `APP_CORS_ALLOWED_ORIGINS` trong `backend/.env` nếu chủ động dùng phiên ngrok (giữ các origin localhost cần dùng), rồi tạo lại container app để nạp CORS. Nếu Vite chưa tự khởi động lại sau khi sửa `.env`, chạy lại `npm run dev` trong `frontend/`.
+## 4. Google OAuth, Vite proxy và cookie local
 
-Đăng nhập và bắt đầu checkout trên **cùng hostname với `VNPAY_RETURN_URL`**. Cookie đăng nhập localhost không tự chuyển sang ngrok. Không tạo thêm đơn/thanh toán khi chưa kiểm tra trạng thái đơn vừa trả tiền.
-
-### Giữ phiên local và sửa Google redirect_uri_mismatch
-
-Cấu hình thử ngay trên máy này trong `frontend/.env`:
+Cấu hình Vite thường dùng:
 
 ```dotenv
 VITE_API_BASE_URL=/api/v1
 VITE_DEV_CANONICAL_ORIGIN=http://localhost:5173
 ```
 
-Trong `backend/.env`:
+Cấu hình backend:
 
 ```dotenv
-VNPAY_RETURN_URL=http://localhost:5173/payment/vnpay/return
 OAUTH2_SUCCESS_REDIRECT=http://localhost:5173/auth/oauth2/success
 OAUTH2_FAILURE_REDIRECT=http://localhost:5173/login?oauth2Error=true
+VNPAY_RETURN_URL=http://localhost:5173/payment/vnpay/return
 ```
 
-Frontend chuyển UI ngrok về localhost trước khi khởi tạo phiên. Với liên kết thanh toán cũ, path và query được giữ nguyên (không sửa chữ ký/merchant/số tiền). Nếu một trang Return đã bị chuyển thành `/login`, đích thanh toán trong history cũng được khôi phục khi chuyển origin. Không mang token/cookie trong URL. Chức năng này chỉ chạy khi Vite ở chế độ DEV và biến canonical được cấu hình; production không bị chuyển về localhost.
+Google Authorized redirect URI local: **`http://localhost:8080/login/oauth2/code/google`**. Giữ callback đúng scheme/hostname/port/path của OAuth client. `localhost` và `127.0.0.1` là hai hostname khác nhau.
 
-Proxy `/oauth2` và `/login/oauth2` dùng target `http://localhost:8080`, không dùng `127.0.0.1`. Hai hostname này tạo callback Google khác nhau. Callback local chính xác là **`http://localhost:8080/login/oauth2/code/google`**, cần khớp Authorized redirect URIs của OAuth client trong Google Cloud. Đã kiểm tra với Google thực: callback này mở được form đăng nhập, không còn `redirect_uri_mismatch`. Chưa đăng nhập Google bằng tài khoản thật trong bài kiểm tra.
+Khi cố ý dùng tunnel frontend, đặt `LADUX_DEV_PUBLIC_URL` vào URL HTTPS đang có và để trống canonical origin nếu muốn phục vụ thiết bị khác. Đăng nhập, OAuth success/failure và Return phải khớp origin bạn đang sử dụng; cookie localhost không tự chuyển sang tunnel. Vite chỉ cho phép hostname khai báo, không bật wildcard cho mọi host.
 
-Nếu muốn thử từ thiết bị khác qua ngrok, để trống `VITE_DEV_CANONICAL_ORIGIN` và cấu hình Google callback, OAuth success/failure và Return cùng origin public tương ứng. Cần đăng ký URI public đó trong Google Cloud; không thể dùng callback local để giữ phiên ở một hostname ngrok khác.
+Sau khi đặt hàng, giỏ đã được backend dọn. Frontend thay entry checkout bằng trang đơn hàng trước khi ra gateway; Back quay về đơn đã tạo và có thể tiếp tục payment còn hợp lệ. Không dựng lại giỏ để tạo thêm đơn vì một lần return chưa rõ kết quả.
 
-Checkout đã tạo đơn trước khi chuyển sang VNPAY; backend dọn giỏ trong transaction đó. Frontend thay entry checkout trong browser history bằng Đơn hàng của tôi trước khi ra gateway. Back từ gateway quay về đơn đã tạo và có thể tiếp tục thanh toán; không dựng lại form đặt đơn 0 đồng hoặc khôi phục giỏ để tạo đơn trùng. Nếu mở checkout khi giỏ trống, giao diện hiển thị liên kết xem đơn và tiếp tục mua sắm. Giỏ chưa tải/lỗi API có trạng thái tải/thử lại riêng.
+## 5. Lỗi thường gặp
 
-| Biến | Nơi nhận | Cấu hình |
-| --- | --- | --- |
-| `VNPAY_RETURN_URL` | Trình duyệt quay lại frontend | `http://localhost:5173/payment/vnpay/return` khi dev đúng cổng 5173; dùng cùng hostname bạn đăng nhập |
-| `VNPAY_IPN_URL` | VNPAY gọi server backend | `/api/v1/payments/vnpay-webhook` trên backend HTTPS công khai |
-| `VNPAY_QUERY_URL` / `VNPAY_REFUND_URL` | Backend gọi VNPAY | API giao dịch do VNPAY cấp, không phải URL của Ladux |
+| Triệu chứng | Cách xử lý |
+| --- | --- |
+| “Website này chưa được phê duyệt” | Kiểm tra trạng thái đúng merchant Sandbox với VNPay; source không tự phê duyệt merchant. Thông báo này chưa chứng minh HashSecret đúng. |
+| Sai chữ ký | Kiểm tra cặp merchant/secret cùng bộ, nguyên giá trị và môi trường URL; tạo giao dịch thử mới sau khi thay cấu hình |
+| Google `redirect_uri_mismatch` | Đối chiếu URI thực tế với Google Cloud, nhất là `localhost`/`127.0.0.1`, proxy và scheme |
+| Vite chặn hostname | Khai báo URL tunnel hiện tại qua `LADUX_DEV_PUBLIC_URL`, khởi động lại Vite khi cần |
+| Return yêu cầu đăng nhập lại | Kiểm tra origin cookie/Return; không mang token hoặc cookie trong query string |
+| IPN không tới | Kiểm tra URL HTTPS public đã đăng ký với VNPay, firewall và tunnel còn hoạt động |
+| UI còn PENDING sau khi đã thao tác ngân hàng | Đọc trạng thái backend, kiểm tra query/IPN và đối soát; không coi hết polling là thất bại hay tự trả tiền lần nữa |
+| Refund chưa rõ | Giữ attempt để review; đối chiếu portal/sao kê trước khi xác nhận chứng từ hoặc thực hiện bước tiếp theo |
 
-VNPAY không gọi IPN vào localhost được. Khi dev local, backend đã hỗ trợ QueryDR lúc người dùng quay về và worker đối soát nền. Để kiểm thử IPN, dùng tunnel HTTPS công khai tới cổng backend 8080 rồi **đăng ký URL đầy đủ với VNPAY**. Chỉ đặt `VNPAY_IPN_URL` trong `.env` không tự đăng ký callback: request PAY không gửi biến này. Kiểm tra lại URL tunnel mỗi lần nó thay đổi; không dùng địa chỉ tunnel cũ đã hết hoạt động.
+## 6. Trước thanh toán live
 
-Return URL chỉ dùng để kiểm tra/hiển thị kết quả. Chỉ IPN hoặc QueryDR đã xác minh chữ ký và số tiền mới xác nhận đã nhận tiền. Xem chi tiết tại [luồng VNPAY](VNPAY_FLOW.md).
+Merchant production và WebAPI URL phải theo bộ VNPay cấp. Domain/HTTPS, IPN, Return, OAuth, CORS và CAPTCHA phải đồng bộ. Chạy preflight và smoke các luồng thành công/thất bại, callback lặp/mất và refund theo [production runbook](PRODUCTION_RUNBOOK.md).
 
-## Khi triển khai thanh toán thật
+Mở được trang chọn phương thức Sandbox chỉ xác nhận tới bước đó. Các tests gateway mock/fixture cũng không thay thế chứng cứ tiền đã được nhận hoặc hoàn ở nhà cung cấp thật.
 
-- Làm việc với VNPAY để được cấp merchant **production**, kích hoạt website và đăng ký callback cho domain thực. Không dùng credential Sandbox với endpoint live.
-- Điền `VNPAY_*` vào **`.env.production` ở thư mục gốc**, dựa trên `.env.production.example`. Return trỏ tới frontend HTTPS, IPN trỏ tới backend HTTPS; QueryDR/refund dùng URL live VNPAY cung cấp. File `.env.production` hiện tại còn URL Sandbox/localhost, chưa phải cấu hình thanh toán thật.
-- Chạy theo [production runbook](PRODUCTION_RUNBOOK.md). Giữ secret ở máy chủ/secret manager phía backend; lưu ý biến shell có thể ghi đè giá trị `--env-file` trong Compose production.
-- Sau khi merchant được duyệt, cần kiểm thử giao dịch Sandbox thực tới bước ngân hàng và đối chiếu trạng thái đơn/IPN/QueryDR trước khi dùng tiền thật. Chẩn đoán hiện tại dừng ở lỗi phê duyệt merchant, chưa xác nhận một giao dịch Sandbox hoàn tất.
-
-## Kiểm tra mã và cấu hình ngày 27/10/2026
-
-Đã sửa Compose dev để không khai báo lặp `VNPAY_*` trong `environment`: trước đó giá trị từ `.env` gốc/shell có thể ghi đè `backend/.env`; URL tùy chọn chưa khai báo còn bị biến thành chuỗi rỗng thay vì nhận mặc định Spring. Đã kiểm tra Compose thực tế: mã, secret và các URL khớp `backend/.env`, kể cả khi shell có mã merchant khác.
-
-Kiểm thử backend toàn dự án bằng Java 21: 227 tests, 1 failure và 1 error. Các test thuộc payment đều đạt (44 tests, gồm 8 integration). Hai lỗi thuộc `ProductionMigrationSmokeTest` (kỳ vọng số migration cũ) và `DiscoveryRepositoryIntegrationTest` (fixture giá âm vi phạm constraint V62 hiện có trong workspace); không sửa chúng trong đợt cấu hình VNPAY này. Báo cáo local: `output/vnpay/verify-2026-10-27.log`.
-
-Kiểm thử phân loại kết quả/URL VNPAY frontend: 5/5 đạt. Công cụ kiểm tra VNPAY và production preflight: 12/12 đạt, đã đưa vào CI. Chưa có giao dịch Sandbox qua bước ngân hàng vì merchant bị chặn tại gateway.
-
-Lần sửa Back/Return tiếp theo: TypeScript, 46 tests frontend và production build đạt. Chrome chạy fixture API riêng đạt 6 tình huống: Back về đơn PENDING, tiếp tục thanh toán không tạo đơn mới, checkout giỏ trống, Return SUCCESS, Return PENDING được QueryDR xác nhận, và lỗi tải giỏ. Đây là kiểm thử giao diện bằng fixture, không phải giao dịch ngân hàng thật. HTTP thực qua ngrok trả trang Return 200; hostname khác vẫn bị chặn 403; API proxy trả 200 với CORS đúng origin ngrok. Backend đã nạp CORS mới và healthy.
-
-Lần sửa phiên đăng nhập: TypeScript, 51 tests frontend và build đạt. Chrome với cookie HttpOnly local và API fixture xác nhận Return cũ qua ngrok giữ được phiên local, hiển thị kết quả đã xác minh; đích Return trong history `/login` cũng khôi phục đúng. Google thực mở form Sign in khi đi qua proxy đã sửa. Không thực hiện đăng nhập tài khoản Google thật hoặc thanh toán ngân hàng trong smoke test này.
+Tài liệu nhà cung cấp: [PAY/IPN/Return](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html), [QueryDR/refund](https://sandbox.vnpayment.vn/apis/docs/truy-van-hoan-tien/querydr%26refund.html).

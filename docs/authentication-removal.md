@@ -1,5 +1,7 @@
 # Gỡ MFA và OTP điện thoại
 
+> **Quyết định/migration lịch sử ngày 11/10/2026.** Giữ để giải thích phạm vi xác thực hiện tại; các số test bên dưới thuộc lần thay đổi đó. Kết quả snapshot mới nhất nằm ở [Project status](PROJECT_STATUS.md).
+
 Ngày cập nhật: 11/10/2026.
 
 Đăng nhập khách hàng và admin trả access token ngay sau khi xác thực mật khẩu. CAPTCHA, giới hạn đăng nhập theo IP/tài khoản, phân quyền admin, refresh cookie và lịch sử đăng nhập vẫn hoạt động. Đăng nhập Google không còn chặn tài khoản có quyền admin do yêu cầu MFA.

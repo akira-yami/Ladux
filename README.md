@@ -1,322 +1,213 @@
+<div align="center">
+
 # Ladux
 
-> A full-stack e-commerce platform for laptops and technology products, simulating real-world customer shopping, order lifecycle operations, inventory management, procurement, and payment workflows.
+### Thương mại điện tử laptop — từ lựa chọn cấu hình đến đối soát thanh toán
 
-[![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=flat-square&logo=springsecurity&logoColor=white)](https://spring.io/projects/spring-security)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7.x-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Flyway](https://img.shields.io/badge/Flyway-Migrations-CC0200?style=flat-square&logo=flyway&logoColor=white)](https://flywaydb.org/)
-[![Testcontainers](https://img.shields.io/badge/Testcontainers-JUnit_5-2B2D30?style=flat-square&logo=testcontainers&logoColor=white)](https://testcontainers.com/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+Một dự án cá nhân full-stack, tập trung vào tính đúng đắn của **đơn hàng, tồn kho và dòng tiền**.
 
----
+[![CI](https://github.com/phananhkhang/Ladux/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/phananhkhang/Ladux/actions/workflows/ci.yml)
+[![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square)](backend/pom.xml)
+[![Spring Boot 4](https://img.shields.io/badge/Spring_Boot-4-6DB33F?style=flat-square)](backend/pom.xml)
+[![React 18](https://img.shields.io/badge/React-18-61DAFB?style=flat-square)](frontend/package.json)
+[![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square)](compose.yaml)
 
-## 📌 Overview
+[Chạy dự án](docs/LOCAL_SETUP.md) · [Kiến trúc](backend/docs/architecture/README.md) · [Các quyết định kỹ thuật](docs/ENGINEERING.md) · [Tài liệu](docs/README.md)
 
-Đợt hoàn thiện production **25/10/2026**: đã siết checkout/stock/payment/refund, phân phiên API, catalog server-side, bootstrap admin, migration và vận hành. Java 21 đạt **212 tests**; frontend đạt TypeScript, **44 tests** và build; đã chạy stack production fixture, HTTP nghiệp vụ và backup/restore. Cấu hình `.env.production` hiện có vẫn cần hoàn thiện domain/secret/callback trước khi deploy thật. Xem [kế hoạch](docs/PRODUCTION_PLAN.md), [báo cáo và các điều kiện còn lại](docs/PRODUCTION_AUDIT.md), [runbook triển khai](docs/PRODUCTION_RUNBOOK.md). Các kết quả trong phần SmartFit bên dưới là snapshot của đợt kiểm chứng trước.
+</div>
 
-**Ladux** là một hệ thống thương mại điện tử chuyên ngành thiết bị công nghệ, được xây dựng để mô phỏng chân thực quy trình vận hành của một nền tảng bán lẻ từ khâu bán hàng đến quản trị kho vận và nhà cung cấp.
+![SmartFit: lựa chọn laptop theo nhu cầu và cấu hình cụ thể](docs/media/smartfit-desktop.jpg)
 
-Hệ thống tập trung vào 3 phân hệ cốt lõi:
-- **Customer / Storefront**: Trải nghiệm tìm kiếm, lọc theo thông số phần cứng (CPU/RAM/SSD), quản lý giỏ hàng, áp dụng coupon và thanh toán trực tuyến.
-- **Admin Operations**: Điều phối đơn hàng qua cỗ máy trạng thái (State Machine), quản lý danh mục sản phẩm, biến thể (SKU) và xử lý đổi trả/hoàn tiền.
-- **Inventory & Supply Chain**: Lập đơn nhập hàng từ nhà cung cấp (Purchase Orders), kiểm soát số lượng tồn kho nguyên tử và ghi vết lịch sử qua sổ cái biến động kho (Stock Ledger).
+*Ảnh chụp từ ứng dụng trong quá trình phát triển. Giá, dữ liệu mẫu và một số chi tiết giao diện có thể khác phiên bản hiện tại.*
 
----
+## Ladux giải quyết điều gì?
 
-## 💡 Why I Built It
+Một lượt mua laptop kéo theo nhiều quyết định: chọn đúng cấu hình RAM/SSD, áp dụng ưu đãi, giữ hàng, chờ kết quả thanh toán, giao hàng và có thể trả hoặc hoàn tiền. Các bước này phải nhất quán ngay cả khi nhiều người mua cùng lúc hoặc cổng thanh toán phản hồi chậm.
 
-Phần lớn các dự án e-commerce mẫu chỉ dừng lại ở các thao tác CRUD cơ bản: thêm sản phẩm, bấm đặt mua và trừ số lượng trong database. Tuy nhiên, một hệ thống thương mại điện tử thực tế phức tạp hơn rất nhiều:
+Ladux mô hình hóa cả hành trình đó trong một hệ thống:
 
-- **Tồn kho là tài nguyên tranh chấp cao**: Khi nhiều người cùng mua sản phẩm cuối cùng tại một thời điểm, hệ thống phải ngăn chặn triệt để tình trạng bán vượt tồn kho (overselling) mà không làm nghẽn toàn bộ cơ sở dữ liệu.
-- **Vòng đời đơn hàng phụ thuộc nhiều ràng buộc**: Đơn hàng không thể tùy tiện đổi trạng thái nếu không thỏa mãn quy tắc nghiệp vụ; khi đơn hàng hết hạn thanh toán hoặc bị hủy, tồn kho và lượt dùng coupon phải được hoàn trả tự động và nhất quán.
-- **Kho hàng bắt buộc phải có sổ cái (Audit Trail)**: Mọi biến động tăng/giảm tồn kho đều phải gắn liền với chứng từ tham chiếu (đơn bán, đơn nhập, hàng lỗi, kiểm kê) và người thực hiện thay vì ghi đè trực tiếp giá trị.
-- **Thanh toán là quy trình bất đồng bộ**: Callback từ cổng thanh toán có thể đến chậm, gửi lặp lại (duplicate requests) hoặc bị can thiệp dữ liệu trên đường truyền.
+- **Người mua** tìm, so sánh và đặt đúng biến thể sản phẩm; theo dõi đơn và yêu cầu trả hàng.
+- **Quản trị viên** xử lý đơn, ghi nhận thu tiền COD, đối soát VNPay và hoàn tiền có chứng từ.
+- **Vận hành kho** quản lý nhà cung cấp, nhập hàng từng phần và truy vết biến động tồn kho.
 
-**Ladux** được phát triển nhằm giải quyết trực tiếp những bài toán kỹ thuật backend này, tập trung vào tính toàn vẹn dữ liệu (data consistency), an toàn giao dịch (transaction boundaries) và khả năng kiểm soát luồng nghiệp vụ end-to-end.
+**Trọng tâm kỹ thuật:** backend quyết định giá và tồn kho; mỗi thay đổi tiền/hàng đi qua quy tắc nghiệp vụ và transaction; kết quả từ bên ngoài phải được xác minh trước khi thay đổi trạng thái tài chính.
 
----
+## Xem nhanh trong 3 phút
 
-## 🎯 What It Does
+| Muốn hiểu | Bắt đầu ở đâu |
+| --- | --- |
+| Sản phẩm hoạt động thế nào | [Walkthrough SmartFit và so sánh](docs/media/smartfit-walkthrough.mp4), [ảnh giao diện](#giao-diện) |
+| Tại sao dự án có chiều sâu backend | [5 bài toán kỹ thuật bên dưới](#những-bài-toán-kỹ-thuật-chính), [engineering notes](docs/ENGINEERING.md) |
+| Code và test nằm ở đâu | [Bản đồ module](backend/docs/architecture/README.md), [CI](.github/workflows/ci.yml) |
+| Tự chạy và khám phá | [Hướng dẫn local](docs/LOCAL_SETUP.md) |
+| Đã kiểm chứng tới đâu | [Trạng thái và bằng chứng](docs/PROJECT_STATUS.md) |
 
-### 1. Customer
-- **Bộ lọc thông số & Tìm kiếm mờ**: Tìm kiếm nhanh theo tên sản phẩm (Fuzzy search) và lọc kết hợp đa tiêu chí (Hãng, CPU, RAM, Ổ cứng, Giá bán).
-- **Giỏ hàng & Khóa giá**: Quản lý giỏ hàng theo thời gian thực; chốt giá bán tại thời điểm tạo đơn (`priceAtPurchase`) để đảm bảo minh bạch tài chính.
-- **Coupon & Thanh toán trực tuyến**: Áp dụng mã giảm giá (% hoặc số tiền), tích hợp cổng thanh toán **VNPay Sandbox** (HMAC-SHA512 checksum) và thanh toán khi nhận hàng (COD).
-- **Lịch sử & Đánh giá**: Theo dõi hành trình đơn hàng theo thời gian thực; kiểm soát quyền đánh giá sản phẩm (chỉ cho phép sau khi nhận hàng thành công).
+Video hiện có là walkthrough dựng từ ảnh chụp, dài khoảng 2 phút 30 giây; không phải bản ghi thao tác trực tiếp.
 
-### 2. Admin Operations
-- **Quản trị vòng đời đơn hàng**: Cập nhật trạng thái đơn theo State Machine (`PENDING` → `CONFIRMED` → `SHIPPED` → `DELIVERED`), cấp mã tracking vận chuyển.
-- **Quản lý danh mục & Biến thể**: Cấu hình phân cấp Thương hiệu, Danh mục, Sản phẩm và các biến thể cấu hình (RAM, ROM, Màu sắc).
-- **Xử lý Đổi trả & Hoàn tiền**: Hỗ trợ quy trình nghiệp vụ `RETURN_REQUESTED` → `RETURNED` → `REFUNDED`, tự động điều phối trạng thái thanh toán và nhập lại kho.
-- **Phân quyền & Kiểm soát**: Phân quyền truy cập theo vai trò (`ROLE_CUSTOMER`, `ROLE_ADMIN`), quản lý tài khoản người dùng và lịch sử giao dịch.
+## Phạm vi chức năng
 
-### 3. Inventory & Supply Chain
-- **Quản lý Nhà cung cấp & Nhập hàng**: Lưu trữ danh mục nhà cung cấp, tạo và theo dõi tiến độ đơn nhập hàng (Purchase Order - PO), hỗ trợ nhập kho từng phần.
-- **Sổ cái biến động kho (Stock Ledger)**: Ghi nhận nhật ký bất biến cho mọi giao dịch (`PURCHASE_IN`, `SALE_OUT`, `RETURN_IN`, `DAMAGE_OUT`, `ADJUSTMENT`) kèm chứng từ đối soát.
+| Phân hệ | Hành vi chính |
+| --- | --- |
+| **Catalog & discovery** | Tìm kiếm gần đúng bằng `pg_trgm`, lọc/sắp xếp/phân trang tại server, cấu hình theo SKU, đánh giá và danh sách yêu thích |
+| **SmartFit & compare** | Lọc theo ngân sách/nhu cầu/RAM/SSD; xếp hạng có lý do và đánh đổi; so sánh đúng 2–3 cấu hình đã chọn |
+| **Checkout & promotion** | Giỏ hàng, coupon, phí giao hàng; tính lại giá live, snapshot dòng đơn và đối chiếu tổng khách đã xác nhận |
+| **Order operations** | Máy trạng thái đơn hàng, tracking, hết hạn thanh toán, hủy/trả hàng và lịch sử thao tác |
+| **Payment & reconciliation** | COD, VNPay Sandbox, IPN, QueryDR, retry có kiểm soát, xử lý tiền đến muộn và hoàn toàn bộ payment |
+| **Inventory & procurement** | Giữ/hoàn kho, điều chỉnh có sổ cái, đơn nhập và nhận hàng từng phần |
+| **Identity & customer** | Tài khoản, Google OAuth, OTP email, địa chỉ, điểm/hạng khách hàng, phân quyền khách/admin |
+| **Contextual assistant** | Thẻ sản phẩm do backend xác thực; LLM diễn giải theo ngữ cảnh; hiển thị Markdown và có phản hồi dự phòng khi provider lỗi |
 
----
+## Những bài toán kỹ thuật chính
 
-## SmartFit & Intelligent Discovery
+### 1. Hai người cùng mua chiếc laptop cuối cùng
 
-Ladux đã bổ sung luồng chọn laptop theo nhu cầu, với catalog và backend quyết định giá, SKU, tồn kho và điểm phù hợp:
+Đọc tồn kho rồi trừ trong Java có thể cho cả hai request thấy cùng một số lượng. Ladux trừ kho bằng **UPDATE có điều kiện**, kiểm tra số dòng bị ảnh hưởng và giữ ràng buộc không âm tại PostgreSQL.
 
-- **Smart Search:** focus hiện tối đa 5 sản phẩm bán chạy hợp lệ trong 30 ngày hoặc nhãn **nổi bật** khi chưa có dữ liệu bán chạy; autocomplete gần đúng `pg_trgm`, debounce 275 ms, bàn phím và mobile. Không gọi LLM khi nhập từ khóa.
-- **SmartFit `/smartfit`:** ngân sách, mục đích, ưu tiên và RAM/SSD tối thiểu; trả tối đa 3–5 sản phẩm với lý do và đánh đổi. Backend lọc live sản phẩm/SKU active, còn hàng và trong ngân sách.
-- **Smart Compare:** so sánh 2–3 cấu hình đúng SKU, giữ nguyên điểm và giải thích của SmartFit; liên kết chi tiết chọn đúng biến thể.
-- **Contextual Chat:** endpoint `/api/v1/chatbot/contextual-chat` nhận SKU đã chọn và trả thẻ sản phẩm do backend xác thực. Đã kiểm tra HTTP/test và giao diện fallback với đúng 2 thẻ đã chọn; chưa xác nhận toàn bộ luồng với LLM thực.
+Checkout chạy trong một transaction: khóa giỏ hàng, xử lý SKU theo thứ tự ổn định, lấy giá hiện tại, dùng coupon, tạo order/payment, ghi sổ kho rồi dọn giỏ. Nếu client gửi `expectedAmount` và tổng tiền không khớp, hoặc bất kỳ bước bắt buộc nào thất bại, toàn bộ giao dịch rollback. UPDATE vẫn giữ row lock tới khi transaction kết thúc; thứ tự khóa giúp giảm nguy cơ deadlock.
 
-Các API Discovery/SmartFit/Contextual Chat trả **DTO JSON trực tiếp**, không có envelope `data`. Trọng số SmartFit thay đổi theo ưu tiên, không phải benchmark CPU/GPU. Pin chưa được quy đổi thành thời lượng; ROM chỉ có `512GB`/`1TB` chưa xác nhận là SSD và được hiển thị **“Chưa đủ dữ liệu”**. MVP lấy tối đa 500 ứng viên trước bước parse RAM/SSD nên chưa bảo đảm tối ưu toàn bộ catalog khi mở rộng. Dropdown có cache frontend tối đa 60 giây/30 truy vấn; checkout tiếp tục kiểm tra giá/tồn kho live.
+→ [Code checkout](backend/src/main/java/org/akira/ladux/ordering/service/impl/OrderServiceImpl.java) · [Code giữ kho](backend/src/main/java/org/akira/ladux/inventory/service/impl/InventoryServiceImpl.java) · [Test tranh chấp](backend/src/test/java/org/akira/ladux/ordering/service/InventoryConcurrencyIntegrationTest.java)
 
-Migration mới **V56** sửa tham chiếu sản phẩm/SKU trong dòng đơn lịch sử, giữ snapshot giá/số lượng. **V55 chỉ dành dev/test** tắt SKU demo còn nguyên giá cũ khi có SKU VND thay thế đã xác nhận; không quy đổi giá, xóa dữ liệu hay sửa snapshot/tồn kho. Các SKU đã được migration V54 trên `main` cập nhật sang VNĐ vẫn hoạt động.
+### 2. Trình duyệt báo thành công nhưng server chưa nhận được tiền
 
-Database dev hiện có đã được backup, diễn tập trên bản sao, [đối chiếu/repair dấu vết V49](backend/docs/retired-v49-recovery.md) và migrate tới **V56** ngày 20/10/2026. Backend/frontend Docker đều healthy; danh mục và snapshot đơn hàng được bảo toàn. Backend `clean verify` bằng **JDK 21 trong Docker đạt 158 tests**, không lỗi/bỏ qua. Lần kiểm tra frontend trước đó đạt TypeScript, **30 tests** và production build; đợt sửa V49 chỉ smoke test HTTP. CI Java 21 từ xa, một giao dịch VNPay mới và LLM thực chưa được xác nhận.
+Return URL là dữ liệu trình duyệt mang về. Ladux chỉ cập nhật thanh toán từ **IPN hoặc QueryDR đã xác minh** chữ ký, merchant, mã tham chiếu và số tiền. Settlement khóa order trước payment và xử lý callback lặp theo trạng thái đã lưu.
 
-Xem [hướng dẫn API, ranking và giới hạn](docs/SMARTFIT_GUIDE.md), cùng [checklist triển khai](docs/LADUX_SMARTFIT_IMPROVEMENTS.md). Đã kiểm tra giao diện thật: 3 kết quả SmartFit, so sánh 2 cấu hình giữ nguyên giá/điểm, link mở đúng SKU, tìm `thikpad` ra ThinkPad và ngân sách 1 đồng trả rỗng; Chrome mobile **390 px** không tràn ngang. [Video walkthrough 2 phút 30 giây](docs/media/smartfit-walkthrough.mp4) dựng từ ảnh chụp thực, **không phải bản ghi thao tác thời gian thực**. P2 lịch sử/cá nhân hóa và P3 ML recommender/agent được giữ cho phiên bản sau.
+Một worker tìm giao dịch còn chờ để khôi phục kết quả khi mất IPN hoặc khách đóng trình duyệt. Tiền đến sau khi đơn đã hủy được ghi nhận để đối soát; hệ thống giữ nguyên việc hoàn kho đã xảy ra.
 
-| SmartFit — kết quả thực | Smart Compare — hai cấu hình |
-|:---:|:---:|
-| ![Ba kết quả SmartFit](docs/media/smartfit-desktop.jpg) | ![So sánh hai cấu hình](docs/media/smart-compare.jpg) |
+→ [Settlement](backend/src/main/java/org/akira/ladux/payment/service/impl/VNPaySettlementService.java) · [Test HTTP/gateway flow](backend/src/test/java/org/akira/ladux/payment/controller/VNPayFlowIntegrationTest.java) · [Luồng VNPay](docs/VNPAY_FLOW.md)
 
-| SmartFit — form nhu cầu | SmartFit — mobile 390 px |
-|:---:|:---:|
-| ![SmartFit form nhu cầu](docs/media/smartfit-form.jpg) | ![SmartFit mobile 390 px](docs/media/smartfit-mobile.jpg) |
+### 3. Gửi yêu cầu hoàn tiền rồi mất kết nối
 
-[Chat theo ngữ cảnh ở chế độ fallback](docs/media/contextual-chat.jpg) · [Chi tiết chọn đúng SKU](docs/media/smartfit-sku-detail.jpg)
+Timeout không chứng minh rằng gateway chưa hoàn tiền. Ladux lưu refund attempt trước khi gọi gateway, thực hiện HTTP ngoài transaction giữ khóa DB, rồi hoàn tất trạng thái trong transaction riêng khi có bằng chứng xác minh.
 
-Ảnh/video lưu snapshot demo trước khi đồng bộ các PR #6/#7 về giá và header; giá, điểm và bố cục có thể khác bản seed hiện tại. API luôn đọc dữ liệu catalog của môi trường đang chạy.
+Kết quả chưa rõ được giữ để review; có thao tác xác nhận đối soát bằng chứng từ thay vì tự gửi lại yêu cầu. Guard áp dụng theo từng payment để xử lý cả trường hợp một đơn nhận nhiều khoản thanh toán.
 
-| Smart Search — sản phẩm nổi bật | SmartFit — không có cấu hình đáp ứng |
-|:---:|:---:|
-| ![Focus search hiển thị sản phẩm nổi bật](docs/media/smart-search.jpg) | ![Ngân sách 1 đồng không có kết quả](docs/media/smartfit-empty.jpg) |
+→ [Refund workflow](backend/src/main/java/org/akira/ladux/payment/service/RefundWorkflowService.java) · [Quyết định và trade-off](docs/ENGINEERING.md#3-hoàn-tiền-và-trạng-thái-chưa-rõ)
 
-[Tìm sai chính tả thikpad](docs/media/smart-search-typo.jpg) · [Chọn gợi ý bằng phím ArrowDown](docs/media/smart-search-keyboard.jpg)
+### 4. Đổi tài khoản trong khi request cũ vẫn đang chạy
 
----
+Access token được giữ trong bộ nhớ; refresh token nằm trong cookie HttpOnly và được băm/xoay vòng ở backend. Storefront và admin có vùng phiên riêng. Frontend gắn phiên vào request để loại response hoặc refresh đã thuộc tài khoản cũ.
 
-## ⚡ Engineering Challenges
+Backend kiểm tra token version để thu hồi access token khi cần, đồng thời áp dụng rate limit phân tán qua Redis/Bucket4j và kiểm tra quyền ở cả endpoint lẫn nghiệp vụ sở hữu dữ liệu.
 
-### 1. Atomic Inventory Deduction & Overselling Prevention
-- **Problem:** Khi nhiều khách hàng cùng mua một sản phẩm tại cùng một thời điểm, race condition có thể làm tồn kho bị âm hoặc tạo đơn vượt quá số lượng thực tế.
-- **Approach:** Áp dụng câu lệnh cập nhật có điều kiện nguyên tử (`UPDATE product_variants SET stock_quantity = stock_quantity - :qty WHERE id = :id AND stock_quantity >= :qty`) kết hợp với ràng buộc `CHECK (stock_quantity >= 0)` tại database. Cách tiếp cận này loại bỏ việc phải giữ lock bi quan kéo dài toàn bộ transaction mà vẫn đảm bảo tính nhất quán tuyệt đối. *(Chi tiết tại [`02-kien-truc-backend.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/02-kien-truc-backend.md))*
+→ [Test cách ly phiên](frontend/src/services/sessionIsolation.test.ts) · [JWT filter](backend/src/main/java/org/akira/ladux/identity/security/JwtFilter.java)
 
-### 2. Order State Machine & Automated Inventory Rollback
-- **Problem:** Đơn hàng chuyển đổi trạng thái sai quy tắc sẽ làm sai lệch luồng vận hành; các đơn hàng `PENDING` bị bỏ rơi sẽ chiếm dụng tồn kho và mã giảm giá vô thời hạn.
-- **Approach:** Xây dựng `OrderStateMachine` với ma trận chuyển đổi trạng thái nghiêm ngặt để chặn các request bất hợp pháp. Thiết lập background job quét các đơn quá hạn thanh toán (`paymentExpiresAt`), tự động hủy đơn, hoàn lại số lượng tồn kho và phục hồi lượt dùng coupon trong cùng một Transaction boundary; đồng thời dùng **ShedLock** để tránh xung đột khi chạy trên nhiều instance.
+### 5. Tư vấn thông minh nhưng vẫn giữ dữ liệu bán hàng đáng tin cậy
 
-### 3. Idempotent Payment Webhooks & Signature Verification
-- **Problem:** Webhook từ cổng thanh toán (VNPay IPN) có thể bị gửi lặp lại do cơ chế retry mạng, bị giả mạo payload hoặc gửi sai số tiền.
-- **Approach:** Xác thực chữ ký số HMAC-SHA512 trước khi xử lý dữ liệu, đối chiếu số tiền thực nhận (`vnp_Amount`) với tổng tiền đơn hàng, và sử dụng khóa bi quan (`FOR UPDATE`) trên bản ghi thanh toán theo `merchantTxnRef`. Nếu thanh toán đã ở trạng thái `SUCCESS`, webhook trả về thành công ngay lập tức để đảm bảo tính Idempotent. *(Chi tiết tại [`03-luong-nghiep-vu.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/03-luong-nghiep-vu.md))*
+Smart Search dùng truy vấn PostgreSQL; SmartFit dùng lọc và ranking có thể giải thích. Hai luồng này không cần gọi LLM. Với contextual chat, catalog xác thực lại SKU, giá và tồn kho trước khi dựng thẻ sản phẩm; LLM nhận nhiệm vụ diễn giải.
 
-### 4. Dual-Token Authentication & Instant Revocation (Token Versioning)
-- **Problem:** JWT stateless khó thu hồi ngay lập tức khi người dùng đổi mật khẩu hoặc đăng xuất; lưu trữ token trong LocalStorage tiềm ẩn rủi ro tấn công XSS.
-- **Approach:** Sử dụng Access Token ngắn hạn trong bộ nhớ và Refresh Token dài hạn trong Cookie an toàn (`HttpOnly`, `SameSite`, `Secure`). Bổ sung trường `token_version` trong bảng `users`; khi người dùng đổi mật khẩu hoặc đăng xuất, `token_version` sẽ được tăng lên, ngay lập tức vô hiệu hóa toàn bộ token cũ mà không cần duy trì blacklist trong database.
+Các giới hạn được thể hiện rõ: SmartFit xét tối đa 500 SKU ứng viên; điểm phù hợp là heuristic, không phải benchmark phần cứng; thông số thiếu được giữ là “Chưa đủ dữ liệu”.
 
-### 5. Distributed Rate Limiting with Bucket4j & Redis
-- **Problem:** Các endpoint nhạy cảm như Đăng nhập, Gửi mã OTP, Tạo đơn hàng và Chatbot dễ bị khai thác bởi botnet spam hoặc tấn công brute-force.
-- **Approach:** Tích hợp **Bucket4j** với backend lưu trữ trên **Redis** qua `EndpointRateLimitFilter`. Các định danh (IP, Email, Phone, User ID) được băm (SHA-256) trước khi lưu vào Redis key nhằm giới hạn lưu lượng theo thuật toán Token Bucket mà vẫn bảo vệ thông tin cá nhân.
+→ [SmartFit service](backend/src/main/java/org/akira/ladux/assistant/service/SmartFitService.java) · [Hợp đồng API và ranking](docs/SMARTFIT_GUIDE.md)
 
-### 6. Fuzzy Search Optimization with PostgreSQL Trigram
-- **Problem:** Sử dụng câu lệnh `LIKE '%keyword%'` thông thường gây ra full table scan khi danh mục sản phẩm lớn và không hỗ trợ tốt tìm kiếm gần đúng/sai chính tả nhẹ.
-- **Approach:** Kích hoạt PostgreSQL extension `pg_trgm` và tạo chỉ mục GIN index trên trường `LOWER(name)` của sản phẩm, giúp tối ưu tốc độ tìm kiếm văn bản và nâng cao độ chính xác khi khách hàng gõ từ khóa. *(Chi tiết tại [`04-co-so-du-lieu-va-module.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/04-co-so-du-lieu-va-module.md))*
+## Kiến trúc
 
----
-
-## 🏗️ Architecture
-
-Hệ thống dùng **Spring Boot monolith chia module nghiệp vụ**, mỗi module tổ chức theo `controller → service → repository`, kèm `mapper`, `dto`, `entity` và các package hỗ trợ khi cần. Không dùng Hexagonal/Clean, port/adapter hoặc các lớp use case trung gian. Các module gồm `identity`, `customer`, `catalog`, `ordering`, `payment`, `inventory`, `procurement`, `promotion`, `notification`, `assistant`; phần dùng chung nằm trong `shared`.
-
-Xem cấu trúc, trách nhiệm và quy tắc phát triển tại [tài liệu kiến trúc backend](backend/docs/architecture/README.md).
+**Một Spring Boot monolith chia module nghiệp vụ**, một PostgreSQL và một Redis. Mỗi module đi theo `controller → service → repository`, có DTO/mapper và entity tương ứng. Giao dịch liên quan order, kho, coupon và payment được xử lý trong cùng database.
 
 ```mermaid
-flowchart TD
-    subgraph Clients["Clients"]
-        Web["Storefront (React 18)"]
-        Admin["Admin Portal (React 18)"]
-    end
-
-    subgraph Gateway["Edge"]
-        Caddy["Caddy / Reverse Proxy (HTTPS)"]
-    end
-
-    subgraph Backend["Spring Boot Monolith (Java 21)"]
-        Security["Spring Security (JWT & RateLimit Filters)"]
-        Controller["REST Controllers (OpenAPI)"]
-        Service["Service Layer (Business Rules & State Machine)"]
-        Scheduler["Scheduled Jobs + ShedLock"]
-        DataLayer["Spring Data JPA / Hibernate"]
-    end
-
-    subgraph Storage["Data & Cache Layer"]
-        Postgres[(PostgreSQL 17\nSchema via Flyway)]
-        Redis[(Redis\nCache & Rate Limit)]
-    end
-
-    subgraph External["External Services"]
-        VNPay["VNPay Gateway"]
-        OAuth["Google OAuth2"]
-        Mail["Gmail SMTP"]
-    end
-
-    Web & Admin -->|HTTPS| Caddy
-    Caddy --> Security
-    Security --> Controller
-    Controller --> Service
-    Scheduler --> Service
-    Service --> DataLayer
-    DataLayer --> Postgres
-    Service <-->|Cache & Buckets| Redis
-    Service -->|Verify & Pay| VNPay
-    Service -->|Auth| OAuth
-    Service -->|OTP| Mail
+flowchart LR
+    Browser["Storefront / Admin<br/>React + TypeScript"] --> Edge["Caddy + Nginx<br/>production entry"]
+    Edge --> API["Spring Security + REST API"]
+    API --> Core["Identity · Catalog · Ordering<br/>Payment · Inventory · Procurement"]
+    Core --> DB[("PostgreSQL 17<br/>Flyway · pg_trgm · pgvector")]
+    Core --> Redis[("Redis<br/>cache · rate limit")]
+    Jobs["Expiration / reconciliation<br/>Scheduled jobs + ShedLock"] --> Core
+    Core --> Gateway["VNPay"]
+    API --> Google["Google OAuth"]
+    Core --> SMTP["SMTP / OTP email"]
+    Core --> Assistant["Contextual chat"]
+    Assistant --> AI["DeepSeek / Google embeddings"]
+    Assistant --> DB
 ```
 
----
+Sơ đồ thể hiện bố trí production dự kiến. Local Compose mở frontend và backend trực tiếp; xem [cấu hình và cách chạy](docs/LOCAL_SETUP.md). Module là ranh giới tổ chức code, cùng chia sẻ transaction/database; chưa phải các service triển khai độc lập.
 
-## 💻 Tech Stack
+| Thành phần | Công nghệ |
+| --- | --- |
+| Backend | Java 21, Spring Boot 4.0.9, Spring Security, Spring Data JPA |
+| Data & concurrency | PostgreSQL 17/pgvector, Flyway, Redis, Bucket4j, ShedLock |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, Zustand, TanStack Query |
+| Assistant | Spring AI, DeepSeek, Google GenAI embeddings, pgvector |
+| Verification | JUnit, Mockito, Testcontainers, ArchUnit, Vitest, GitHub Actions |
+| Packaging | Docker Compose, Nginx, Caddy |
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Backend** | Java 21, Spring Boot 4.0.x | Core monolith REST API application |
-| **Security** | Spring Security, JJWT, OAuth2 Client | Stateless JWT authentication, RBAC authorization, Google login |
-| **Database** | PostgreSQL 17, Flyway (42 migrations) | Primary relational database & automated schema versioning |
-| **Cache / Concurrency** | Redis 7.x, Spring Cache, ShedLock | Catalog caching, distributed rate limit storage, scheduler lock |
-| **Traffic Control** | Bucket4j (Lettuce backend) | Token bucket rate limiting for sensitive endpoints |
-| **Payment** | VNPay SDK / REST, Apache Commons Codec | Sandbox payment processing & HMAC-SHA512 checksum |
-| **Testing** | JUnit 5, Mockito, Testcontainers | Unit testing & integration testing with real PostgreSQL instances |
-| **Frontend** | React 18, TypeScript 5, Vite 6, Tailwind CSS | Modern SPA for Customer Storefront & Admin Portal |
-| **State Management** | Zustand, TanStack Query | Client-side global state and server state synchronization |
-| **Infrastructure** | Docker, Docker Compose, Caddy | Containerized environments & HTTPS reverse proxy |
+Xem [bản đồ module, trách nhiệm và quy tắc phụ thuộc](backend/docs/architecture/README.md), [sơ đồ dữ liệu](database/ladux_erd.png) và [lịch sử migration trong source](backend/src/main/resources/db). ERD là tài liệu tham khảo; Flyway là nguồn xác định schema hiện tại.
 
----
+## Chạy local
 
-## 📸 Screenshots / Demo
-
-| Storefront & Catalog | Product Details & Variants |
-| :---: | :---: |
-| ![Storefront Home](docs/screenshots/storefront.png) | ![Product Detail](docs/screenshots/product-detail.png) |
-
-| Checkout & Payment Flow | Admin Operations Dashboard |
-| :---: | :---: |
-| ![Checkout](docs/screenshots/checkout.png) | ![Admin Dashboard](docs/screenshots/admin-dashboard.png) |
-
-| Inventory & Stock Ledger | Purchase Orders (Procurement) |
-| :---: | :---: |
-| ![Stock Ledger](docs/screenshots/stock-ledger.png) | ![Purchase Orders](docs/screenshots/purchase-orders.png) |
-
----
-
-## 📚 Documentation
-
-- [Kiến trúc backend](backend/docs/architecture/README.md): module, phân tầng, transaction, cache và kiểm thử.
-- [Hướng dẫn phát triển backend](backend/AGENT.md): quy tắc tổ chức code và bảo toàn hành vi.
-- [Database migrations](backend/src/main/resources/db/migration): schema và lịch sử thay đổi dữ liệu.
-- [SmartFit & Intelligent Discovery](docs/SMARTFIT_GUIDE.md): API trực tiếp, cách tính điểm, thông số thiếu, kiểm chứng và kịch bản demo.
-
----
-
-## 🚀 Getting Started
-
-### Chạy toàn bộ bằng Docker Compose
-
-Bật Docker Desktop, sau đó chạy tại thư mục gốc `Ladux/`:
+Cần **Docker Engine/Desktop và Docker Compose v2**. Để chạy test ngoài container, cần thêm **JDK 21, Maven 3.9+ và Node.js 22+**.
 
 ```bash
-docker compose up -d
+git clone https://github.com/phananhkhang/Ladux.git
+cd Ladux
+cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
-Compose tự build image nếu chưa có và khởi động PostgreSQL, Redis, backend rồi frontend. Lần đầu có thể mất vài phút để tải dependency và build ứng dụng.
-
-- Storefront: `http://localhost:5173`
-- Admin Portal: `http://localhost:5173/admin`
-- Backend API: `http://localhost:8080/api/v1`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-
-PostgreSQL và Redis chỉ mở trong mạng Docker để tránh xung đột với database đang cài trên máy. Backend kết nối trực tiếp bằng tên service `postgres` và `redis`.
-
-Cấu hình backend (JWT, Google OAuth, email, thanh toán, AI) vẫn được đọc từ `backend/.env`. Đặt `DB_USERNAME` và `DB_PASSWORD` trong `.env` tại thư mục gốc để Compose truyền cùng thông tin kết nối cho backend và PostgreSQL; `DB_USERNAME` mặc định là `akira`, còn `DB_PASSWORD` bắt buộc có giá trị. Nếu dùng lại volume database cũ, giữ nguyên tài khoản và mật khẩu của database đó. File Compose gốc dùng profile `dev`, cookie HTTP và URL redirect OAuth về frontend local.
-
-Frontend được build bằng Node.js và phục vụ bằng Nginx, không cần cài Node.js/Java trên máy để chạy stack. File `frontend/.env` không được đưa vào image; API mặc định là `http://localhost:8080`. Nếu bật CAPTCHA ở backend, đặt public site key `VITE_RECAPTCHA_SITE_KEY` trong `.env` gốc trước khi build.
+Điền mật khẩu DB giống nhau ở hai file và sinh `JWT_SECRET` theo [hướng dẫn cấu hình](docs/LOCAL_SETUP.md#2-chuẩn-bị-cấu-hình). Template dùng credential giả cho các dịch vụ tùy chọn; thay bằng credential của bạn để thử OAuth, email, VNPay hoặc AI.
 
 ```bash
-# Xem trạng thái và log
-docker compose ps
-docker compose logs -f app frontend
-
-# Build lại sau khi sửa source hoặc biến cấu hình frontend
-docker compose up -d --build
-
-# Dừng toàn bộ, giữ dữ liệu PostgreSQL và Redis
-docker compose down
+docker compose up -d --build --wait --wait-timeout 300
 ```
 
-Compose gốc dùng tên project `backend` để dùng chung container và volume với cách chạy cũ trong thư mục `backend/` (khi không đặt project name riêng). Không chạy đồng thời hai cấu hình bằng project name khác nhau vì chúng dùng cùng cổng. Đây là cấu hình local; triển khai production tiếp tục dùng `backend/docker-compose.prod.yml`.
+| Điểm vào | URL local |
+| --- | --- |
+| Storefront | http://localhost:5173 |
+| Admin portal | http://localhost:5173/admin |
+| Swagger UI — profile dev | http://localhost:8080/swagger-ui.html |
+| Readiness | http://localhost:8080/actuator/health/readiness |
 
-Nếu app dừng với `Detected applied migration not resolved locally: 49`, làm theo
-[hướng dẫn khôi phục lịch sử V49 cho database dev](backend/docs/retired-v49-recovery.md).
-Hướng dẫn có bước backup và lệnh repair giới hạn; không chạy lại migration V49 cũ.
+[Hướng dẫn đầy đủ](docs/LOCAL_SETUP.md) gồm PowerShell, tài khoản demo trên database mới, Vite hot reload và cách xử lý lỗi cấu hình. Không cần dùng cấu hình production để khám phá dự án local.
 
-### Phát triển với hot reload
+## Kiểm thử và bằng chứng
 
-Để sửa code frontend và thấy thay đổi ngay, chỉ chạy database/Redis bằng Docker rồi chạy backend và Vite trực tiếp như dưới đây. Frontend trong Docker dùng bản build tĩnh, cần build lại sau khi sửa source.
+Snapshot ngày **27/10/2026**: backend **227 tests**, frontend **57 tests / 14 files**, thêm **13 tests** cho preflight/VNPay diagnostics. Các gate test, build và dependency audit đã đạt trên [CI của source snapshot](https://github.com/phananhkhang/Ladux/actions/runs/40384064685). Badge phía trên phản ánh lần chạy mới nhất.
 
-#### 1. Khởi chạy Database & Redis (Docker Compose)
 ```bash
-cd backend
-docker compose up -d postgres redis
-```
+# Từ thư mục gốc; Docker phải đang chạy cho Testcontainers.
+mvn -B -f backend/pom.xml clean verify
 
-#### 2. Khởi chạy Backend (Spring Boot)
-Tạo file cấu hình môi trường hoặc sử dụng mặc định của profile `dev`:
-```bash
-cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-```
-- API Documentation (Swagger UI): `http://localhost:8080/swagger-ui.html`
-- Health check: `http://localhost:8080/actuator/health`
-
-#### 3. Khởi chạy Frontend (React + Vite)
-```bash
 cd frontend
-npm install
-npm run dev
-```
-- Storefront & Admin Portal: `http://localhost:5173`
+npm ci
+npm run check
+cd ..
 
-*(Xem hướng dẫn cấu hình biến môi trường chi tiết tại [`backend/.env.production.example`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/backend/.env.production.example) và [`frontend/.env.example`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/frontend/.env.example))*
-
----
-
-## 📁 Project Structure
-
-```text
-Ladux/
-├── backend/                  # Spring Boot REST API monolith (Java 21)
-├── frontend/                 # React 18 SPA (Storefront & Admin)
-├── backend/docs/architecture/ # Tài liệu kiến trúc module và quy tắc phát triển
-├── database/                 # Sơ đồ cơ sở dữ liệu
-├── uploads/                  # Thư mục lưu trữ media & hình ảnh sản phẩm
-└── README.md                 # Project landing documentation
+node --test scripts/preflight.test.mjs scripts/check-vnpay.test.mjs
 ```
 
----
+Test tích hợp dùng PostgreSQL và Redis riêng, bao phủ tranh chấp SKU cuối, rollback checkout, hủy lặp, callback VNPay đồng thời, refund, migration mới/nâng cấp và quyền truy cập. ArchUnit kiểm tra ranh giới tầng/module; Vitest kiểm tra logic frontend, phiên và các thành phần liên quan. Đây chưa phải bộ kiểm thử trình duyệt end-to-end toàn hệ thống.
 
-## 🚦 Status
+[Trạng thái kiểm chứng, giới hạn và điều kiện triển khai](docs/PROJECT_STATUS.md) được ghi riêng để phân biệt kết quả CI, smoke test fixture và tích hợp dịch vụ thật.
 
-- **Core Capabilities**: Hoàn thiện toàn bộ luồng Auth, Catalog, Cart, Atomic Checkout, VNPay Webhook, Order State Machine, Sổ cái kho và Distributed Rate Limiting.
-- **Testing**: Đã triển khai Unit Test và Integration Test với Testcontainers (PostgreSQL).
-- **SmartFit / Discovery**: Đã có Smart Search, form tư vấn và so sánh SKU; [checklist](docs/LADUX_SMARTFIT_IMPROVEMENTS.md#6-điều-kiện-nghiệm-thu) tách rõ triển khai, kiểm chứng và media còn lại.
-- **Active Improvements**: Đang hoàn thiện các hạng mục trong [`08-ke_hoach_production.md`](file:///c:/Users/ADMIN/OneDrive/Desktop/Ladux/docs/08-ke_hoach_production.md) (cấu hình CDN và hoàn thiện monitoring với Prometheus/Grafana).
+## Giao diện
 
----
+| SmartFit — nhập nhu cầu | Smart Compare — đúng cấu hình |
+| --- | --- |
+| ![Form SmartFit](docs/media/smartfit-form.jpg) | ![So sánh cấu hình](docs/media/smart-compare.jpg) |
 
-## 👤 Author
+| Tìm kiếm gần đúng | Trải nghiệm mobile |
+| --- | --- |
+| ![Tìm thikpad ra ThinkPad](docs/media/smart-search-typo.jpg) | ![SmartFit trên mobile](docs/media/smartfit-mobile.jpg) |
 
-- **Họ và tên**: Phan Anh Khang
-- **Vị trí ứng tuyển**: Java Backend Developer (Intern)
-- **GitHub**: [github.com/phananhkhang](https://github.com/phananhkhang)
-- **Email**: [phananhkhang0603@gmail.com]
+[Chat theo ngữ cảnh](docs/media/contextual-chat.jpg) · [Chi tiết chọn đúng SKU](docs/media/smartfit-sku-detail.jpg) · [Trạng thái không có kết quả phù hợp](docs/media/smartfit-empty.jpg)
+
+## Trạng thái dự án
+
+**Đóng băng phạm vi tính năng từ 27/10/2026**, giữ làm portfolio và nền tảng để ôn lại thiết kế trước phỏng vấn. Bản snapshot có đầy đủ luồng demo và CI; phát triển tính năng mới tạm dừng.
+
+Cấu hình triển khai production và runbook đã có. Trước khi vận hành bán hàng thật vẫn cần domain/HTTPS, credential đúng môi trường, kiểm chứng OAuth/CAPTCHA/SMTP/VNPay, backup ngoài host, cảnh báo và đo tải. Credential Sandbox hoặc kết quả CI không thay thế các điều kiện đó. Xem [runbook](docs/PRODUCTION_RUNBOOK.md).
+
+## Tài liệu
+
+- [Bắt đầu và chạy local](docs/LOCAL_SETUP.md)
+- [Thiết kế nghiệp vụ, transaction và trade-off](docs/ENGINEERING.md)
+- [Kiến trúc và bản đồ code](backend/docs/architecture/README.md)
+- [SmartFit, discovery và contextual chat](docs/SMARTFIT_GUIDE.md)
+- [Luồng VNPay](docs/VNPAY_FLOW.md) · [cấu hình và troubleshooting](docs/VNPAY_SETUP.md)
+- [Frontend](frontend/README.md) · [trạng thái snapshot](docs/PROJECT_STATUS.md)
+- [Triển khai và vận hành](docs/PRODUCTION_RUNBOOK.md) · [toàn bộ tài liệu và audit lịch sử](docs/README.md)
+
+## Tác giả
+
+**Phan Anh Khang** — định hướng Java Backend Developer.
+
+[GitHub](https://github.com/phananhkhang) · [phananhkhang0603@gmail.com](mailto:phananhkhang0603@gmail.com)

@@ -1,5 +1,7 @@
 # Production P0/P1 hardening (2026-10-06)
 
+> **Historical design note.** Refund guards described below were later changed from order-level to payment-level in V58. Use the [current engineering notes](../../docs/ENGINEERING.md), [project status](../../docs/PROJECT_STATUS.md) and [production runbook](../../docs/PRODUCTION_RUNBOOK.md) for the portfolio snapshot.
+
 ## Security
 - Order cancellation obtains the authenticated principal's userId, then locks **only that user's** order using `findOwnedWithItemsForUpdate` before changing status/stock.
 - Rate limiting uses servlet `getRemoteAddr()`; Caddy, as the *sole* trusted public edge, overwrites untrusted forwarding headers before Spring's `ForwardedHeaderFilter` processes requests. If a load balancer/CDN is added upstream, update Caddy trusted-proxy policy **before** deploying it, or the edge IP will be used for rate limits.

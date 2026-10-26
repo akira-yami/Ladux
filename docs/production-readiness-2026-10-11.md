@@ -1,5 +1,7 @@
 # Đánh giá production readiness — Ladux
 
+> **Snapshot lịch sử ngày 11/10/2026.** Các lỗi, số test và khuyến nghị bên dưới cần đối chiếu lại; nhiều mục đã được xử lý trong các đợt sau. Xem [Project status](PROJECT_STATUS.md) cho phiên bản đóng băng portfolio.
+
 Ngày đánh giá: 11/10/2026. Snapshot Git: `5e14a59`. Phạm vi: source backend/frontend, migration, test, CI và cấu hình Docker/Caddy trong workspace.
 
 Cập nhật cùng ngày theo yêu cầu: đã gỡ MFA và OTP điện thoại; các khuyến nghị bên dưới được điều chỉnh cho đăng nhập mật khẩu và OTP email. Bảng kiểm tra ban đầu vẫn ghi kết quả của snapshot trước thay đổi; xem `authentication-removal.md` cho kiểm chứng sau thay đổi.
