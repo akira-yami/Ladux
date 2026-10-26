@@ -14,11 +14,9 @@ services:
       - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in your environment}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:?Set GOOGLE_CLIENT_ID in your environment}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:?Set GOOGLE_CLIENT_SECRET in your environment}
-      - VNPAY_TMN_CODE=${VNPAY_TMN_CODE}
-      - VNPAY_HASH_SECRET=${VNPAY_HASH_SECRET}
-      - VNPAY_PAY_URL=${VNPAY_PAY_URL}
-      - VNPAY_RETURN_URL=${VNPAY_RETURN_URL}
-      - VNPAY_REFUND_URL=${VNPAY_REFUND_URL}
+      # Load all VNPAY_* settings from backend/.env via env_file above.
+      # Duplicating them here lets a root .env or shell override that file,
+      # and turns absent optional URLs into empty strings instead of Spring defaults.
       # Serve seed product images from host ../uploads (bind-mounted below)
       - UPLOAD_ROOT=/app/uploads
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
