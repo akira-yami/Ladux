@@ -8,6 +8,8 @@ import {
     Trash2,
     Lock,
     CheckCircle2,
+    Loader2,
+    ShoppingBag,
 } from "lucide-react";
 import {
     CouponItem,
@@ -18,7 +20,7 @@ import {
 import { orderService, paymentService, couponService } from "../services";
 import { useCartStore, useAddressStore, useOrderStore } from "../stores";
 import { ROUTES } from "../app/routePaths";
-import { requireVNPayUrl } from "../utils/paymentFlow";
+import { redirectToVNPay } from "../utils/vnpayNavigation";
 import { couponDiscount } from "../utils/checkoutPricing";
 import type { CouponApplyResponse } from "../services/couponService";
 
@@ -32,7 +34,7 @@ export default function CheckoutView({
     showToast,
 }: CheckoutViewProps) {
     const navigate = useNavigate();
-    const { cart, fetchCart } = useCartStore();
+    const { cart, fetchCart, isLoading: cartLoading, error: cartError } = useCartStore();
     const { addresses, createAddress, fetchAddresses } = useAddressStore();
     const { fetchOrders } = useOrderStore();
 
@@ -46,6 +48,8 @@ export default function CheckoutView({
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const submissionLock = useRef(false);
+    const [cartReady, setCartReady] = useState(false);
+    const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
     const [newAddress, setNewAddress] = useState({
         receiverName: "",
@@ -60,6 +64,18 @@ export default function CheckoutView({
     useEffect(() => {
         void fetchAddresses();
     }, [fetchAddresses]);
+
+    useEffect(() => {
+        let mounted = true;
+        const refresh = () => {
+            setCartReady(false);
+            void fetchCart().finally(() => { if (mounted) setCartReady(true); });
+        };
+        const onPageShow = (event: PageTransitionEvent) => { if (event.persisted) refresh(); };
+        refresh();
+        window.addEventListener('pageshow', onPageShow);
+        return () => { mounted = false; window.removeEventListener('pageshow', onPageShow); };
+    }, [fetchCart]);
 
     useEffect(() => {
         if (addresses.length > 0 && selectedAddrId === null) {
@@ -109,6 +125,7 @@ export default function CheckoutView({
 
     const handlePlaceOrder = async () => {
         if (submissionLock.current) return;
+        if (createdOrderId) { navigate(ROUTES.orders, { replace: true }); return; }
         if (!cartItemsList.length) { showToast("Giỏ hàng đang trống. Hãy kiểm tra đơn hàng đã tạo."); return; }
         const selectedAddr = addresses.find((a) => a.id === selectedAddrId) || addresses[0];
 
@@ -137,6 +154,8 @@ export default function CheckoutView({
                 },
             });
 
+            setCreatedOrderId(orderRes.id);
+
             // The order transaction already clears the server cart. Never issue another DELETE.
             void fetchCart();
             void fetchOrders();
@@ -150,12 +169,12 @@ export default function CheckoutView({
                         orderId: orderRes.id,
                         provider: "VNPAY",
                     });
-                    window.location.assign(requireVNPayUrl(payRes.paymentUrl));
+                    redirectToVNPay(payRes.paymentUrl, navigate);
                     return;
                 } catch (payErr: any) {
                     console.error("Lỗi khởi tạo thanh toán VNPay:", payErr);
                     const errorMsg = payErr?.response?.data?.message || payErr?.message || "Không thể tạo URL thanh toán VNPay!";
-                    navigate(ROUTES.orders);
+                    navigate(ROUTES.orders, { replace: true });
                     showToast(`Đơn #${orderRes.id} đã được tạo. ${errorMsg} Bạn có thể tiếp tục thanh toán trong đơn hàng.`);
                     return;
                 }
@@ -165,7 +184,7 @@ export default function CheckoutView({
             if (setSelectedAddressOrderId) {
                 setSelectedAddressOrderId(orderRes.id.toString());
             }
-            navigate(ROUTES.orders);
+            navigate(ROUTES.orders, { replace: true });
             showToast(`Đặt hàng thành công! Mã đơn: #${orderRes.id}`);
 
         } catch (err: any) {
@@ -178,6 +197,29 @@ export default function CheckoutView({
             setIsSubmitting(false);
         }
     };
+
+    if (createdOrderId || !cartReady || cartLoading || cartError || cartItemsList.length === 0) {
+        const loading = !createdOrderId && (!cartReady || cartLoading);
+        return <main className="container mx-auto max-w-2xl px-6 py-12">
+            <div className="store-card space-y-5 rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-800">
+                {loading ? <>
+                    <Loader2 className="mx-auto h-10 w-10 animate-spin text-sky-700" />
+                    <h1 role="status" className="text-xl font-semibold">Đang kiểm tra giỏ hàng...</h1>
+                </> : <>
+                    <ShoppingBag className="mx-auto h-10 w-10 text-sky-700" />
+                    <h1 className="text-xl font-semibold">{createdOrderId ? `Đơn #${createdOrderId} đã được tạo` : cartError ? 'Chưa tải được giỏ hàng' : 'Giỏ hàng hiện đang trống'}</h1>
+                    <p className="text-sm leading-7 text-slate-500">{createdOrderId
+                        ? 'Bạn có thể xem đơn và tiếp tục thanh toán VNPay trong Đơn hàng của tôi.'
+                        : cartError || 'Nếu vừa quay lại từ VNPay, đơn hàng của bạn đã được tạo. Hãy mở Đơn hàng của tôi để xem trạng thái và tiếp tục thanh toán.'}</p>
+                    <div className="flex flex-wrap justify-center gap-3">
+                        <button className="design-button" onClick={() => navigate(ROUTES.orders, { replace: true })}>Đơn hàng của tôi</button>
+                        {cartError && <button className="design-button secondary" onClick={() => void fetchCart()}>Tải lại giỏ hàng</button>}
+                        <button className="design-button secondary" onClick={() => navigate(ROUTES.products)}>Tiếp tục mua sắm</button>
+                    </div>
+                </>}
+            </div>
+        </main>;
+    }
 
     return (
         <main className="container mx-auto px-6 py-12 max-w-6xl">

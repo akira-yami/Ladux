@@ -6,6 +6,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
   const environment = loadEnv(mode, process.cwd(), 'VITE_');
+  const devEnvironment = loadEnv(mode, process.cwd(), 'LADUX_DEV_');
+  const publicDevHost = devEnvironment.LADUX_DEV_PUBLIC_URL
+    ? new URL(devEnvironment.LADUX_DEV_PUBLIC_URL).hostname : undefined;
   const indexable = environment.VITE_ALLOW_INDEXING === 'true';
   const siteUrl = environment.VITE_SITE_URL?.replace(/\/$/, '');
   if (indexable && (!siteUrl || !/^https:\/\/[^/]+$/.test(siteUrl))) {
@@ -36,6 +39,15 @@ export default defineConfig(({ mode }) => {
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    allowedHosts: publicDevHost ? [publicDevHost] : [],
+    proxy: {
+      '/api': { target: 'http://127.0.0.1:8080', changeOrigin: true },
+      '/uploads': { target: 'http://127.0.0.1:8080', changeOrigin: true },
+      '/oauth2': { target: 'http://127.0.0.1:8080', changeOrigin: true },
+      '/login/oauth2': { target: 'http://127.0.0.1:8080', changeOrigin: true },
     },
   },
 
