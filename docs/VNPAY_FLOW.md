@@ -1,5 +1,7 @@
 # VNPay — luồng thanh toán local và triển khai
 
+Hướng dẫn cấu hình hiện tại và lỗi **Website này chưa được phê duyệt**: [VNPAY_SETUP.md](VNPAY_SETUP.md). Ngày 27/10/2026 đã chuyển sang merchant Sandbox mới `34U1GIZM` và mở được trang chọn phương thức thanh toán (`PAYMENT_PAGE_REACHED`); chưa xác minh giao dịch hoàn tất. Các kết quả phía dưới là lịch sử đợt kiểm tra 21/10/2026.
+
 Đối chiếu ngày 21/10/2026 với tài liệu chính thức:
 
 - [PAY 2.1.0, URL thanh toán, IPN và Return](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html)
