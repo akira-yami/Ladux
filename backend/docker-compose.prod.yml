@@ -136,7 +136,10 @@ services:
       - data-network
     volumes:
       - redis-data:/data
-    command: redis-server --appendonly yes
+    # Gioi han bo nho: cache + bucket rate-limit khong duoc tang den het RAM host.
+    # allkeys-lru: khi day, loai cache/bucket cu nhat (mat bucket chi reset gioi han, khong mat du lieu nghiep vu).
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    mem_limit: 384m
 
 volumes:
   postgres-data:

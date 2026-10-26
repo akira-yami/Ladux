@@ -42,6 +42,10 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
     private final long paymentRetryRefillMinutes;
     private final int searchCapacity;
     private final long searchRefillMinutes;
+    private final int tokenRefreshCapacity;
+    private final long tokenRefreshRefillMinutes;
+    private final int contactCapacity;
+    private final long contactRefillMinutes;
 
     public EndpointRateLimitFilter(
             DistributedRateLimitService rateLimitService,
@@ -60,8 +64,16 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
             @Value("${app.rate-limit.payment-retry.capacity:3}") int paymentRetryCapacity,
             @Value("${app.rate-limit.payment-retry.refill-minutes:1}") long paymentRetryRefillMinutes,
             @Value("${app.rate-limit.search.capacity:60}") int searchCapacity,
-            @Value("${app.rate-limit.search.refill-minutes:1}") long searchRefillMinutes
+            @Value("${app.rate-limit.search.refill-minutes:1}") long searchRefillMinutes,
+            @Value("${app.rate-limit.token-refresh.capacity:20}") int tokenRefreshCapacity,
+            @Value("${app.rate-limit.token-refresh.refill-minutes:1}") long tokenRefreshRefillMinutes,
+            @Value("${app.rate-limit.contact.capacity:3}") int contactCapacity,
+            @Value("${app.rate-limit.contact.refill-minutes:10}") long contactRefillMinutes
     ) {
+        this.tokenRefreshCapacity = tokenRefreshCapacity;
+        this.tokenRefreshRefillMinutes = tokenRefreshRefillMinutes;
+        this.contactCapacity = contactCapacity;
+        this.contactRefillMinutes = contactRefillMinutes;
         this.rateLimitService = rateLimitService;
         this.loginCapacity = loginCapacity;
         this.loginRefillMinutes = loginRefillMinutes;
@@ -115,6 +127,13 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
         } else if ("POST".equals(method) && path.startsWith("/api/v1/chatbot/")) {
             rateLimitService.check("chatbot-ip", clientIp, chatbotCapacity, chatbotRefillMinutes,
                     "Bạn đã gửi quá nhiều yêu cầu chatbot, hãy thử lại sau");
+        } else if ("POST".equals(method) && isTokenSessionEndpoint(path)) {
+            rateLimitService.check("token-refresh-ip", clientIp, tokenRefreshCapacity, tokenRefreshRefillMinutes,
+                    "Bạn làm mới phiên đăng nhập quá nhiều, hãy thử lại sau");
+        } else if ("POST".equals(method) && "/api/v1/contact".equals(path)) {
+            // Gui mail SMTP dong bo: bao ve quota Gmail (dung chung cho OTP).
+            rateLimitService.check("contact-user", authenticatedUserOrIp(clientIp), contactCapacity, contactRefillMinutes,
+                    "Bạn đã gửi liên hệ quá nhiều, hãy thử lại sau");
         } else if ("POST".equals(method) && "/api/v1/orders".equals(path)) {
             rateLimitService.check("order-create-user", authenticatedUserOrIp(clientIp), orderCapacity, orderRefillMinutes,
                     "Bạn đã tạo đơn hàng quá nhiều, hãy thử lại sau");
@@ -126,6 +145,11 @@ public class EndpointRateLimitFilter extends OncePerRequestFilter {
             rateLimitService.check("search-ip", clientIp, searchCapacity, searchRefillMinutes,
                     "Bạn tìm kiếm quá nhiều, hãy thử lại sau");
         }
+    }
+
+    private boolean isTokenSessionEndpoint(String path) {
+        return "/api/v1/auth/refresh".equals(path) || "/api/v1/auth/logout".equals(path)
+                || "/api/v1/admin/auth/refresh".equals(path) || "/api/v1/admin/auth/logout".equals(path);
     }
 
     private boolean isSearchRequest(HttpServletRequest request, String path) {

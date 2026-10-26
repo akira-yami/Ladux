@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { OrderItemRecord, OrderStatus, formatVND, mapProductResponseToLaptopProduct } from "../types";
 import { useOrderStore } from "../stores";
 import { ROUTES } from "../app/routePaths";
-import { requireVNPayUrl } from "../utils/paymentFlow";
+import { redirectToVNPay } from "../utils/vnpayNavigation";
 
 export interface OrdersViewProps {
     selectedOrderId?: string;
@@ -619,7 +619,7 @@ export default function OrdersView({
                                             onClick={async () => {
                                                 try {
                                                     const res = await retryPayment(Number(currentOrder.id));
-                                                    window.location.assign(requireVNPayUrl(res.paymentUrl));
+                                                    redirectToVNPay(res.paymentUrl, navigate);
                                                 } catch (err: any) {
                                                     showToast(err?.response?.data?.message || err?.message || "Lỗi khi kết nối đến VNPay.");
                                                 }

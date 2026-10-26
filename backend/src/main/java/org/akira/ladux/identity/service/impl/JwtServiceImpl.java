@@ -1,21 +1,25 @@
 package org.akira.ladux.identity.service.impl;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.UUID;
+
 import javax.crypto.SecretKey;
+
 import org.akira.ladux.identity.entity.User;
 import org.akira.ladux.identity.service.JwtService;
 import org.akira.ladux.shared.exception.BusinessRuleException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Phat hanh & xac thuc ACCESS TOKEN (JWT ngan han, stateless).
@@ -75,21 +79,46 @@ public class JwtServiceImpl implements JwtService {
                 .getPayload();
     }
 
-    private SecretKey getKey() {
-        return Keys.hmacShaKeyFor(resolveKeyBytes());
+    /** Toi thieu 256 bit entropy cho HS256; secret ngan hon co the bi brute-force offline tu mot token bat ky. */
+    static final int MIN_SECRET_BYTES = 32;
+
+    private volatile SecretKey signingKey;
+
+    /** Fail-fast khi khoi dong neu secret thieu hoac qua yeu, thay vi am tham hash secret ngan. */
+    @PostConstruct
+    void initSigningKey() {
+        signingKey = Keys.hmacShaKeyFor(resolveKeyBytes(secret));
     }
 
-    private byte[] resolveKeyBytes() {
+    private SecretKey getKey() {
+        SecretKey key = signingKey;
+        if (key == null) {
+            key = Keys.hmacShaKeyFor(resolveKeyBytes(secret));
+            signingKey = key;
+        }
+        return key;
+    }
+
+    static byte[] resolveKeyBytes(String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("app.jwt.secret (JWT_SECRET) must be configured");
+        }
         try {
-            byte[] decoded = Decoders.BASE64.decode(secret);
-            if (decoded.length >= 32) {
+            byte[] decoded = Decoders.BASE64.decode(secret.trim());
+            if (decoded.length >= MIN_SECRET_BYTES) {
                 return decoded;
             }
         } catch (RuntimeException ignored) {
-            // Fall back to hashing plain-text secrets (common in local .env files).
+            // Not Base64: treat as a plain-text secret below.
+        }
+        byte[] raw = secret.getBytes(StandardCharsets.UTF_8);
+        if (raw.length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException("app.jwt.secret must be at least " + MIN_SECRET_BYTES
+                    + " bytes (or Base64 decoding to at least " + MIN_SECRET_BYTES + " bytes)");
         }
         try {
-            return MessageDigest.getInstance("SHA-256").digest(secret.getBytes(StandardCharsets.UTF_8));
+            // Plain-text secrets of sufficient length are normalised to a 256-bit key.
+            return MessageDigest.getInstance("SHA-256").digest(raw);
         } catch (NoSuchAlgorithmException ex) {
             throw new BusinessRuleException("Khong the khoi tao JWT secret");
         }

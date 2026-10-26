@@ -1,7 +1,7 @@
 package org.akira.ladux.catalog.service.impl;
 
 import java.time.Instant;
-import lombok.RequiredArgsConstructor;
+
 import org.akira.ladux.catalog.dto.request.ReviewCreateRequest;
 import org.akira.ladux.catalog.dto.request.ReviewUpdateRequest;
 import org.akira.ladux.catalog.dto.response.ReviewResponse;
@@ -24,6 +24,8 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -113,7 +115,6 @@ public class ReviewServiceImpl implements ReviewService {
         if (request.comment() != null) {
             review.setComment(request.comment());
         }
-        review.setCreatedAt(Instant.now());
         return ReviewMapper.fromEntity(review);
     }
 

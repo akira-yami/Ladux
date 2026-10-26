@@ -54,6 +54,21 @@ Nếu chạy Spring trực tiếp từ IDE/Maven, Spring không tự đọc `bac
 
 ## Return URL và IPN khác nhau thế nào?
 
+### Frontend qua ngrok và lỗi Vite chặn hostname
+
+Nếu Return báo `Blocked request. This host ... is not allowed`, cấu hình trong `frontend/.env`:
+
+```dotenv
+VITE_API_BASE_URL=/api/v1
+LADUX_DEV_PUBLIC_URL=https://tidy-filth-sprinkled.ngrok-free.dev
+```
+
+Thay URL bằng tunnel frontend đang dùng. Vite chỉ cho phép hostname khai báo này, không bật `allowedHosts: true`. Dev server proxy `/api` và `/uploads` tới backend cổng 8080, nên trình duyệt trên ngrok không phải gọi `http://localhost:8080` khác origin. Thêm origin ngrok vào `APP_CORS_ALLOWED_ORIGINS` trong `backend/.env` (giữ các origin localhost cần dùng), rồi tạo lại container app để nạp CORS. Nếu Vite chưa tự khởi động lại sau khi sửa `.env`, chạy lại `npm run dev` trong `frontend/`.
+
+Đăng nhập và bắt đầu checkout trên **cùng hostname với `VNPAY_RETURN_URL`**. Cookie đăng nhập localhost không tự chuyển sang ngrok. Nếu vừa nhập OTP và trang kết quả bị chặn, tải lại chính URL kết quả đó sau khi sửa cấu hình; nếu cần đăng nhập, dùng cùng hostname. Không tạo thêm đơn/thanh toán khi chưa kiểm tra trạng thái đơn vừa trả tiền.
+
+Checkout đã tạo đơn trước khi chuyển sang VNPAY; backend dọn giỏ trong transaction đó. Frontend thay entry checkout trong browser history bằng Đơn hàng của tôi trước khi ra gateway. Back từ gateway quay về đơn đã tạo và có thể tiếp tục thanh toán; không dựng lại form đặt đơn 0 đồng hoặc khôi phục giỏ để tạo đơn trùng. Nếu mở checkout khi giỏ trống, giao diện hiển thị liên kết xem đơn và tiếp tục mua sắm. Giỏ chưa tải/lỗi API có trạng thái tải/thử lại riêng.
+
 | Biến | Nơi nhận | Cấu hình |
 | --- | --- | --- |
 | `VNPAY_RETURN_URL` | Trình duyệt quay lại frontend | `http://localhost:5173/payment/vnpay/return` khi dev đúng cổng 5173; dùng cùng hostname bạn đăng nhập |
@@ -78,3 +93,5 @@ Return URL chỉ dùng để kiểm tra/hiển thị kết quả. Chỉ IPN ho�
 Kiểm thử backend toàn dự án bằng Java 21: 227 tests, 1 failure và 1 error. Các test thuộc payment đều đạt (44 tests, gồm 8 integration). Hai lỗi thuộc `ProductionMigrationSmokeTest` (kỳ vọng số migration cũ) và `DiscoveryRepositoryIntegrationTest` (fixture giá âm vi phạm constraint V62 hiện có trong workspace); không sửa chúng trong đợt cấu hình VNPAY này. Báo cáo local: `output/vnpay/verify-2026-10-27.log`.
 
 Kiểm thử phân loại kết quả/URL VNPAY frontend: 5/5 đạt. Công cụ kiểm tra VNPAY và production preflight: 12/12 đạt, đã đưa vào CI. Chưa có giao dịch Sandbox qua bước ngân hàng vì merchant bị chặn tại gateway.
+
+Lần sửa Back/Return tiếp theo: TypeScript, 46 tests frontend và production build đạt. Chrome chạy fixture API riêng đạt 6 tình huống: Back về đơn PENDING, tiếp tục thanh toán không tạo đơn mới, checkout giỏ trống, Return SUCCESS, Return PENDING được QueryDR xác nhận, và lỗi tải giỏ. Đây là kiểm thử giao diện bằng fixture, không phải giao dịch ngân hàng thật. HTTP thực qua ngrok trả trang Return 200; hostname khác vẫn bị chặn 403; API proxy trả 200 với CORS đúng origin ngrok. Backend đã nạp CORS mới và healthy.

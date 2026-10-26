@@ -1,17 +1,19 @@
 package org.akira.ladux.promotion.service.impl;
 
 import java.math.BigDecimal;
-import lombok.RequiredArgsConstructor;
-import org.akira.ladux.promotion.service.result.CouponRedemptionResult;
+
 import org.akira.ladux.promotion.entity.Coupon;
 import org.akira.ladux.promotion.repository.CouponRepository;
 import org.akira.ladux.promotion.service.CouponRedemptionService;
+import org.akira.ladux.promotion.service.result.CouponRedemptionResult;
 import org.akira.ladux.shared.exception.BusinessRuleException;
 import org.akira.ladux.shared.exception.ResourceNotFoundException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 // Ap dung coupon khi tao don (commit, khong chi preview).
 // Chong double-spend: findByCodeForUpdate khoa row coupon trong transaction.
@@ -24,7 +26,7 @@ public class CouponRedemptionServiceImpl implements CouponRedemptionService {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     @CacheEvict(value = "coupons", allEntries = true)
-    public CouponRedemptionResult redeem(String couponCode, BigDecimal subTotal) {
+    public CouponRedemptionResult redeem(Integer userId, String couponCode, BigDecimal subTotal) {
         // Không nhập mã → không giảm giá, vẫn cho phép đặt hàng bình thường.
         if (couponCode == null || couponCode.isBlank()) {
             return CouponRedemptionResult.empty();
@@ -35,6 +37,11 @@ public class CouponRedemptionServiceImpl implements CouponRedemptionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay coupon voi code = " + couponCode));
 
         validateCoupon(coupon, subTotal);
+        // Dem trong khi dang giu khoa coupon -> hai checkout song song cua cung user duoc tuan tu hoa.
+        if (coupon.getPerUserLimit() != null && userId != null
+                && coupon.isPerUserLimitReached(couponRepository.countActiveUsesByUser(coupon.getId(), userId))) {
+            throw new BusinessRuleException("Ban da dung het so lan cho phep cua coupon nay");
+        }
 
         BigDecimal discountAmount = coupon.calculateDiscount(subTotal);
         coupon.setUsedCount(coupon.getUsedCount() + 1);

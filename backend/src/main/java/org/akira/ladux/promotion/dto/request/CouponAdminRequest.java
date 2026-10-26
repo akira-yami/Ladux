@@ -1,14 +1,16 @@
 package org.akira.ladux.promotion.dto.request;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+
+import org.akira.ladux.promotion.enums.DiscountType;
+
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import java.math.BigDecimal;
-import java.time.Instant;
-import org.akira.ladux.promotion.enums.DiscountType;
 
 public record CouponAdminRequest(
         @NotBlank(message = "Code khong duoc de trong")
@@ -27,6 +29,14 @@ public record CouponAdminRequest(
 
         @Positive(message = "UsageLimit phai lon hon 0")
         Integer usageLimit,
+
+        /** Tran giam toi da cho coupon PERCENT (VND). null = khong gioi han. */
+        @Positive(message = "MaxDiscountAmount phai lon hon 0")
+        BigDecimal maxDiscountAmount,
+
+        /** So lan toi da moi khach duoc dung. null = khong gioi han theo khach. */
+        @Positive(message = "PerUserLimit phai lon hon 0")
+        Integer perUserLimit,
 
         @NotNull(message = "ExpiresAt khong duoc de trong")
         @Future(message = "ExpiresAt phai nam trong tuong lai")

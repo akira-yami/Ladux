@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
+
 import org.akira.ladux.catalog.entity.ProductVariant;
 import org.akira.ladux.identity.entity.User;
 import org.akira.ladux.identity.repository.UserRepository;
@@ -12,10 +12,10 @@ import org.akira.ladux.inventory.enums.StockMovementType;
 import org.akira.ladux.inventory.enums.StockReferenceType;
 import org.akira.ladux.inventory.service.InventoryService;
 import org.akira.ladux.inventory.service.StockMovementService;
+import org.akira.ladux.inventory.service.result.LineDraft;
 import org.akira.ladux.notification.entity.Notification;
 import org.akira.ladux.notification.enums.NotificationType;
 import org.akira.ladux.notification.repository.NotificationRepository;
-import org.akira.ladux.inventory.service.result.LineDraft;
 import org.akira.ladux.ordering.dto.OrderLineRequest;
 import org.akira.ladux.ordering.dto.request.OrderRequest;
 import org.akira.ladux.ordering.dto.request.OrderStatusUpdateRequest;
@@ -33,11 +33,10 @@ import org.akira.ladux.ordering.service.OrderLifecycleService;
 import org.akira.ladux.ordering.service.OrderService;
 import org.akira.ladux.ordering.service.OrderStateMachine;
 import org.akira.ladux.payment.dto.response.PaymentCallbackResponse;
-import org.akira.ladux.payment.entity.Payment;
 import org.akira.ladux.payment.service.PaymentAttemptService;
-import org.akira.ladux.promotion.service.result.CouponRedemptionResult;
 import org.akira.ladux.promotion.entity.Coupon;
 import org.akira.ladux.promotion.service.CouponRedemptionService;
+import org.akira.ladux.promotion.service.result.CouponRedemptionResult;
 import org.akira.ladux.shared.dto.PageResponse;
 import org.akira.ladux.shared.exception.BusinessRuleException;
 import org.akira.ladux.shared.exception.ResourceNotFoundException;
@@ -49,6 +48,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 // Trung tam luong checkout — tao don tu gio hang.
 // Luong createOrder (mot transaction):
@@ -81,6 +82,24 @@ public class OrderServiceImpl implements OrderService {
     @Value("${app.order.carrier:VNPOST}")
     private String configuredCarrier;
 
+    /** Chong giu kho: COD khong co han thanh toan nen gioi han so don dang cho xu ly cua moi khach. */
+    @Value("${app.order.max-pending-per-user:5}")
+    private int maxPendingOrdersPerUser = 5;
+
+    /** So ngay toi da sau khi giao de khach yeu cau tra hang. */
+    @Value("${app.order.return-window-days:7}")
+    private int returnWindowDays = 7;
+
+    @jakarta.annotation.PostConstruct
+    void validateOrderPolicy() {
+        if (configuredShippingFee == null || configuredShippingFee.signum() < 0) {
+            throw new IllegalStateException("app.order.shipping-fee must be >= 0");
+        }
+        if (maxPendingOrdersPerUser < 1 || returnWindowDays < 0) {
+            throw new IllegalStateException("app.order.max-pending-per-user must be >= 1 and return-window-days >= 0");
+        }
+    }
+
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "orders", key = "'v2:all:' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
@@ -96,9 +115,9 @@ public class OrderServiceImpl implements OrderService {
         Order order = repo.findWithItemsById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
 
-          // Chỉ chủ đơn mới được xem đơn hàng của mình.
-          if (!order.getUser().getId().equals(userId)) {
-            throw new BusinessRuleException("Bạn không có quyền xem đơn hàng này!");
+        // Chỉ chủ đơn mới được xem; trả 404 giống đơn không tồn tại để không fffn của người khác.
+        if (!order.getUser().getId().equals(userId)) {
+            throw new ResourceNotFoundException("Không tìm thấy đơn hàng");
         }
         return OrderMapper.fromEntity(order);
     }
@@ -172,6 +191,9 @@ public class OrderServiceImpl implements OrderService {
         if (!user.isActive()) {
             throw new BusinessRuleException("Tai khoan dang bi khoa, khong the dat hang");
         }
+        if (repo.countByUserIdAndStatus(userId, OrderStatus.PENDING) >= maxPendingOrdersPerUser) {
+            throw new BusinessRuleException("Bạn đang có quá nhiều đơn hàng chờ xử lý. Vui lòng thanh toán hoặc hủy bớt đơn trước khi đặt thêm");
+        }
 
         // B3: lấy giỏ hàng của user (kèm khóa để tránh race), bắt buộc phải có hàng.
         Cart cart = cartRepository.findByUserIdForUpdate(userId)
@@ -194,9 +216,10 @@ public class OrderServiceImpl implements OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(0, RoundingMode.HALF_UP);
 
-        CouponRedemptionResult redemption = couponRedemptionService.redeem(request.couponCode(), subTotal);
+        CouponRedemptionResult redemption = couponRedemptionService.redeem(userId, request.couponCode(), subTotal);
         Coupon coupon = redemption.coupon();
-        BigDecimal discountAmount = redemption.discountAmount();
+        // Phong thu: giam gia khong bao gio am hoac vuot subTotal, ke ca khi cau hinh coupon sai.
+        BigDecimal discountAmount = redemption.discountAmount().max(BigDecimal.ZERO).min(subTotal);
         BigDecimal shippingFee = configuredShippingFee;
         String carrier = configuredCarrier;
         // B7: tính số tiền cuối cùng sau khi trừ giảm giá, đảm bảo không âm.
@@ -330,16 +353,32 @@ public class OrderServiceImpl implements OrderService {
             @CacheEvict(value = "orders", allEntries = true),
             @CacheEvict(value = "orderHistories", allEntries = true)
     })
-    public OrderResponse requestReturn(int userId, int orderId, String reason) {
-        Order order = repo.findWithItemsByIdForUpdate(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng id = " + orderId));
-
-        if (!order.getUser().getId().equals(userId)) {
-            throw new BusinessRuleException("Bạn không có quyền yêu cầu trả đơn hàng này!");
-        }
+    public OrderResponse requestReturn(int userId, int orderId, String rawReason) {
+        final String reason = rawReason == null ? null : rawReason.trim();
+        // Khoa + kiem tra chu so huu trong mot truy van; don cua nguoi khac tra 404 nhu don khong ton tai.
+        Order order = repo.findOwnedWithItemsForUpdate(userId, orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
 
         if (order.getStatus() != OrderStatus.DELIVERED) {
             throw new BusinessRuleException("Chỉ có thể yêu cầu trả hàng khi đơn hàng đã ở trạng thái ĐÃ GIAO HÀNG (DELIVERED)");
+        }
+        // Moi don chi duoc yeu cau tra mot lan; neu admin da tu choi, khach lien he CSKH thay vi spam yeu cau.
+        boolean requestedBefore = order.getHistories().stream()
+                .anyMatch(history -> history.getStatus() == OrderStatus.RETURN_REQUESTED);
+        if (requestedBefore) {
+            throw new BusinessRuleException("Đơn hàng này đã từng gửi yêu cầu trả hàng. Vui lòng liên hệ CSKH để được hỗ trợ");
+        }
+        java.time.Instant deliveredAt = order.getHistories().stream()
+                .filter(history -> history.getStatus() == OrderStatus.DELIVERED && history.getCreatedAt() != null)
+                .map(OrderHistory::getCreatedAt)
+                .max(java.util.Comparator.naturalOrder())
+                .orElse(order.getUpdatedAt());
+        if (deliveredAt != null
+                && deliveredAt.plus(java.time.Duration.ofDays(returnWindowDays)).isBefore(java.time.Instant.now())) {
+            throw new BusinessRuleException("Đã quá thời hạn " + returnWindowDays + " ngày để yêu cầu trả hàng");
+        }
+        if (reason != null && reason.length() > 500) {
+            throw new BusinessRuleException("Lý do trả hàng không được vượt quá 500 ký tự");
         }
 
         order.setStatus(OrderStatus.RETURN_REQUESTED);

@@ -36,4 +36,6 @@ RUN chown ladux:ladux /app/ladux.jar && chmod 755 /app/uploads
 USER ladux
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/ladux.jar"]
+# Heap 65% de chua cho metaspace, thread stack, direct buffer (Lettuce/HTTP client AI) trong mem_limit.
+# ExitOnOutOfMemoryError: de Docker restart container thay vi chay tiep trong trang thai hong.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=65", "-XX:+UseG1GC", "-XX:+ExitOnOutOfMemoryError", "-jar", "/app/ladux.jar"]

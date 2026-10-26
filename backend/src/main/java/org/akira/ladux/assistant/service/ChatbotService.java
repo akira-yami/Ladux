@@ -1,8 +1,10 @@
 package org.akira.ladux.assistant.service;
 
-import com.google.genai.errors.ApiException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+
+import org.akira.ladux.assistant.config.BoundedChatMemoryRepository;
 import org.akira.ladux.assistant.dto.request.ContextualChatRequest;
 import org.akira.ladux.assistant.dto.response.ContextualChatResponse;
 import org.akira.ladux.assistant.service.result.ChatbotContext;
@@ -18,12 +20,18 @@ import org.springframework.ai.retry.TransientAiException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 
+import com.google.genai.errors.ApiException;
+
 @Service
 public class ChatbotService {
     private static final Logger log = LoggerFactory.getLogger(ChatbotService.class);
     private final ChatClient chatClient;
     private final ChatbotCatalogService catalog;
-    private final ChatMemory legacyMemory = MessageWindowChatMemory.builder().build();
+    // Bounded: conversationId comes from anonymous clients, so an unbounded map is a heap DoS vector.
+    private final ChatMemory legacyMemory = MessageWindowChatMemory.builder()
+            .chatMemoryRepository(new BoundedChatMemoryRepository(2_000, Duration.ofMinutes(30)))
+            .maxMessages(20)
+            .build();
 
     public ChatbotService(ChatClient.Builder builder, ChatbotCatalogService catalog) {
         this.chatClient = builder.build();

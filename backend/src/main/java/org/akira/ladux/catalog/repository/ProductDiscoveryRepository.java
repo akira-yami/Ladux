@@ -1,6 +1,7 @@
 package org.akira.ladux.catalog.repository;
 
 import java.util.List;
+
 import org.akira.ladux.catalog.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,17 +32,22 @@ public interface ProductDiscoveryRepository extends JpaRepository<Product, Integ
      */
     @Query(value = """
             SELECT oi.product_id
-            FROM order_items oi
-            JOIN (
-                SELECT oh.order_id, MIN(oh.created_at) AS delivered_at
-                FROM order_histories oh
-                WHERE oh.status = 'DELIVERED'
-                GROUP BY oh.order_id
-            ) d ON d.order_id = oi.order_id
-            JOIN orders o ON o.id = oi.order_id AND o.status = 'DELIVERED'
+            FROM order_histories oh
+            JOIN orders o ON o.id = oh.order_id AND o.status = 'DELIVERED'
+            JOIN order_items oi ON oi.order_id = oh.order_id
             JOIN products p ON p.id = oi.product_id AND p.is_active = true
-            WHERE d.delivered_at >= NOW() - make_interval(days => :days)
-              AND d.delivered_at <= NOW()
+            WHERE oh.status = 'DELIVERED'
+              -- Loc theo khung thoi gian TRUOC khi gom nhom (dung idx_order_histories_delivered_at),
+              -- thay vi tinh MIN(created_at) tren toan bo lich su DELIVERED tu truoc den nay.
+              AND oh.created_at >= NOW() - make_interval(days => :days)
+              AND oh.created_at <= NOW()
+              -- Chi tinh moc DELIVERED dau tien cua moi don (don bi tu choi tra hang se co them dong DELIVERED).
+              AND NOT EXISTS (
+                    SELECT 1 FROM order_histories earlier
+                    WHERE earlier.order_id = oh.order_id AND earlier.status = 'DELIVERED'
+                      AND (earlier.created_at < oh.created_at
+                           OR (earlier.created_at = oh.created_at AND earlier.id < oh.id))
+              )
               AND oi.quantity > 0
               AND oi.product_id IS NOT NULL
               AND EXISTS (
