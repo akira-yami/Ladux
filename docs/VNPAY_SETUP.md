@@ -2,6 +2,8 @@
 
 **Cập nhật 27/10/2026:** đã chuyển backend dev sang merchant Sandbox mới `34U1GIZM` do chủ dự án cung cấp. Container đã được tạo lại và healthy. Probe có giữ cookie phiên nhận `PAYMENT_PAGE_REACHED`, mở được trang “Chọn phương thức thanh toán (Test)”. Chưa thực hiện bước ngân hàng hoặc xác minh giao dịch hoàn tất/IPN. Các thông báo chưa được duyệt bên dưới thuộc merchant trước khi thay cấu hình.
 
+**Môi trường thử hiện tại:** dùng `http://localhost:5173` cho phiên đăng nhập và Return VNPAY. URL ngrok vẫn dùng cho đăng ký merchant; khi mở UI ngrok trên máy này, chế độ dev chuyển trình duyệt về cùng origin local để không tách cookie. Cấu hình và kiểm thử Google/phiên đăng nhập ở phần dưới.
+
 ## Lỗi của merchant cũ: website chưa được phê duyệt
 
 Ngày 27/10/2026 (Asia/Bangkok), kiểm tra trực tiếp VNPAY Sandbox bằng cặp thông tin merchant đang dùng nhận được `MERCHANT_NOT_APPROVED` — cùng thông báo trong ảnh: **Website này chưa được phê duyệt**. Backend đang chạy có mã và secret khớp `backend/.env`; không phải thiếu biến secret. Thông báo này không chứng minh secret đúng, vì gateway có thể kiểm tra trạng thái merchant trước chữ ký.
@@ -63,9 +65,32 @@ VITE_API_BASE_URL=/api/v1
 LADUX_DEV_PUBLIC_URL=https://tidy-filth-sprinkled.ngrok-free.dev
 ```
 
-Thay URL bằng tunnel frontend đang dùng. Vite chỉ cho phép hostname khai báo này, không bật `allowedHosts: true`. Dev server proxy `/api` và `/uploads` tới backend cổng 8080, nên trình duyệt trên ngrok không phải gọi `http://localhost:8080` khác origin. Thêm origin ngrok vào `APP_CORS_ALLOWED_ORIGINS` trong `backend/.env` (giữ các origin localhost cần dùng), rồi tạo lại container app để nạp CORS. Nếu Vite chưa tự khởi động lại sau khi sửa `.env`, chạy lại `npm run dev` trong `frontend/`.
+Thay URL bằng tunnel frontend đang dùng. Vite chỉ cho phép hostname khai báo này, không bật `allowedHosts: true`. Dev server proxy `/api` và `/uploads` tới backend cổng 8080, nên trình duyệt không phải gọi API ở origin khác. Thêm origin ngrok vào `APP_CORS_ALLOWED_ORIGINS` trong `backend/.env` nếu chủ động dùng phiên ngrok (giữ các origin localhost cần dùng), rồi tạo lại container app để nạp CORS. Nếu Vite chưa tự khởi động lại sau khi sửa `.env`, chạy lại `npm run dev` trong `frontend/`.
 
-Đăng nhập và bắt đầu checkout trên **cùng hostname với `VNPAY_RETURN_URL`**. Cookie đăng nhập localhost không tự chuyển sang ngrok. Nếu vừa nhập OTP và trang kết quả bị chặn, tải lại chính URL kết quả đó sau khi sửa cấu hình; nếu cần đăng nhập, dùng cùng hostname. Không tạo thêm đơn/thanh toán khi chưa kiểm tra trạng thái đơn vừa trả tiền.
+Đăng nhập và bắt đầu checkout trên **cùng hostname với `VNPAY_RETURN_URL`**. Cookie đăng nhập localhost không tự chuyển sang ngrok. Không tạo thêm đơn/thanh toán khi chưa kiểm tra trạng thái đơn vừa trả tiền.
+
+### Giữ phiên local và sửa Google redirect_uri_mismatch
+
+Cấu hình thử ngay trên máy này trong `frontend/.env`:
+
+```dotenv
+VITE_API_BASE_URL=/api/v1
+VITE_DEV_CANONICAL_ORIGIN=http://localhost:5173
+```
+
+Trong `backend/.env`:
+
+```dotenv
+VNPAY_RETURN_URL=http://localhost:5173/payment/vnpay/return
+OAUTH2_SUCCESS_REDIRECT=http://localhost:5173/auth/oauth2/success
+OAUTH2_FAILURE_REDIRECT=http://localhost:5173/login?oauth2Error=true
+```
+
+Frontend chuyển UI ngrok về localhost trước khi khởi tạo phiên. Với liên kết thanh toán cũ, path và query được giữ nguyên (không sửa chữ ký/merchant/số tiền). Nếu một trang Return đã bị chuyển thành `/login`, đích thanh toán trong history cũng được khôi phục khi chuyển origin. Không mang token/cookie trong URL. Chức năng này chỉ chạy khi Vite ở chế độ DEV và biến canonical được cấu hình; production không bị chuyển về localhost.
+
+Proxy `/oauth2` và `/login/oauth2` dùng target `http://localhost:8080`, không dùng `127.0.0.1`. Hai hostname này tạo callback Google khác nhau. Callback local chính xác là **`http://localhost:8080/login/oauth2/code/google`**, cần khớp Authorized redirect URIs của OAuth client trong Google Cloud. Đã kiểm tra với Google thực: callback này mở được form đăng nhập, không còn `redirect_uri_mismatch`. Chưa đăng nhập Google bằng tài khoản thật trong bài kiểm tra.
+
+Nếu muốn thử từ thiết bị khác qua ngrok, để trống `VITE_DEV_CANONICAL_ORIGIN` và cấu hình Google callback, OAuth success/failure và Return cùng origin public tương ứng. Cần đăng ký URI public đó trong Google Cloud; không thể dùng callback local để giữ phiên ở một hostname ngrok khác.
 
 Checkout đã tạo đơn trước khi chuyển sang VNPAY; backend dọn giỏ trong transaction đó. Frontend thay entry checkout trong browser history bằng Đơn hàng của tôi trước khi ra gateway. Back từ gateway quay về đơn đã tạo và có thể tiếp tục thanh toán; không dựng lại form đặt đơn 0 đồng hoặc khôi phục giỏ để tạo đơn trùng. Nếu mở checkout khi giỏ trống, giao diện hiển thị liên kết xem đơn và tiếp tục mua sắm. Giỏ chưa tải/lỗi API có trạng thái tải/thử lại riêng.
 
@@ -95,3 +120,5 @@ Kiểm thử backend toàn dự án bằng Java 21: 227 tests, 1 failure và 1 e
 Kiểm thử phân loại kết quả/URL VNPAY frontend: 5/5 đạt. Công cụ kiểm tra VNPAY và production preflight: 12/12 đạt, đã đưa vào CI. Chưa có giao dịch Sandbox qua bước ngân hàng vì merchant bị chặn tại gateway.
 
 Lần sửa Back/Return tiếp theo: TypeScript, 46 tests frontend và production build đạt. Chrome chạy fixture API riêng đạt 6 tình huống: Back về đơn PENDING, tiếp tục thanh toán không tạo đơn mới, checkout giỏ trống, Return SUCCESS, Return PENDING được QueryDR xác nhận, và lỗi tải giỏ. Đây là kiểm thử giao diện bằng fixture, không phải giao dịch ngân hàng thật. HTTP thực qua ngrok trả trang Return 200; hostname khác vẫn bị chặn 403; API proxy trả 200 với CORS đúng origin ngrok. Backend đã nạp CORS mới và healthy.
+
+Lần sửa phiên đăng nhập: TypeScript, 51 tests frontend và build đạt. Chrome với cookie HttpOnly local và API fixture xác nhận Return cũ qua ngrok giữ được phiên local, hiển thị kết quả đã xác minh; đích Return trong history `/login` cũng khôi phục đúng. Google thực mở form Sign in khi đi qua proxy đã sửa. Không thực hiện đăng nhập tài khoản Google thật hoặc thanh toán ngân hàng trong smoke test này.

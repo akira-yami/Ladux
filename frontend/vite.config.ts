@@ -46,8 +46,9 @@ export default defineConfig(({ mode }) => {
     proxy: {
       '/api': { target: 'http://127.0.0.1:8080', changeOrigin: true },
       '/uploads': { target: 'http://127.0.0.1:8080', changeOrigin: true },
-      '/oauth2': { target: 'http://127.0.0.1:8080', changeOrigin: true },
-      '/login/oauth2': { target: 'http://127.0.0.1:8080', changeOrigin: true },
+      // localhost and 127.0.0.1 are different Google redirect URIs and cookie hosts.
+      '/oauth2': { target: 'http://localhost:8080', changeOrigin: true },
+      '/login/oauth2': { target: 'http://localhost:8080', changeOrigin: true },
     },
   },
 
