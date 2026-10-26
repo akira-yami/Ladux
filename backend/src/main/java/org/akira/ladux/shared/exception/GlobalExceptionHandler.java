@@ -1,25 +1,27 @@
 package org.akira.ladux.shared.exception;
 
-import jakarta.validation.ConstraintViolationException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.method.annotation.HandlerMethodValidationException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+
+import jakarta.validation.ConstraintViolationException;
 
 // Bat moi exception tu Controller va tra ErrorResponse JSON thong nhat.
 // Mapping: 404 not found, 400 validation/business rule, 401 auth, 403 access denied, 409 DB constraint, 500 fallback.
@@ -177,6 +179,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        // Domain code (vd: CAPTCHA) dung message tieng Viet co chu dich cho nguoi dung; giu nguyen.
         String message = (ex != null && ex.getMessage() != null && !ex.getMessage().isBlank()
                 && !"Access Denied".equalsIgnoreCase(ex.getMessage().trim()))
                 ? ex.getMessage()
@@ -199,6 +202,37 @@ public class GlobalExceptionHandler {
                 .message(resolveDataIntegrityMessage(ex))
                 .build();
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Cac ngoai le chuan cua Spring MVC (sai method, sai content-type, thieu header/cookie,
+     * ResponseStatusException...) da mang san HTTP status. Truoc day chung roi vao handler
+     * Exception -> 500 + log ERROR, gay bao dong gia. Tra dung status voi thong diep chung.
+     */
+    @ExceptionHandler({
+            org.springframework.web.HttpRequestMethodNotSupportedException.class,
+            org.springframework.web.HttpMediaTypeNotSupportedException.class,
+            org.springframework.web.HttpMediaTypeNotAcceptableException.class,
+            org.springframework.web.bind.ServletRequestBindingException.class,
+            org.springframework.web.ErrorResponseException.class,
+            org.springframework.web.context.request.async.AsyncRequestTimeoutException.class
+    })
+    public ResponseEntity<ErrorResponse> handleSpringWebException(Exception ex) {
+        int status = ex instanceof org.springframework.web.ErrorResponse errorResponse
+                ? errorResponse.getStatusCode().value()
+                : HttpStatus.BAD_REQUEST.value();
+        HttpStatus resolved = HttpStatus.resolve(status);
+        String reason = resolved == null ? "Error" : resolved.getReasonPhrase();
+        String message = status >= 500 ? "Đã xảy ra lỗi hệ thống" : "Yêu cầu không hợp lệ";
+        if (status >= 500) {
+            log.warn("Spring web exception mapped to {}: {}", status, ex.getClass().getSimpleName());
+        }
+        return ResponseEntity.status(status).body(ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status)
+                .error(reason)
+                .message(message)
+                .build());
     }
 
     @ExceptionHandler(Exception.class)

@@ -1,7 +1,7 @@
 package org.akira.ladux.promotion.service.impl;
 
 import java.math.BigDecimal;
-import lombok.RequiredArgsConstructor;
+
 import org.akira.ladux.promotion.dto.request.CouponAdminRequest;
 import org.akira.ladux.promotion.dto.request.CouponApplyRequest;
 import org.akira.ladux.promotion.dto.response.CouponApplyResponse;
@@ -20,6 +20,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +62,8 @@ public class CouponServiceImpl implements CouponService {
                 .discountValue(request.discountValue())
                 .minOrderValue(request.minOrderValue() == null ? BigDecimal.ZERO : request.minOrderValue())
                 .usageLimit(request.usageLimit())
+                .maxDiscountAmount(request.maxDiscountAmount())
+                .perUserLimit(request.perUserLimit())
                 .usedCount(0)
                 .expiresAt(request.expiresAt())
                 .build();
@@ -88,7 +92,16 @@ public class CouponServiceImpl implements CouponService {
             coupon.setMinOrderValue(request.minOrderValue());
         }
         if (request.usageLimit() != null) {
+            if (request.usageLimit() < coupon.getUsedCount()) {
+                throw new BusinessRuleException("UsageLimit khong duoc nho hon so luot da dung");
+            }
             coupon.setUsageLimit(request.usageLimit());
+        }
+        if (request.maxDiscountAmount() != null) {
+            coupon.setMaxDiscountAmount(request.maxDiscountAmount());
+        }
+        if (request.perUserLimit() != null) {
+            coupon.setPerUserLimit(request.perUserLimit());
         }
         if (request.expiresAt() != null) {
             coupon.setExpiresAt(request.expiresAt());

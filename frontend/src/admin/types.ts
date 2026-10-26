@@ -237,6 +237,8 @@ export interface CouponResponse {
   usageLimit: number | null;
   usedCount: number;
   expiresAt: string;
+  maxDiscountAmount: number | null;
+  perUserLimit: number | null;
 }
 
 export interface CustomerResponse {
@@ -351,6 +353,8 @@ export interface CouponRequest {
   discountValue: number;
   minOrderValue?: number | null;
   usageLimit?: number | null;
+  maxDiscountAmount?: number | null;
+  perUserLimit?: number | null;
   expiresAt: string;
 }
 export interface CustomerUpdateRequest {

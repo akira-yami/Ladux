@@ -1,7 +1,5 @@
 package org.akira.ladux.ordering.service.impl;
 
-import java.math.BigDecimal;
-import lombok.RequiredArgsConstructor;
 import org.akira.ladux.catalog.entity.ProductVariant;
 import org.akira.ladux.catalog.repository.ProductVariantRepository;
 import org.akira.ladux.identity.entity.User;
@@ -16,6 +14,9 @@ import org.akira.ladux.ordering.enums.OrderStatus;
 import org.akira.ladux.ordering.mapper.OrderMapper;
 import org.akira.ladux.ordering.repository.OrderRepository;
 import org.akira.ladux.ordering.service.OrderLifecycleService;
+import org.akira.ladux.payment.entity.Payment;
+import org.akira.ladux.payment.enums.PaymentProvider;
+import org.akira.ladux.payment.enums.PaymentStatus;
 import org.akira.ladux.promotion.entity.Coupon;
 import org.akira.ladux.promotion.repository.CouponRepository;
 import org.akira.ladux.shared.exception.BusinessRuleException;
@@ -23,6 +24,8 @@ import org.akira.ladux.shared.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 // Tach side-effect khoi state machine — xu ly hau qua khi don hang doi trang thai do thanh toan.
 // Transaction propagation = MANDATORY: bat buoc chay trong transaction cua caller (PaymentWebhook,
@@ -69,6 +72,12 @@ public class OrderLifecycleServiceImpl implements OrderLifecycleService {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void cancelOrder(Order order, String description) {
+        cancelOrder(order, description, order.getUser());
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void cancelOrder(Order order, String description, User actor) {
         // Idempotent: đã CANCELLED thì bỏ qua, không hoàn kho lần hai.
         if (order.getStatus() == OrderStatus.CANCELLED) {
             return;
@@ -79,28 +88,24 @@ public class OrderLifecycleServiceImpl implements OrderLifecycleService {
 
         releaseReservedInventory(order);
         rollbackCouponUsage(order);
-        order.getPayments().stream()
-                .filter(p -> p.getStatus() == org.akira.ladux.payment.enums.PaymentStatus.SUCCESS)
-                .forEach(p -> p.setRequiresReview(true));
+        for (Payment payment : order.getPayments()) {
+            if (payment.getStatus() == PaymentStatus.SUCCESS) {
+                // Tien da thu -> bat buoc doi soat/hoan tien thu cong.
+                payment.setRequiresReview(true);
+            } else if (payment.getStatus() == PaymentStatus.PENDING && payment.getProvider() == PaymentProvider.COD) {
+                // COD khong co cong thanh toan: dong attempt de bao cao "cho thanh toan" khong tinh don da huy.
+                // VNPay PENDING duoc giu nguyen de job doi soat van truy van va phat hien tien ve tre.
+                payment.setStatus(PaymentStatus.FAILED);
+            }
+        }
         order.setStatus(OrderStatus.CANCELLED);
         order.setPaymentExpiresAt(null);
         order.getHistories().add(OrderHistory.builder()
                 .order(order)
-                .user(order.getUser())
+                .user(actor == null ? order.getUser() : actor)
                 .status(OrderStatus.CANCELLED)
                 .description(description)
                 .build());
-    }
-
-    // Hoàn tiền cho khách (qua refundPayment) khi đơn đã RETURNED. Không hoàn kho nữa.
-    @Override
-    @Transactional
-    public void refundOrder(Order order, String description) {
-        if (order.getStatus() != OrderStatus.RETURNED) {
-            throw new BusinessRuleException("Chỉ hoàn tiền cho đơn đã được trả lại");
-        }
-        // Logic để hoàn tiền (ví dụ: gọi API thanh toán)
-        BigDecimal refundAmount = order.getFinalAmount();
     }
 
     // Hoan ton kho khi huy don: cong lai so luong da tru luc checkout, ghi so cai RETURN_IN (chi ghi so).

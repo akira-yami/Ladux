@@ -3,6 +3,7 @@ package org.akira.ladux.promotion.dto.response;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
+
 import org.akira.ladux.promotion.enums.DiscountType;
 
 public record CouponResponse(
@@ -13,6 +14,8 @@ public record CouponResponse(
         BigDecimal minOrderValue,
         Integer usageLimit,
         int usedCount,
-        Instant expiresAt
+        Instant expiresAt,
+        BigDecimal maxDiscountAmount,
+        Integer perUserLimit
 ) implements Serializable {
 }

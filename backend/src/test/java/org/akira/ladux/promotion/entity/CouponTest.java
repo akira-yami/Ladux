@@ -1,13 +1,15 @@
 package org.akira.ladux.promotion.entity;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import org.akira.ladux.promotion.enums.DiscountType;
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
+import org.akira.ladux.promotion.enums.DiscountType;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test cho domain logic cua Coupon — KHONG can DB, chay rat nhanh.
@@ -54,6 +56,37 @@ class CouponTest {
         // Giam co dinh 5000 nhung don chi 1000 -> giam toi da bang subTotal (khong am tien).
         Coupon c = coupon(DiscountType.FIXED_AMOUNT, "5000", "0", null, 0, future());
         assertEquals(0, new BigDecimal("1000.00").compareTo(c.calculateDiscount(new BigDecimal("1000.00"))));
+    }
+
+    @Test
+    void percentDiscount_isRoundedDownToWholeVnd() {
+        // 15% cua 12.345 = 1.851,75 -> 1.851 VND (khong giu so le, tranh lech tong tien don).
+        Coupon c = coupon(DiscountType.PERCENT, "15", "0", null, 0, future());
+        BigDecimal discount = c.calculateDiscount(new BigDecimal("12345"));
+        assertEquals(0, new BigDecimal("1851").compareTo(discount));
+        assertEquals(0, discount.scale());
+    }
+
+    @Test
+    void percentDiscount_isCappedByMaxDiscountAmount() {
+        Coupon c = coupon(DiscountType.PERCENT, "50", "0", null, 0, future());
+        c.setMaxDiscountAmount(new BigDecimal("200000"));
+        assertEquals(0, new BigDecimal("200000").compareTo(c.calculateDiscount(new BigDecimal("10000000"))));
+    }
+
+    @Test
+    void discount_isZeroForNonPositiveSubTotal() {
+        Coupon c = coupon(DiscountType.FIXED_AMOUNT, "5000", "0", null, 0, future());
+        assertEquals(0, BigDecimal.ZERO.compareTo(c.calculateDiscount(BigDecimal.ZERO)));
+    }
+
+    @Test
+    void perUserLimit_nullMeansUnlimitedPerCustomer() {
+        Coupon c = coupon(DiscountType.PERCENT, "10", "0", null, 0, future());
+        assertFalse(c.isPerUserLimitReached(1000));
+        c.setPerUserLimit(1);
+        assertFalse(c.isPerUserLimitReached(0));
+        assertTrue(c.isPerUserLimitReached(1));
     }
 
     @Test

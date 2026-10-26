@@ -1,5 +1,17 @@
 package org.akira.ladux.promotion.entity;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.akira.ladux.ordering.entity.Order;
+import org.akira.ladux.promotion.enums.DiscountType;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -10,22 +22,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.akira.ladux.ordering.entity.Order;
-import org.akira.ladux.promotion.enums.DiscountType;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "coupons")
@@ -58,6 +60,10 @@ public class Coupon {
     private BigDecimal minOrderValue = BigDecimal.ZERO;
 
     private Integer usageLimit;
+
+    /** So lan toi da moi khach duoc dung (tinh tren don chua huy). null = khong gioi han rieng theo khach. */
+    @Column(name = "per_user_limit")
+    private Integer perUserLimit;
 
     @Builder.Default
     @Column(nullable = false)
@@ -97,15 +103,29 @@ public class Coupon {
         return subTotal.compareTo(min) < 0;
     }
 
-    /** Tinh so tien duoc giam, khong vuot qua subTotal, lam tron 2 chu so. */
+    /**
+     * Tinh so tien duoc giam theo VND (scale 0), khong am va khong vuot qua subTotal.
+     * Lam tron xuong de subTotal - discount + shipping luon bang dung finalAmount da luu
+     * (truoc day discount giu 2 chu so thap phan trong khi finalAmount lam tron VND -> lech so).
+     */
     public BigDecimal calculateDiscount(BigDecimal subTotal) {
+        if (subTotal == null || subTotal.signum() <= 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal discount;
         if (discountType == DiscountType.PERCENT) {
-            BigDecimal discount = subTotal.multiply(discountValue).divide(ONE_HUNDRED, 2, RoundingMode.HALF_UP);
+            discount = subTotal.multiply(discountValue).divide(ONE_HUNDRED, 0, RoundingMode.DOWN);
             if (maxDiscountAmount != null && discount.compareTo(maxDiscountAmount) > 0) {
                 discount = maxDiscountAmount;
             }
-            return discount;
+        } else {
+            discount = discountValue;
         }
-        return discountValue.min(subTotal).setScale(2, RoundingMode.HALF_UP);
+        return discount.min(subTotal).max(BigDecimal.ZERO).setScale(0, RoundingMode.DOWN);
+    }
+
+    /** Khach da dung du so lan cho phep. */
+    public boolean isPerUserLimitReached(long usesByUser) {
+        return perUserLimit != null && usesByUser >= perUserLimit;
     }
 }

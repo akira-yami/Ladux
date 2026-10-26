@@ -1,9 +1,9 @@
 package org.akira.ladux.ordering.repository;
 
-import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
 import org.akira.ladux.ordering.entity.Order;
 import org.akira.ladux.ordering.enums.OrderStatus;
 import org.springframework.data.domain.Page;
@@ -14,6 +14,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import jakarta.persistence.LockModeType;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
@@ -69,14 +71,19 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT o FROM Order o WHERE o.id = :orderId AND o.user.id = :userId")
     Optional<Order> findOwnedWithItemsForUpdate(@Param("userId") int userId, @Param("orderId") int orderId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    /**
+     * Chi lay ID (khong khoa) de job het han xu ly tung don trong transaction rieng:
+     * mot don loi khong lam rollback ca lo va khong giu khoa 50 dong suot vong lap.
+     */
     @Query("""
-            select o
+            select o.id
             from Order o
             where o.status = :status
               and o.paymentExpiresAt is not null
-              and o.paymentExpiresAt <= :now
-            order by o.id
+              and o.paymentExpiresAt <= :cutoff
+            order by o.paymentExpiresAt, o.id
             """)
-    List<Order> findExpiredOrdersForUpdate(@Param("status") OrderStatus status, @Param("now") Instant now, Pageable pageable);
+    List<Integer> findExpiredOrderIds(@Param("status") OrderStatus status, @Param("cutoff") Instant cutoff, Pageable pageable);
+
+    long countByUserIdAndStatus(Integer userId, OrderStatus status);
 }
