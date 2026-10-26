@@ -7,6 +7,7 @@ import { env } from "../../config/env";
 import type { ChatbotProduct } from "../../services/chatbotService";
 import { contextVariantIds } from "./chatbotContext";
 import { chatbotService } from "../../services";
+import ChatbotMessage from "./ChatbotMessage";
 
 interface Message {
     id: string;
@@ -145,7 +146,7 @@ export default function AIChatbot() {
 
             {/* EXPANDED CHATBOT WINDOW */}
             {isOpen && (
-                <div className="flex h-[min(580px,calc(100dvh-40px))] w-[340px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-[22px] border border-sky-100 bg-white shadow-sm animate-in fade-in zoom-in-95 duration-200 sm:w-[350px]">
+                <div className="flex h-[min(580px,calc(100dvh-40px))] w-[calc(100vw-40px)] max-w-[420px] flex-col overflow-hidden rounded-[22px] border border-sky-100 bg-white shadow-sm animate-in fade-in zoom-in-95 duration-200">
 
                     {/* CHAT HEADER */}
                     <div className="flex items-center justify-between border-b border-sky-100 bg-white px-4 py-3 text-slate-800 shadow-sm">
@@ -183,15 +184,13 @@ export default function AIChatbot() {
                     </div>}
 
                     {/* CHAT MESSAGES BODY */}
-                    <div className="flex-1 w-full max-w-full space-y-3.5 overflow-y-auto bg-white p-3 custom-scrollbar">
+                    <div className="min-h-0 flex-1 w-full max-w-full space-y-3.5 overflow-y-auto bg-white p-3 custom-scrollbar">
                         {messages.map((msg) => (
                             <div key={msg.id} className="space-y-2 w-full max-w-full overflow-hidden">
                                 {msg.sender === "bot" ? (
-                                    <div className="flex w-full max-w-[94%] justify-start">
-                                        <div className="w-full overflow-hidden rounded-[17px] rounded-tl-[5px] border border-sky-100 bg-white p-3 text-[13px] leading-[1.55] text-slate-700 shadow-sm">
-                                            <p className="whitespace-pre-line break-words overflow-wrap-anywhere">
-                                                {msg.text}
-                                            </p>
+                                    <div className="flex min-w-0 w-full justify-start">
+                                        <div className="min-w-0 w-full overflow-hidden rounded-[17px] rounded-tl-[5px] border border-sky-100 bg-white p-3 text-[13px] leading-[1.55] text-slate-700 shadow-sm">
+                                            <ChatbotMessage text={msg.text} />
 
                                             {/* Product Suggestions Cards */}
                                             {msg.products && msg.products.length > 0 && (

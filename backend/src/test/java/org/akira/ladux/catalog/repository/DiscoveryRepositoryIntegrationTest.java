@@ -5,6 +5,7 @@ import java.util.List;
 import org.akira.ladux.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,6 +54,13 @@ class DiscoveryRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     void invalidPriceLeadersDoNotConsumeTheLimitedSearchFeaturedOrBestSellerSlots() {
         String name = "priceguard" + UUID.randomUUID().toString().replace("-", "");
+        // Recreate pre-V62 legacy prices, then restore the exact production CHECK before querying.
+        // This test's transaction rolls back both the fixture and the schema changes.
+        String priceRangeCheck = jdbc.queryForObject("""
+                SELECT pg_get_constraintdef(oid) FROM pg_constraint
+                WHERE conrelid = 'product_variants'::regclass AND conname = 'ck_pv_discount_price_range'
+                """, String.class);
+        jdbc.execute("ALTER TABLE product_variants DROP CONSTRAINT ck_pv_discount_price_range");
         // All names match exactly, so the older invalid rows would win suggestion ties.
         for (int index = 0; index < 5; index++) {
             int invalid = product(name);
@@ -62,6 +70,7 @@ class DiscoveryRepositoryIntegrationTest extends AbstractIntegrationTest {
             jdbc.update("UPDATE products SET created_at = NOW() + INTERVAL '2 days' WHERE id = ?", invalid);
             sale(invalid, "DELIVERED", 20000 + index, 1);
         }
+        jdbc.execute("ALTER TABLE product_variants ADD CONSTRAINT ck_pv_discount_price_range " + priceRangeCheck);
         int valid = product(name);
         jdbc.update("UPDATE products SET created_at = NOW() + INTERVAL '1 day' WHERE id = ?", valid);
         sale(valid, "DELIVERED", 10000, 1);
@@ -69,6 +78,9 @@ class DiscoveryRepositoryIntegrationTest extends AbstractIntegrationTest {
         assertEquals(List.of(valid), discovery.findSuggestionProductIds(name, name + "%", "%" + name + "%", 5));
         assertEquals(valid, discovery.findFeaturedProductIds(5).getFirst());
         assertEquals(valid, discovery.findBestSellerProductIds(30, 5).getFirst());
+        // Legacy rows remain queryable, but V62 must still reject new negative discounts.
+        assertThrows(DataIntegrityViolationException.class, () -> jdbc.update(
+                "UPDATE product_variants SET discount_price = -100 WHERE product_id = ?", valid));
     }
 
     @Test

@@ -85,6 +85,10 @@ public class ChatbotService {
                     Không tự tạo giá, ID, tồn kho hoặc điểm phù hợp. Không ghi giá, ID hoặc SKU trong phần diễn giải;
                     giá hiện tại và liên kết cấu hình sẽ được hệ thống hiển thị riêng. Không truy cập hay suy đoán đơn hàng,
                     tài khoản hoặc dữ liệu cá nhân. Không dùng giá/thông số từ các tin nhắn trước thay cho dữ liệu hiện tại.
+                    Trình bày bằng Markdown dễ đọc: đoạn ngắn, in đậm ý chính, danh sách khi cần liệt kê.
+                    Khi so sánh từ hai cấu hình và có thông số phù hợp, dùng bảng Markdown có hàng tiêu đề và hàng
+                    phân cách; tối đa bốn cột, nội dung ô ngắn gọn, dữ liệu thiếu ghi 'Chưa đủ dữ liệu'.
+                    Chỉ dùng bảng khi giúp so sánh rõ hơn. Không dùng HTML, không bọc toàn bộ câu trả lời trong khối mã.
                     DỮ LIỆU SẢN PHẨM ĐÃ XÁC THỰC:
                     %s
                     """.formatted(context.description())).user(query);

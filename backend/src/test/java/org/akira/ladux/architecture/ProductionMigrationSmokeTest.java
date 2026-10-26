@@ -71,11 +71,16 @@ class ProductionMigrationSmokeTest {
                         """);
             }
 
-            var result = Flyway.configure()
+            var flyway = Flyway.configure()
                     .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
-                    .locations("classpath:db/migration").load().migrate();
+                    .locations("classpath:db/migration").load();
+            int pendingMigrations = flyway.info().pending().length;
+            assertTrue(pendingMigrations > 0);
+            var result = flyway.migrate();
             assertTrue(result.success);
-            assertEquals(7, result.migrationsExecuted); // V52, V56–V61
+            assertEquals(pendingMigrations, result.migrationsExecuted);
+            assertEquals(0, flyway.info().pending().length);
+            flyway.validate();
             try (var connection = DriverManager.getConnection(
                     postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
                  var statement = connection.createStatement()) {
