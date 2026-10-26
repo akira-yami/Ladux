@@ -4,7 +4,8 @@ import { CheckCircle2, XCircle, Loader2, RefreshCw, ShoppingBag, Clock3, AlertCi
 import { paymentService, orderService, type PaymentCallbackResponse } from "../services";
 import { formatVND } from "../types";
 import { ROUTES } from "../app/routePaths";
-import { parseVNPayReturn, paymentOutcome, requireVNPayUrl } from "../utils/paymentFlow";
+import { parseVNPayReturn, paymentOutcome } from "../utils/paymentFlow";
+import { redirectToVNPay } from "../utils/vnpayNavigation";
 
 const copy = {
     success: { title: "Thanh toán thành công", description: "Đơn hàng đã được xác nhận thanh toán. Bạn có thể theo dõi tiến trình trong đơn hàng.", Icon: CheckCircle2 },
@@ -77,7 +78,7 @@ export default function VNPayReturnView() {
         setError(null);
         try {
             const result = await orderService.retryPayment(payment.orderId);
-            window.location.assign(requireVNPayUrl(result.paymentUrl));
+            redirectToVNPay(result.paymentUrl, navigate);
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Không thể tạo liên kết thanh toán lại.");
             setRetrying(false);
